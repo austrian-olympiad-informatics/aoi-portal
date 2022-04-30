@@ -1,0 +1,5 @@
+Hallo {{ first_name }},
+
+Um diese neue Emailadresse ({{ new_email }}) zu aktivieren, folge bitte diesem Link
+
+{{ confirm_url }}
