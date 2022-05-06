@@ -1,13 +1,15 @@
 import os
 import argparse
+from pathlib import Path
 import sys
 from aoiportal.auth_util import hash_password
 
 from aoiportal.factory import create_app
 from aoiportal.models import db, User
-from aoiportal.config import DevelopmentConfig
+from aoiportal.config import DevelopmentDefaultConfig
 
-app = create_app(DevelopmentConfig)
+config_file = Path(__file__).parent / "config" / "dev.json"
+app = create_app(DevelopmentDefaultConfig, str(config_file))
 
 parser = argparse.ArgumentParser("aoiportal")
 subparsers = parser.add_subparsers(help="action", dest="action")
