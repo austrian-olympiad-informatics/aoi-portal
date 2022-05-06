@@ -1,6 +1,7 @@
 import json
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
+from pathlib import Path
 
 from aoiportal import error
 from aoiportal.admin import admin_bp
@@ -16,7 +17,8 @@ def create_app(base_config_obj, config_file):
     app = Flask(package, instance_relative_config=True)
 
     app.config.from_object(base_config_obj)
-    app.config.from_file(config_file, load=json.load)
+    if Path(config_file).is_file():
+        app.config.from_file(config_file, load=json.load)
 
     db.init_app(app)
     mail.init_app(app)
