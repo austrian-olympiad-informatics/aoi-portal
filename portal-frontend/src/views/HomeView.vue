@@ -7,6 +7,8 @@
             alt="Informatikolympiade Logo"
             src="@/assets/logo-big.png"
             class="aoi-logo"
+            width="300"
+            height="300"
           />
           <h1 class="title">Österreichische Informatikolympiade</h1>
           <h2 class="subtitle">

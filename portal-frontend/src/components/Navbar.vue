@@ -6,6 +6,8 @@
           alt="Informatikolympiade Logo"
           src="@/assets/logo.png"
           class="aoi-logo"
+          width="48"
+          height="48"
         />
         <span class="aoi-logo-text">Informatikolympiade</span>
       </b-navbar-item>
