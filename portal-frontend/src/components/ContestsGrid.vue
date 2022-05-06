@@ -1,7 +1,7 @@
 <template>
   <div class="contests-container">
     <div v-for="contest in contests" :key="contest.uuid">
-      <contest-card :contest="contest" />
+      <contest-card :contest="contest" @joined="loadContests" />
     </div>
   </div>
 </template>

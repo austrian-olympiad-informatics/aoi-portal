@@ -57,6 +57,7 @@ export default class ContestCard extends Vue {
 
   async joinContest() {
     await contests.joinContest(this.contest.uuid);
+    this.$emit("joined");
   }
 }
 
