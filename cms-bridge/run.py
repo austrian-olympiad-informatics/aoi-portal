@@ -1,11 +1,13 @@
 import os
 import argparse
 import sys
+from pathlib import Path
 
 from cmsbridge.factory import create_app
-from cmsbridge.config import DevelopmentConfig
+from cmsbridge.config import DevelopmentDefaultConfig
 
-app = create_app(DevelopmentConfig)
+config_file = Path(__file__).parent / "config" / "dev.json"
+app = create_app(DevelopmentDefaultConfig, str(config_file))
 
 parser = argparse.ArgumentParser("cmsbridge")
 subparsers = parser.add_subparsers(help="action", dest="action")

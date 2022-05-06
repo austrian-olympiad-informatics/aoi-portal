@@ -1,21 +1,14 @@
-import os
-from pathlib import Path
 
-basedir = Path(__file__).parent.parent.resolve()
-
-class Config:
-    FLASK_ENV = 'development'
-    DEBUG = False
+class DefaultConfig:
     TESTING = False
-
-    SECRET_KEY = os.getenv('SECRET_KEY', default='A very terrible secret key.')
     
 
-class DevelopmentConfig(Config):
+class DevelopmentDefaultConfig(DefaultConfig):
+    FLASK_ENV = 'development'
     DEBUG = True
+    SECRET_KEY = 'A very terrible secret key.'
 
-class TestingConfig(Config):
-    TESTING = True
 
-class ProductionConfig(Config):
+class ProductionDefaultConfig(DefaultConfig):
     FLASK_ENV = 'production'
+    DEBUG = False
