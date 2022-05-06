@@ -2,18 +2,15 @@ import Vue from "vue";
 import App from "./App.vue";
 import router from "./router";
 import Buefy from "buefy";
-import "buefy/dist/buefy.css";
+import "@mdi/font/css/materialdesignicons.css";
+import store from "./store";
+import '@/scss/style.scss';
 
 Vue.use(Buefy);
 Vue.config.productionTip = false;
 
-Vue.mixin({
-  data: () => {
-    
-  }
-});
-
 new Vue({
   router,
+  store,
   render: (h) => h(App),
 }).$mount("#app");

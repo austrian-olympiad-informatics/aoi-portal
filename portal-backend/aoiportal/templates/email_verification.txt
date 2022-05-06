@@ -1,5 +1,0 @@
-Hallo {{ first_name }},
-
-Bitte klicke auf diesen Link um deinen Account zu aktivieren:
-
-{{ confirm_url }}

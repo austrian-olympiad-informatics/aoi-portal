@@ -1,18 +1,27 @@
-from typing import Union
 import functools
+from typing import Optional, Union
 
-from flask import Response, jsonify, request
-from werkzeug.exceptions import BadRequest
 import voluptuous as vol
+from flask import Response, jsonify, request
 from voluptuous.humanize import humanize_error
+
+from aoiportal.error import ERROR_VALIDATION_ERROR, AOIBadRequest
 
 SchemaType = Union[vol.Schema, list, dict]
 
 
-def json_request(schema: SchemaType):
+def json_api(schema: Optional[SchemaType] = None):
+    if schema is not None:
+        a = _json_request(schema)
+        b = _json_response()
+        return lambda fn: a(b(fn))
+    return _json_response()
+
+
+def _json_request(schema: SchemaType):
     if not isinstance(schema, vol.Schema):
         schema = vol.Schema(schema)
-    
+
     def decorator(fn):
         @functools.wraps(fn)
         def patched(*args, **kwargs):
@@ -21,7 +30,7 @@ def json_request(schema: SchemaType):
                 data = schema(request_data)
             except vol.Invalid as err:
                 msg = humanize_error(request_data, err)
-                raise BadRequest(msg)
+                raise AOIBadRequest(msg, error_code=ERROR_VALIDATION_ERROR)
             return fn(*args, data, **kwargs)
 
         return patched
@@ -29,7 +38,7 @@ def json_request(schema: SchemaType):
     return decorator
 
 
-def json_response():
+def _json_response():
     def decorator(fn):
         @functools.wraps(fn)
         def patched(*args, **kwargs):
@@ -43,6 +52,7 @@ def json_response():
             return ret
 
         return patched
+
     return decorator
 
 

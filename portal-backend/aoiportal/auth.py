@@ -1,331 +1,441 @@
-from datetime import timedelta
+import hmac
 import secrets
-from sqlalchemy.exc import IntegrityError
-from flask import Blueprint, render_template, current_app
-from flask_login import LoginManager, current_user, login_user, login_required, logout_user
-import voluptuous as vol
-from werkzeug.exceptions import Conflict, BadRequest, NotFound, Unauthorized
+from datetime import timedelta
 from typing import Optional
+from uuid import uuid4
 
-from aoiportal.models import db, User, UserEmailVerificationCode, UserPasswordResetCode
-from aoiportal.utils import utcnow, as_utc
-from aoiportal.web_utils import json_request, json_response
-from aoiportal.const import KEY_EMAIL, KEY_FIRST_NAME, KEY_LAST_NAME, KEY_PASSWORD, KEY_TOKEN, KEY_OLD_PASSWORD, KEY_NEW_PASSWORD
+import voluptuous as vol
+from flask import Blueprint, render_template
+from sqlalchemy.exc import IntegrityError
+
+from aoiportal.auth_util import (
+    check_password,
+    create_session,
+    get_current_session,
+    get_current_user,
+    hash_password,
+    invalidate_session,
+    login_required,
+)
+from aoiportal.const import (
+    KEY_EMAIL,
+    KEY_FIRST_NAME,
+    KEY_LAST_NAME,
+    KEY_NEW_PASSWORD,
+    KEY_OLD_PASSWORD,
+    KEY_PASSWORD,
+    KEY_UUID,
+    KEY_VERIFICATION_CODE,
+)
+from aoiportal.error import (
+    AOIBadRequest,
+    AOIConflict,
+    AOINotFound,
+    AOIUnauthorized,
+)
 from aoiportal.mail import send_email
+from aoiportal.models import (
+    User,
+    UserEmailChangeRequest,
+    UserPasswordResetRequest,
+    UserRegisterRequest,
+    db,
+)
+from aoiportal.utils import as_utc, utcnow
+from aoiportal.web_utils import json_api
 
-login_manager = LoginManager()
 auth_bp = Blueprint("auth", __name__)
 
 SET_PASSWORD_SCHEMA = vol.All(str, vol.Length(min=8))
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-
-@login_manager.unauthorized_handler
-def unauthorized():
-    raise Unauthorized("Need to log in first")
-
 
 @auth_bp.route("/api/auth/login", methods=["POST"])
-@json_request({
-    vol.Required(KEY_EMAIL): vol.Email(),
-    vol.Required(KEY_PASSWORD): str,
-})
-@json_response()
+@json_api(
+    {
+        vol.Required(KEY_EMAIL): vol.Email(),
+        vol.Required(KEY_PASSWORD): str,
+    }
+)
 def login(data):
-    if current_user.is_authenticated:
-        raise BadRequest("Already logged in")
-    
+    if get_current_user() is not None:
+        raise AOIBadRequest("Already logged in")
+
     user: Optional[User] = User.query.filter_by(email=data[KEY_EMAIL]).first()
     if user is None:
-        raise NotFound("User does not exist")
-    if not user.has_password or not user.check_password(data[KEY_PASSWORD]):
-        raise Unauthorized("Invalid password")
-    if not user.email_confirmed:
-        raise Unauthorized("Email address not confirmed yet")
-    user.last_login = utcnow()
+        raise AOINotFound("User does not exist")
+    if user.password_hash is None or not check_password(
+        data[KEY_PASSWORD], user.password_hash
+    ):
+        raise AOIUnauthorized("Invalid password")
     db.session.commit()
-    login_user(user)
+    _, token = create_session(user)
     return {
-        "success": True
+        "success": True,
+        "token": token,
     }
 
 
 @auth_bp.route("/api/auth/status")
-@json_response()
+@json_api()
 def auth_status():
+    u = get_current_user()
+    if u is None:
+        return {
+            "authenticated": False,
+            "admin": False
+        }
     return {
-        "authenticated": current_user.is_authenticated,
-        "admin": current_user.is_admin if current_user.is_authenticated else False,
+        "authenticated": True,
+        "admin": u.is_admin,
+        "first_name": u.first_name,
+        "last_name": u.last_name,
     }
 
 
 @auth_bp.route("/api/auth/logout", methods=["POST"])
 @login_required
-@json_response()
+@json_api()
 def logout():
-    logout_user()
-    return {
-        "success": True
-    }
+    invalidate_session(get_current_session())
+    return {"success": True}
 
 
-def send_email_verification_code(user: User) -> None:
-    token = secrets.token_urlsafe(32)
-    email_verification_code = UserEmailVerificationCode(
-        user=user,
-        token=token,
-        valid_until=utcnow() + timedelta(hours=3),
-        email=user.email,
-    )
-    db.session.add(email_verification_code)
-    db.session.commit()
-
-    base_url = current_app.config["BASE_URL"]
-    # TODO
-    confirm_url = f"{base_url}/verify-email/{token}"
-    kwargs = {
-        "first_name": user.first_name,
-        "confirm_url": confirm_url
-    }
+def send_email_verification_code(user: UserRegisterRequest) -> None:
+    code = user.verification_code
+    kwargs = {"first_name": user.first_name, "verification_code": code}
     content_html = render_template("email_verification.html", **kwargs)
-    body_txt = render_template("email_verification.txt", **kwargs)
     send_email(
-        user.email, "Aktiviere deinen informatikolympiade Account",
-        body_txt, content_html
+        user.email,
+        f"{code} ist dein Informatikolympiade Verifizierungscode",
+        content_html,
     )
 
 
-def send_change_email_verification_code(user: User, new_email: str) -> None:
-    token = secrets.token_urlsafe(32)
-    email_verification_code = UserEmailVerificationCode(
-        user=user,
-        token=token,
-        valid_until=utcnow() + timedelta(hours=3),
-        email=new_email,
-    )
-    db.session.add(email_verification_code)
-    db.session.commit()
-
-    base_url = current_app.config["BASE_URL"]
-    # TODO
-    confirm_url = f"{base_url}/verify-email/{token}"
-    kwargs = {
-        "first_name": user.first_name,
-        "new_email": new_email,
-        "confirm_url": confirm_url
-    }
+def send_email_change_verification_code(req: UserEmailChangeRequest) -> None:
+    code = req.verification_code
+    kwargs = {"first_name": req.user.first_name, "verification_code": code}
     content_html = render_template("email_change.html", **kwargs)
-    body_txt = render_template("email_change.txt", **kwargs)
     send_email(
-        user.email, "Änderung deiner Emailadresse",
-        body_txt, content_html
+        req.new_email,
+        "Informatikolympiade Änderung E-Mail-Adresse",
+        content_html,
     )
 
 
-def send_password_reset_email(user: User) -> None:
-    token = secrets.token_urlsafe(32)
-    email_verification_code = UserPasswordResetCode(
-        user=user,
-        token=token,
-        valid_until=utcnow() + timedelta(hours=3),
-    )
-    db.session.add(email_verification_code)
-    db.session.commit()
-
-    base_url = current_app.config["BASE_URL"]
-    # TODO
-    confirm_url = f"{base_url}/reset-password/{token}"
-    kwargs = {
-        "first_name": user.first_name,
-        "confirm_url": confirm_url
-    }
+def send_password_reset_verification_code(req: UserPasswordResetRequest) -> None:
+    code = req.verification_code
+    kwargs = {"first_name": req.user.first_name, "verification_code": code}
     content_html = render_template("password_reset.html", **kwargs)
-    body_txt = render_template("password_reset.txt", **kwargs)
     send_email(
-        user.email, "Passwort zurücksetzen",
-        body_txt, content_html
+        req.user.email,
+        "Informatikolympiade Passwort Zurücksetzen",
+        content_html,
     )
 
 
 @auth_bp.route("/api/auth/register", methods=["POST"])
-@json_request({
-    vol.Required(KEY_EMAIL): vol.Email(),
-    vol.Required(KEY_FIRST_NAME): vol.All(str, vol.Length(min=1)),
-    vol.Required(KEY_LAST_NAME): vol.All(str, vol.Length(min=1)),
-    vol.Required(KEY_PASSWORD): SET_PASSWORD_SCHEMA,
-})
-@json_response()
+@json_api(
+    {
+        vol.Required(KEY_EMAIL): vol.Email(),
+        vol.Required(KEY_FIRST_NAME): vol.All(str, vol.Length(min=1)),
+        vol.Required(KEY_LAST_NAME): vol.All(str, vol.Length(min=1)),
+        vol.Required(KEY_PASSWORD): SET_PASSWORD_SCHEMA,
+    }
+)
 def register(data):
     existing_user: Optional[User] = User.query.filter_by(email=data[KEY_EMAIL]).first()
     if existing_user is not None:
-        if existing_user.email_confirmed:
-            raise Conflict("A user with that email already exists, resend confirmation mail?")
-        raise Conflict("A user with that email already exists")
+        raise AOIConflict("A user with that email already exists")
 
-    try:
-        user = User(
-            email=data[KEY_EMAIL],
-            first_name=data[KEY_FIRST_NAME],
-            last_name=data[KEY_LAST_NAME],
-        )
-        user.set_password(data[KEY_PASSWORD])
-        user.last_password_change_at = utcnow()
-        db.session.add(user)
-        db.session.commit()
-    except IntegrityError:
-        db.session.rollback()
-        raise Conflict("A user with that email already exists")
-
-    send_email_verification_code(user)
-    return {
-        "success": True
-    }
-
-
-@auth_bp.route("/api/auth/request-verification-code", methods=["POST"])
-@json_request({
-    vol.Required(KEY_EMAIL): vol.Email(),
-})
-@json_response()
-def request_verification_code(data):
-    user: Optional[User] = User.query.filter_by(email=data[KEY_EMAIL]).first()
-    if user is None:
-        raise NotFound("User not found")
-    if user.email_confirmed:
-        raise BadRequest("Email already verified")
-    
-    send_email_verification_code(user)
-    return {
-        "success": True
-    }
-
-
-@auth_bp.route("/api/auth/verify-email", methods=["POST"])
-@json_request({
-    vol.Required(KEY_TOKEN): str,
-})
-@json_response()
-def verify_email(data):
-    # Handles both first email verification and email changes
-    token = data[KEY_TOKEN]
-    obj: Optional[UserEmailVerificationCode] = UserEmailVerificationCode.query.filter_by(token=token).first()
-    if obj is None:
-        raise BadRequest("Invalid token")
-    
     now = utcnow()
-    if now > as_utc(obj.valid_until):
-        raise BadRequest("Token is no longer valid")
-    if (
-        obj.email != obj.user.email
-        and obj.user.last_email_confirmed_at is not None
-        and as_utc(obj.user.last_email_confirmed_at) > as_utc(obj.created_at)
-    ):
-        # Email confirmed after this token was created
-        raise BadRequest("Token is no longer valid")
+    recent_req_count = (
+        db.session.query(UserRegisterRequest)
+        .filter(UserRegisterRequest.email == data[KEY_EMAIL])
+        .filter(UserRegisterRequest.created_at > now - timedelta(hours=12))
+        .count()
+    )
+    if recent_req_count >= 3:
+        raise AOIBadRequest("Register rate limited.")
 
-    obj.user.email = obj.email
-    obj.user.email_confirmed = True
-    obj.user.last_email_confirmed_at = now
+    verification_code = "".join(secrets.choice("0123456789") for i in range(6))
+    user_register_request = UserRegisterRequest(
+        uuid=str(uuid4()),
+        first_name=data[KEY_FIRST_NAME],
+        last_name=data[KEY_LAST_NAME],
+        email=data[KEY_EMAIL],
+        password_hash=hash_password(data[KEY_PASSWORD]),
+        verification_code=verification_code,
+        created_at=now,
+        valid_until=now + timedelta(hours=3),
+        attempts=0,
+        valid=True,
+    )
+    db.session.add(user_register_request)
+    db.session.commit()
+
+    send_email_verification_code(user_register_request)
+    return {
+        "success": True,
+        "uuid": user_register_request.uuid,
+    }
+
+
+"""
+# TODO: could be used to brute force verification code
+@auth_bp.route("/api/auth/register-rerequest-email", methods=["POST"])
+@json_api(
+    {
+        vol.Required(KEY_UUID): str,
+    }
+)
+def register_rerequest_email(data):
+    req: Optional[UserRegisterRequest] = UserRegisterRequest.query.filter_by(uuid=data[KEY_UUID]).first()
+    if req is None:
+        raise AOINotFound("Register request not found")
+    now = utcnow()
+    if not req.valid:
+        raise AOIBadRequest("Register request not valid")
+
+    new_verification_code = ''.join(secrets.choice("0123456789") for i in range(6))
+    now = utcnow()
+
+    req.verification_code = new_verification_code
+    req.valid_until = now + timedelta(hours=3)
+    req.attempts = 0
+    db.session.commit()
+
+    send_email_verification_code(req)
+    return {"success": True}
+"""
+
+
+@auth_bp.route("/api/auth/register-verify", methods=["POST"])
+@json_api(
+    {
+        vol.Required(KEY_UUID): str,
+        vol.Required(KEY_VERIFICATION_CODE): str,
+    }
+)
+def register_verify(data):
+    req: Optional[UserRegisterRequest] = UserRegisterRequest.query.filter_by(
+        uuid=data[KEY_UUID]
+    ).first()
+    if req is None:
+        raise AOINotFound("Register request not found")
+    now = utcnow()
+    if not req.valid or now < as_utc(req.created_at) or now > as_utc(req.valid_until):
+        raise AOIBadRequest("Register request not valid")
+    if req.attempts >= 3:
+        raise AOIBadRequest("Too many attempts")
+
+    same = hmac.compare_digest(req.verification_code, data[KEY_VERIFICATION_CODE])
+    if not same:
+        req.attempts += 1
+        db.session.commit()
+        raise AOIBadRequest("Invalid verification code")
+    user = User(
+        first_name=req.first_name,
+        last_name=req.last_name,
+        email=req.email,
+        password_hash=req.password_hash,
+        created_at=now,
+    )
+    req.valid = False
+    db.session.add(user)
     try:
         db.session.commit()
     except IntegrityError:
-        # Email already registered for different user in meantime
-        # can happen while one user requests a email change
-        raise BadRequest("User with that email already registered")
+        raise AOIBadRequest("User already exists")
 
+    _, token = create_session(user)
     return {
-        "success": True
+        "success": True,
+        "token": token,
     }
 
 
 @auth_bp.route("/api/auth/change-password", methods=["POST"])
 @login_required
-@json_request({
-    vol.Optional(KEY_OLD_PASSWORD): str,
-    vol.Required(KEY_NEW_PASSWORD): SET_PASSWORD_SCHEMA,
-})
-@json_response()
-def change_password(data):
-    if current_user.has_password:
-        if KEY_OLD_PASSWORD not in data:
-            raise BadRequest("Need to specify old_password.")
-        if not current_user.check_password(data[KEY_OLD_PASSWORD]):
-            raise BadRequest("Old password does not match")
-    current_user.set_password(data[KEY_NEW_PASSWORD])
-    current_user.last_password_change_at = utcnow()
-    db.session.commit()
-    return {
-        "success": True
+@json_api(
+    {
+        vol.Optional(KEY_OLD_PASSWORD): str,
+        vol.Required(KEY_NEW_PASSWORD): SET_PASSWORD_SCHEMA,
     }
+)
+def change_password(data):
+    u = get_current_user()
+    if u.password_hash is None:
+        if KEY_OLD_PASSWORD not in data:
+            raise AOIBadRequest("Need to specify old_password.")
+        if not u.check_password(data[KEY_OLD_PASSWORD]):
+            raise AOIBadRequest("Old password does not match")
+    u.password_hash = hash_password(data[KEY_NEW_PASSWORD])
+    # TODO: invalidate old sessions except this one
+    db.session.commit()
+    return {"success": True}
 
 
 @auth_bp.route("/api/auth/request-password-reset", methods=["POST"])
-@json_request({
-    vol.Required(KEY_EMAIL): vol.Email(),
-})
-@json_response()
+@json_api(
+    {
+        vol.Required(KEY_EMAIL): vol.Email(),
+    }
+)
 def request_password_reset(data):
     user = User.query.filter_by(email=data[KEY_EMAIL]).first()
     if user is None:
-        raise NotFound("No user with that email address.")
-    send_password_reset_email(user)
+        raise AOINotFound("No user with that email address.")
+
+    now = utcnow()
+    recent_req_count = (
+        db.session.query(UserPasswordResetRequest)
+        .filter(UserPasswordResetRequest.user == user)
+        .filter(UserPasswordResetRequest.created_at > now - timedelta(hours=12))
+        .count()
+    )
+    if recent_req_count >= 3:
+        raise AOIBadRequest("Password reset rate limited.")
+
+    verification_code = "".join(secrets.choice("0123456789") for i in range(6))
+    now = utcnow()
+    password_request = UserPasswordResetRequest(
+        uuid=str(uuid4()),
+        user=user,
+        verification_code=verification_code,
+        created_at=now,
+        valid_until=now + timedelta(hours=3),
+        attempts=0,
+        valid=True,
+    )
+    db.session.add(password_request)
+    db.session.commit()
+
+    send_password_reset_verification_code(password_request)
     return {
-        "success": True
+        "success": True,
+        "uuid": password_request.uuid,
     }
 
 
 @auth_bp.route("/api/auth/reset-password", methods=["POST"])
-@json_request({
-    vol.Required(KEY_TOKEN): str,
-    vol.Required(KEY_PASSWORD): SET_PASSWORD_SCHEMA,
-})
-@json_response()
+@json_api(
+    {
+        vol.Required(KEY_UUID): str,
+        vol.Required(KEY_VERIFICATION_CODE): str,
+        vol.Optional(KEY_NEW_PASSWORD): SET_PASSWORD_SCHEMA,
+    }
+)
 def reset_password(data):
-    token = data[KEY_TOKEN]
-    obj: Optional[UserPasswordResetCode] = UserPasswordResetCode.query.filter_by(token=token).first()
-    if obj is None:
-        raise BadRequest("Invalid token")
-    
+    req: Optional[UserPasswordResetRequest] = UserPasswordResetRequest.query.filter_by(
+        uuid=data[KEY_UUID]
+    ).first()
+    if req is None:
+        raise AOINotFound("Password reset request not found")
     now = utcnow()
-    if now > as_utc(obj.valid_until):
-        raise BadRequest("Token is no longer valid")
-    if (
-        obj.email != obj.user.email
-        and obj.user.last_password_change_at is not None
-        and as_utc(obj.user.last_password_change_at) > as_utc(obj.created_at)
-    ):
-        # Email confirmed after this token was created
-        raise BadRequest("Token is no longer valid")
+    if not req.valid or now < as_utc(req.created_at) or now > as_utc(req.valid_until):
+        raise AOIBadRequest("Password reset request not valid")
+    if req.attempts >= 3:
+        raise AOIBadRequest("Too many attempts")
 
-    obj.user.set_password(data[KEY_PASSWORD])
-    obj.user.last_password_change_at = now
+    same = hmac.compare_digest(req.verification_code, data[KEY_VERIFICATION_CODE])
+    if not same:
+        req.attempts += 1
+        db.session.commit()
+        raise AOIBadRequest("Invalid verification code")
+
+    if KEY_NEW_PASSWORD not in data:
+        return {
+            "success": True,
+        }
+
+    req.user.password_hash = hash_password(data[KEY_NEW_PASSWORD])
+    # TODO: invalidate old sessions except this one
     db.session.commit()
+    _, token = create_session(req.user)
     return {
-        "success": True
+        "success": True,
+        "token": token,
     }
 
 
 @auth_bp.route("/api/auth/change-email", methods=["POST"])
 @login_required
-@json_request({
-    vol.Optional(KEY_PASSWORD): str,
-    vol.Required(KEY_EMAIL): vol.Email(),
-})
-def change_email(data):
-    if current_user.email == data[KEY_EMAIL]:
-        raise BadRequest("Email hasn't changed")
-    if current_user.has_password:
-        if KEY_PASSWORD not in data:
-            raise BadRequest("Password is required")
-        if not current_user.check_password(data[KEY_PASSWORD]):
-            raise BadRequest("Password does not match")
-    existing = User.query.filter_byte(email=data[KEY_EMAIL]).first()
-    if existing is not None:
-        raise BadRequest("Email already registered for a different user.")
-    send_change_email_verification_code(current_user, data[KEY_EMAIL])
-    return {
-        "success": True
+@json_api(
+    {
+        vol.Optional(KEY_PASSWORD): str,
+        vol.Required(KEY_EMAIL): vol.Email(),
     }
+)
+def change_email(data):
+    current_user = get_current_user()
+    if current_user.email == data[KEY_EMAIL]:
+        raise AOIBadRequest("Email hasn't changed")
+    if current_user.password_hash is not None:
+        if KEY_PASSWORD not in data:
+            raise AOIBadRequest("Password is required")
+        if not check_password(data[KEY_PASSWORD], current_user.password_hash):
+            raise AOIBadRequest("Password does not match")
+    existing = User.query.filter_by(email=data[KEY_EMAIL]).first()
+    if existing is not None:
+        raise AOIBadRequest("Email already registered for a different user.")
+
+    now = utcnow()
+    recent_req_count = (
+        db.session.query(UserEmailChangeRequest)
+        .filter(UserEmailChangeRequest.user == current_user)
+        .filter(UserEmailChangeRequest.created_at > now - timedelta(hours=12))
+        .count()
+    )
+    if recent_req_count >= 3:
+        raise AOIBadRequest("Password reset rate limited.")
+
+    verification_code = "".join(secrets.choice("0123456789") for i in range(6))
+    email_change_request = UserEmailChangeRequest(
+        uuid=str(uuid4()),
+        user=current_user,
+        new_email=data[KEY_EMAIL],
+        verification_code=verification_code,
+        created_at=now,
+        valid_until=now + timedelta(hours=3),
+        attempts=0,
+        valid=True,
+    )
+    db.session.add(email_change_request)
+    db.session.commit()
+
+    send_email_change_verification_code(email_change_request)
+    return {
+        "success": True,
+        "uuid": email_change_request.uuid,
+    }
+
+
+@auth_bp.route("/api/auth/change-email-verify", methods=["POST"])
+@json_api(
+    {
+        vol.Required(KEY_UUID): str,
+        vol.Required(KEY_VERIFICATION_CODE): str,
+    }
+)
+def change_email_verify(data):
+    req: Optional[UserEmailChangeRequest] = UserEmailChangeRequest.query.filter_by(
+        uuid=data[KEY_UUID]
+    ).first()
+    if req is None:
+        raise AOINotFound("Email change request not found")
+    now = utcnow()
+    if not req.valid or now < as_utc(req.created_at) or now > as_utc(req.valid_until):
+        raise AOIBadRequest("Email change request not valid")
+    if req.attempts >= 3:
+        raise AOIBadRequest("Too many attempts")
+
+    same = hmac.compare_digest(req.verification_code, data[KEY_VERIFICATION_CODE])
+    if not same:
+        req.attempts += 1
+        db.session.commit()
+        raise AOIBadRequest("Invalid verification code")
+
+    req.user.email = req.new_email
+    # TODO: invalidate old sessions except this one
+    db.session.commit()
+    return {"success": True}

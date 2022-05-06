@@ -1,11 +1,11 @@
 import os
 import argparse
 import sys
+from aoiportal.auth_util import hash_password
 
 from aoiportal.factory import create_app
 from aoiportal.models import db, User
 from aoiportal.config import DevelopmentConfig
-from aoiportal.utils import utcnow
 
 app = create_app(DevelopmentConfig)
 
@@ -49,10 +49,8 @@ def cmd_addadmin(args):
             first_name=args.first_name,
             last_name=args.last_name,
             is_admin=True,
-            email_confirmed=True,
-            last_email_confirmed_at=utcnow(),
+            password_hash=hash_password(args.password),
         )
-        u.set_password(args.password)
         db.session.add(u)
         db.session.commit()
 

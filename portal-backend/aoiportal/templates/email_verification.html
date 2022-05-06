@@ -1,4 +1,17 @@
-<h1>Aktiviere deinen Account</h1>
+<h1>Bestätige deine E-Mail-Adresse</h1>
 <p>Hallo {{ first_name }},</p>
-<p>Bitte klicke auf diesen Link um deinen Account zu aktivieren</p>
-<p><a href="{{ confirm_url }}">{{ confirm_url }}</a></p>
+<p>
+    Es fehlt noch ein kurzer Schritt zur Erstellung deines Informatikolympiade Accounts.
+    Wir müssen überprüfen, dass dies tatsächlich deine E-Mail-Adresse ist.
+    Bitte bestätige, dass dies die richtige Adresse ist, die für deinen neuen
+    Account verwendet werden soll.
+</p>
+<p>
+    Gib bitte diesen Verifizierungscode ein:
+</p>
+<p>
+    <span class="large-text">{{ verification_code }}</span>
+</p>
+<p>
+    Verifizierungscodes laufen nach drei Stunden ab.
+</p>

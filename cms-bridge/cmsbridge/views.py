@@ -4,8 +4,10 @@ from flask import Blueprint
 import voluptuous as vol
 from slugify import slugify
 from cms.db import SessionGen, Session, Contest, User, Participation
+from cms.grading.scoring import task_score
 from cmscommon.crypto import hash_password
-from cmsbridge.const import KEY_CONTEST_ID, KEY_DESCRIPTION, KEY_EMAIL, KEY_FIRST_NAME, KEY_ID, KEY_LAST_NAME, KEY_MANUAL_PASSWORD, KEY_NAME, KEY_PARTICIPATION_ID, KEY_USER_ID, KEY_USERNAME
+from cmsbridge.const import KEY_ALLOW_SSO_AUTHENTICATION, KEY_CONTEST_ID, KEY_DESCRIPTION, KEY_EMAIL, KEY_FIRST_NAME, KEY_ID, KEY_LAST_NAME, KEY_MANUAL_PASSWORD, KEY_NAME, KEY_PARTICIPATION_ID, KEY_SSO_REDIRECT_URL, KEY_SSO_SECRET_KEY, KEY_USER_ID, KEY_USERNAME
+from sqlalchemy.orm import joinedload
 
 from cmsbridge.web_utils import json_request, json_response
 
@@ -21,9 +23,27 @@ def list_contests():
                 KEY_ID: c.id,
                 KEY_NAME: c.name,
                 KEY_DESCRIPTION: c.description,
+                KEY_ALLOW_SSO_AUTHENTICATION: c.allow_sso_authentication,
+                KEY_SSO_SECRET_KEY: c.sso_secret_key,
+                KEY_SSO_REDIRECT_URL: c.sso_redirect_url,
             }
             for c in session.query(Contest)
         ]
+
+    
+@views_bp.route("/contests/<int:contest_id>")
+@json_response()
+def get_contest(contest_id: int):
+    with SessionGen() as session:
+        c = session.query(Contest).filter(Contest.id == contest_id).first()
+        return {
+            KEY_ID: c.id,
+            KEY_NAME: c.name,
+            KEY_DESCRIPTION: c.description,
+            KEY_ALLOW_SSO_AUTHENTICATION: c.allow_sso_authentication,
+            KEY_SSO_SECRET_KEY: c.sso_secret_key,
+            KEY_SSO_REDIRECT_URL: c.sso_redirect_url,
+        }
 
 
 def _gen_username(session: Session, first_name: str, last_name: str) -> str:
@@ -135,6 +155,69 @@ def set_participation_password(data):
         if data[KEY_MANUAL_PASSWORD] is not None:
             stored_password = hash_password(data[KEY_MANUAL_PASSWORD], "plaintext")
         part.password = stored_password
+        session.commit()
+    return {
+        "success": True,
+    }
+
+
+@views_bp.route("/get-contest-ranking/<int:contest_id>")
+@json_response()
+def get_contest_ranking(contest_id: int):
+    with SessionGen() as session:
+        contest = session.query(Contest)\
+            .filter(Contest.id == contest_id)\
+            .options(joinedload('participations'))\
+            .options(joinedload('participations.submissions'))\
+            .options(joinedload('participations.submissions.token'))\
+            .options(joinedload('participations.submissions.results'))\
+            .first()
+
+        tasks = [task.name for task in contest.tasks]
+        ranking = []
+
+        for p in contest.participations:
+            total_score = 0.0
+            task_scores = {}
+            for task in contest.tasks:
+                t_score, _ = task_score(p, task, rounded=True)
+                task_scores[task.name] = t_score
+                total_score += t_score
+            total_score = round(total_score, contest.score_precision)
+            ranking.append({
+                "user_id": p.user.id,
+                "task_scores": task_scores,
+                total_score: total_score,
+            })
+        
+        return {
+            "tasks": tasks,
+            "ranking": ranking
+        }
+
+
+@views_bp.route("/update-contest", methods=["POST"])
+@json_request({
+    vol.Required(KEY_CONTEST_ID): int,
+    vol.Required(KEY_NAME): str,
+    vol.Required(KEY_DESCRIPTION): str,
+    vol.Required(KEY_ALLOW_SSO_AUTHENTICATION): bool,
+    vol.Required(KEY_SSO_SECRET_KEY): str,
+    vol.Required(KEY_SSO_REDIRECT_URL): str,
+})
+@json_response()
+def update_contest(data):
+    with SessionGen() as session:
+        c: Contest = (
+            session.query(Contest)
+                .filter(Contest.id == data[KEY_CONTEST_ID])
+                .first()
+        )
+        c.name = data[KEY_NAME]
+        c.description = data[KEY_DESCRIPTION]
+        c.allow_sso_authentication = data[KEY_ALLOW_SSO_AUTHENTICATION]
+        c.sso_secret_key = data[KEY_SSO_SECRET_KEY]
+        c.sso_redirect_url = data[KEY_SSO_REDIRECT_URL]
         session.commit()
     return {
         "success": True,

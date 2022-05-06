@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser("cmsbridge")
 subparsers = parser.add_subparsers(help="action", dest="action")
 
 wsgi_parser = subparsers.add_parser("wsgi")
-wsgi_parser.add_argument("-p", "--port", type=int, default=5000)
+wsgi_parser.add_argument("-p", "--port", type=int, default=5001)
 wsgi_parser.add_argument("--host", type=str, default="0.0.0.0")
 
 

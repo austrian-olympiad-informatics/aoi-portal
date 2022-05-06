@@ -1,4 +1,15 @@
-<h1>Änderung deiner Emailadresse</h1>
+<h1>Bestätige deine E-Mail-Adresse</h1>
 <p>Hallo {{ first_name }},</p>
-<p>Um diese neue Emailadresse ({{ new_email }}) zu aktivieren, folge bitte diesem Link</p>
-<p><a href="{{ confirm_url }}">{{ confirm_url }}</a></p>
+<p>
+    Bitte bestätige, dass du die E-Mail Adresse deines Informatikolympiade Accounts
+    ändern willst.
+</p>
+<p>
+    Gib bitte diesen Verifizierungscode ein:
+</p>
+<p>
+    <span class="large-text">{{ verification_code }}</span>
+</p>
+<p>
+    Verifizierungscodes laufen nach drei Stunden ab.
+</p>

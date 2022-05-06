@@ -1,22 +1,47 @@
-import functools
-from typing import Optional
+import base64
 import datetime
+import functools
+import uuid
+from typing import Optional
 
-from werkzeug.exceptions import Unauthorized, NotFound
-from flask import Blueprint
-from flask_login import login_required, current_user
+import nacl.secret
+import nacl.utils
 import voluptuous as vol
+from flask import Blueprint, current_app
+from sqlalchemy.orm import joinedload
 
-from aoiportal.const import KEY_ADDRESS_STREET, KEY_ADDRESS_TOWN, KEY_ADDRESS_ZIP, KEY_AUTO_ADD_TO_GROUP_ID, KEY_BIRTHDAY, KEY_CMS_ID, KEY_CONTEST_ID, KEY_DESCRIPTION, KEY_EMAIL, KEY_EMAIL_CONFIRMED, KEY_FIRST_NAME, KEY_GROUP_ID, KEY_GROUPS, KEY_IS_ADMIN, KEY_LAST_NAME, KEY_MANUAL_PASSWORD, KEY_NAME, KEY_PASSWORD, KEY_PHONE_NR, KEY_PUBLIC, KEY_RANDOM_MANUAL_PASSWORDS, KEY_SCHOOL_ADDRESS, KEY_SCHOOL_NAME, KEY_USER_ID, KEY_USERS
-from aoiportal.web_utils import json_request, json_response
-from aoiportal.models import (
-    Contest,
-    db,
-    User,
-    Group,
-    Participation,
+from aoiportal.auth_util import get_current_user, hash_password, login_required
+from aoiportal.cms_bridge import ContestUpdateParams, cms
+from aoiportal.const import (
+    KEY_ADDRESS_STREET,
+    KEY_ADDRESS_TOWN,
+    KEY_ADDRESS_ZIP,
+    KEY_AUTO_ADD_TO_GROUP_ID,
+    KEY_BIRTHDAY,
+    KEY_CMS_ID,
+    KEY_CMS_USERNAME,
+    KEY_DESCRIPTION,
+    KEY_EMAIL,
+    KEY_FIRST_NAME,
+    KEY_GROUP_ID,
+    KEY_GROUPS,
+    KEY_IS_ADMIN,
+    KEY_LAST_NAME,
+    KEY_MANUAL_PASSWORD,
+    KEY_NAME,
+    KEY_PASSWORD,
+    KEY_PHONE_NR,
+    KEY_PUBLIC,
+    KEY_RANDOM_MANUAL_PASSWORDS,
+    KEY_SCHOOL_ADDRESS,
+    KEY_SCHOOL_NAME,
+    KEY_URL,
+    KEY_USER_ID,
+    KEY_USERS,
 )
-from aoiportal.cms_bridge import cms
+from aoiportal.error import ERROR_ADMIN_REQUIRED, AOIForbidden, AOINotFound
+from aoiportal.models import Contest, Group, Participation, User, db
+from aoiportal.web_utils import json_api
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -25,8 +50,10 @@ def admin_required(fn):
     @login_required
     @functools.wraps(fn)
     def wrapped(*args, **kwargs):
-        if not current_user.is_admin:
-            raise Unauthorized("This API needs admin access.")
+        if not get_current_user().is_admin:
+            raise AOIForbidden(
+                "This API needs admin access.", error_code=ERROR_ADMIN_REQUIRED
+            )
         return fn(*args, **kwargs)
 
     return wrapped
@@ -39,11 +66,7 @@ def _conv_user(user: User) -> dict:
         "last_name": user.last_name,
         "email": user.email,
         "created_at": user.created_at.isoformat(),
-        "last_login": user.last_login.isoformat() if user.last_login is not None else None,
         "is_admin": user.is_admin,
-        "email_confirmed": user.email_confirmed,
-        "last_email_confirmed_at": user.last_email_confirmed_at.isoformat() if user.last_email_confirmed_at is not None else None,
-        "last_password_change_at": user.last_password_change_at.isoformat() if user.last_password_change_at is not None else None,
         "birthday": user.birthday.isoformat() if user.birthday is not None else None,
         "phone_nr": user.phone_nr,
         "address_street": user.address_street,
@@ -51,26 +74,33 @@ def _conv_user(user: User) -> dict:
         "address_town": user.address_town,
         "school_name": user.school_name,
         "school_address": user.school_address,
+        "cms_id": user.cms_id,
+        "cms_username": user.cms_username,
+        "groups": [
+            {
+                "id": g.id,
+                "name": g.name,
+            }
+            for g in user.groups
+        ],
     }
 
 
 @admin_bp.route("/api/admin/users")
 @admin_required
-@json_response()
+@json_api()
 def get_users():
-    return [
-        _conv_user(u)
-        for u in db.session.query(User)
-    ]
+    q = db.session.query(User).options(joinedload(User.groups))
+    return [_conv_user(u) for u in q]
 
 
 @admin_bp.route("/api/admin/users/<int:user_id>")
 @admin_required
-@json_response()
+@json_api()
 def get_user(user_id: int):
     u = User.query.filter_by(id=user_id).first()
     if u is None:
-        raise NotFound("User not found")
+        raise AOINotFound("User not found")
     return {
         **_conv_user(u),
         "groups": [
@@ -85,7 +115,7 @@ def get_user(user_id: int):
             {
                 "id": p.id,
                 "contest": {
-                    "id": p.contest.id,
+                    "uuid": p.contest.uuid,
                     "cms_name": p.contest.cms_name,
                     "cms_description": p.contest.cms_description,
                 },
@@ -97,42 +127,48 @@ def get_user(user_id: int):
 
 @admin_bp.route("/api/admin/users/<int:user_id>/delete", methods=["DELETE"])
 @admin_required
-@json_response()
+@json_api()
 def delete_user(user_id: int):
     u = User.query.filter_by(id=user_id).first()
     if u is None:
-        raise NotFound("User not found")
+        raise AOINotFound("User not found")
     db.session.delete(u)
     db.session.commit()
-    return {
-        "success": True
-    }
+    return {"success": True}
 
+
+def _conv_datestr(datestr: Optional[str]) -> Optional[datetime.date]:
+    if datestr is None:
+        return None
+    dt = datetime.datetime.strptime(datestr, "%Y-%m-%d")
+    return dt.date()
 
 
 @admin_bp.route("/api/admin/users/<int:user_id>/update", methods=["PUT"])
 @admin_required
-@json_request({
-    vol.Optional(KEY_FIRST_NAME): str,
-    vol.Optional(KEY_LAST_NAME): str,
-    vol.Optional(KEY_EMAIL): str,
-    vol.Optional(KEY_PASSWORD): str,
-    vol.Optional(KEY_IS_ADMIN): bool,
-    vol.Optional(KEY_EMAIL_CONFIRMED): bool,
-    vol.Optional(KEY_BIRTHDAY): vol.Date(),
-    vol.Optional(KEY_PHONE_NR): str,
-    vol.Optional(KEY_ADDRESS_STREET): str,
-    vol.Optional(KEY_ADDRESS_ZIP): str,
-    vol.Optional(KEY_ADDRESS_TOWN): str,
-    vol.Optional(KEY_SCHOOL_NAME): str,
-    vol.Optional(KEY_SCHOOL_ADDRESS): str,
-    vol.Optional(KEY_GROUPS): [int],
-})
-@json_response()
+@json_api(
+    {
+        vol.Optional(KEY_FIRST_NAME): str,
+        vol.Optional(KEY_LAST_NAME): str,
+        vol.Optional(KEY_EMAIL): str,
+        vol.Optional(KEY_PASSWORD): vol.All(str, vol.Length(min=8)),
+        vol.Optional(KEY_IS_ADMIN): bool,
+        vol.Optional(KEY_BIRTHDAY): vol.Any(None, vol.Date()),
+        vol.Optional(KEY_PHONE_NR): vol.Any(None, str),
+        vol.Optional(KEY_ADDRESS_STREET): vol.Any(None, str),
+        vol.Optional(KEY_ADDRESS_ZIP): vol.Any(None, str),
+        vol.Optional(KEY_ADDRESS_TOWN): vol.Any(None, str),
+        vol.Optional(KEY_SCHOOL_NAME): vol.Any(None, str),
+        vol.Optional(KEY_SCHOOL_ADDRESS): vol.Any(None, str),
+        vol.Optional(KEY_CMS_ID): vol.Any(None, int),
+        vol.Optional(KEY_CMS_USERNAME): vol.Any(None, str),
+        vol.Optional(KEY_GROUPS): [int],
+    }
+)
 def update_user(data, user_id: int):
     u: Optional[User] = User.query.filter_by(id=user_id).first()
     if u is None:
-        raise NotFound("User not found")
+        raise AOINotFound("User not found")
     if KEY_FIRST_NAME in data:
         u.first_name = data[KEY_FIRST_NAME]
     if KEY_LAST_NAME in data:
@@ -140,14 +176,11 @@ def update_user(data, user_id: int):
     if KEY_EMAIL in data:
         u.email = data[KEY_EMAIL]
     if KEY_PASSWORD in data:
-        u.set_password(data[KEY_PASSWORD])
+        u.password_hash = hash_password(data[KEY_PASSWORD])
     if KEY_IS_ADMIN in data:
         u.is_admin = data[KEY_IS_ADMIN]
-    if KEY_EMAIL_CONFIRMED in data:
-        u.email_confirmed = data[KEY_EMAIL_CONFIRMED]
     if KEY_BIRTHDAY in data:
-        dt = datetime.datetime.strptime("%Y-%m-%d", data[KEY_BIRTHDAY])
-        u.birthday = dt.date()
+        u.birthday = _conv_datestr(data[KEY_BIRTHDAY])
     if KEY_PHONE_NR in data:
         u.phone_nr = data[KEY_PHONE_NR]
     if KEY_ADDRESS_STREET in data:
@@ -165,18 +198,69 @@ def update_user(data, user_id: int):
         for gid in data[KEY_GROUPS]:
             g: Optional[Group] = Group.query.filter_by(id=gid).first()
             if g is None:
-                raise NotFound("Group not found")
+                raise AOINotFound("Group not found")
             u.groups.append(g)
+    if KEY_CMS_ID in data:
+        u.cms_id = data[KEY_CMS_ID]
+    if KEY_CMS_USERNAME in data:
+        u.cms_username = data[KEY_CMS_USERNAME]
 
     db.session.commit()
-    return {
-        "success": True
+    return {"success": True}
+
+
+@admin_bp.route("/api/admin/users/create", methods=["POST"])
+@admin_required
+@json_api(
+    {
+        vol.Required(KEY_FIRST_NAME): str,
+        vol.Required(KEY_LAST_NAME): str,
+        vol.Required(KEY_EMAIL): str,
+        vol.Required(KEY_PASSWORD): vol.All(str, vol.Length(min=8)),
+        vol.Optional(KEY_IS_ADMIN, default=False): bool,
+        vol.Optional(KEY_BIRTHDAY, default=None): vol.Any(None, vol.Date()),
+        vol.Optional(KEY_PHONE_NR, default=None): vol.Any(None, str),
+        vol.Optional(KEY_ADDRESS_STREET, default=None): vol.Any(None, str),
+        vol.Optional(KEY_ADDRESS_ZIP, default=None): vol.Any(None, str),
+        vol.Optional(KEY_ADDRESS_TOWN, default=None): vol.Any(None, str),
+        vol.Optional(KEY_SCHOOL_NAME, default=None): vol.Any(None, str),
+        vol.Optional(KEY_SCHOOL_ADDRESS, default=None): vol.Any(None, str),
+        vol.Optional(KEY_GROUPS, default=[]): [int],
+        vol.Optional(KEY_CMS_ID, default=None): vol.Any(None, int),
+        vol.Optional(KEY_CMS_USERNAME, default=None): vol.Any(None, str),
     }
+)
+def create_user(data):
+    u = User(
+        first_name=data[KEY_FIRST_NAME],
+        last_name=data[KEY_LAST_NAME],
+        email=data[KEY_EMAIL],
+        is_admin=data[KEY_IS_ADMIN],
+        birthday=_conv_datestr(data[KEY_BIRTHDAY]),
+        phone_nr=data[KEY_PHONE_NR],
+        address_street=data[KEY_ADDRESS_STREET],
+        address_zip=data[KEY_ADDRESS_ZIP],
+        address_town=data[KEY_ADDRESS_TOWN],
+        school_name=data[KEY_SCHOOL_NAME],
+        school_address=data[KEY_SCHOOL_ADDRESS],
+        cms_id=data[KEY_CMS_ID],
+        cms_username=data[KEY_CMS_USERNAME],
+        password_hash=hash_password(data[KEY_PASSWORD]),
+    )
+    for gid in data[KEY_GROUPS]:
+        g: Optional[Group] = Group.query.filter_by(id=gid).first()
+        if g is None:
+            raise AOINotFound("Group not found")
+        u.groups.append(g)
+
+    db.session.add(u)
+    db.session.commit()
+    return {"success": True}
 
 
 @admin_bp.route("/api/admin/refresh-cms-contests", methods=["POST"])
 @admin_required
-@json_response()
+@json_api()
 def refresh_cms_contests():
     ourcontests = Contest.query.all()
     ourids = {c.cms_id: c for c in ourcontests}
@@ -186,12 +270,23 @@ def refresh_cms_contests():
     for c in cmscontests:
         if c.id not in ourids:
             # does not exist yet, create it
-            cmsc = Contest(cms_id=c.id, cms_name=c.name, cms_description=c.description)
+            cmsc = Contest(
+                uuid=str(uuid.uuid4()),
+                cms_id=c.id,
+                cms_name=c.name,
+                cms_description=c.description,
+                cms_allow_sso_authentication=c.allow_sso_authentication,
+                cms_sso_secret_key=c.sso_secret_key,
+                cms_sso_redirect_url=c.sso_redirect_url,
+            )
             db.session.add(cmsc)
             continue
         cmsc = ourids[c.id]
         cmsc.cms_name = c.name
         cmsc.cms_description = c.name
+        cmsc.cms_allow_sso_authentication = c.allow_sso_authentication
+        cmsc.cms_sso_secret_key = c.sso_secret_key
+        cmsc.cms_sso_redirect_url = c.sso_redirect_url
 
     for c in ourcontests:
         if c.cms_id not in cmsids:
@@ -199,126 +294,223 @@ def refresh_cms_contests():
             db.session.delete(c)
 
     db.session.commit()
-    return {
-        "success": True
-    }
+    return {"success": True}
 
 
 @admin_bp.route("/api/admin/contests")
 @admin_required
-@json_response()
+@json_api()
 def list_contests():
     return [
         {
-            "id": c.id,
+            "uuid": c.uuid,
             "cms_id": c.cms_id,
             "cms_name": c.cms_name,
             "cms_description": c.cms_description,
+            "cms_allow_sso_authentication": c.cms_allow_sso_authentication,
+            "cms_sso_redirect_url": c.cms_sso_redirect_url,
+            "url": c.url,
             "public": c.public,
             "auto_add_to_group": {
                 "id": c.auto_add_to_group.id,
                 "name": c.auto_add_to_group.name,
                 "description": c.auto_add_to_group.description,
-            } if c.auto_add_to_group is not None else None,
+            }
+            if c.auto_add_to_group is not None
+            else None,
+            "participant_count": len(c.participations),
         }
         for c in db.session.query(Contest)
     ]
 
 
-@admin_bp.route("/api/admin/contests/<int:contest_id>")
+@admin_bp.route("/api/admin/contests/<contest_uuid>")
 @admin_required
-@json_response()
-def get_contest(contest_id: int):
-    c = Contest.query.filter_by(id=contest_id).first()
+@json_api()
+def get_contest(contest_uuid: str):
+    c = Contest.query.filter_by(uuid=contest_uuid).first()
     if c is None:
-        raise NotFound("Contest not found")
+        raise AOINotFound("Contest not found")
     return {
-        "id": c.id,
+        "uuid": c.uuid,
         "cms_id": c.cms_id,
         "cms_name": c.cms_name,
         "cms_description": c.cms_description,
+        "cms_allow_sso_authentication": c.cms_allow_sso_authentication,
+        "cms_sso_secret_key": c.cms_sso_secret_key,
+        "cms_sso_redirect_url": c.cms_sso_redirect_url,
+        "url": c.url,
         "public": c.public,
         "auto_add_to_group": {
             "id": c.auto_add_to_group.id,
             "name": c.auto_add_to_group.name,
             "description": c.auto_add_to_group.description,
-        } if c.auto_add_to_group is not None else None,
+        }
+        if c.auto_add_to_group is not None
+        else None,
         "participations": [
             {
                 "id": p.id,
                 "cms_id": p.cms_id,
                 "user": {
                     "id": p.user.id,
-                    "first_name": p.user.last_name,
+                    "first_name": p.user.first_name,
                     "last_name": p.user.last_name,
                     "username": p.user.cms_username,
                 },
                 "manual_password": p.manual_password,
             }
             for p in c.participations
-        ]
+        ],
     }
 
 
-@admin_bp.route("/api/admin/contests/<int:contest_id>/update", methods=["PUT"])
+@admin_bp.route("/api/admin/contests/<contest_uuid>/update", methods=["PUT"])
 @admin_required
-@json_request({
-    vol.Optional(KEY_PUBLIC): bool,
-    vol.Optional(KEY_AUTO_ADD_TO_GROUP_ID): vol.Any(None, int),
-})
-@json_response()
-def update_contest(data, contest_id: int):
-    c: Optional[Contest] = Contest.query.filter_by(id=contest_id).first()
+@json_api(
+    {
+        vol.Optional(KEY_PUBLIC): bool,
+        vol.Optional(KEY_AUTO_ADD_TO_GROUP_ID): vol.Any(None, int),
+        vol.Optional(KEY_URL): str,
+    }
+)
+def update_contest(data, contest_uuid: str):
+    c: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
     if c is None:
-        raise NotFound("Contest not found")
+        raise AOINotFound("Contest not found")
     if KEY_PUBLIC in data:
         c.public = data[KEY_PUBLIC]
     if KEY_AUTO_ADD_TO_GROUP_ID in data:
         if data[KEY_AUTO_ADD_TO_GROUP_ID] is None:
             c.auto_add_to_group = None
         else:
-            group: Optional[Group] = Group.query.filter_by(id=data[KEY_AUTO_ADD_TO_GROUP_ID]).first()
+            group: Optional[Group] = Group.query.filter_by(
+                id=data[KEY_AUTO_ADD_TO_GROUP_ID]
+            ).first()
             if group is not None:
-                raise NotFound("Group not found")
+                raise AOINotFound("Group not found")
             c.auto_add_to_group = group
+    if KEY_URL in data:
+        c.url = data[KEY_URL]
     db.session.commit()
-    return {
-        "success": True
-    }
+    return {"success": True}
 
 
-@admin_bp.route("/api/admin/contests/<int:contest_id>/participations/create", methods=["POST"])
+@admin_bp.route("/api/admin/contests/<contest_uuid>/provision-sso", methods=["POST"])
 @admin_required
-@json_request({
-    vol.Required(KEY_USER_ID): int,
-    vol.Optional(KEY_CMS_ID): int,
-    vol.Optional(KEY_MANUAL_PASSWORD, default=None): vol.Any(None, str),
-})
-@json_response()
-def create_participation(data, contest_id: int):
-    c: Optional[Contest] = Contest.query.filter_by(id=contest_id).first()
+@json_api()
+def contest_provision_sso(contest_uuid: str):
+    c: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
     if c is None:
-        raise NotFound("Contest not found")
+        raise AOINotFound("Contest not found")
+
+    secret_key_b = nacl.utils.random(nacl.secret.SecretBox.KEY_SIZE)
+    secret_key = base64.b64encode(secret_key_b).decode()
+    base_url = current_app.config["BASE_URL"]
+    redirect_url = f"{base_url}/contests/{c.uuid}/sso"
+
+    cms.update_contest(
+        contest_id=c.cms_id,
+        params=ContestUpdateParams(
+            name=c.cms_name,
+            description=c.cms_description,
+            allow_sso_authentication=True,
+            sso_secret_key=secret_key,
+            sso_redirect_url=redirect_url,
+        ),
+    )
+    c.cms_allow_sso_authentication = True
+    c.cms_sso_secret_key = secret_key
+    c.cms_sso_redirect_url = redirect_url
+    db.session.commit()
+    return {"success": True}
+
+
+@admin_bp.route("/api/admin/contests/<contest_uuid>/remove-sso", methods=["POST"])
+@admin_required
+@json_api()
+def contest_remove_sso(contest_uuid: str):
+    c: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
+    if c is None:
+        raise AOINotFound("Contest not found")
+
+    cms.update_contest(
+        contest_id=c.cms_id,
+        params=ContestUpdateParams(
+            name=c.cms_name,
+            description=c.cms_description,
+            allow_sso_authentication=False,
+            sso_secret_key="",
+            sso_redirect_url="",
+        ),
+    )
+    c.cms_allow_sso_authentication = False
+    c.cms_sso_secret_key = ""
+    c.cms_sso_redirect_url = ""
+    db.session.commit()
+    return {"success": True}
+
+
+@admin_bp.route(
+    "/api/admin/contests/<contest_uuid>/participations/create", methods=["POST"]
+)
+@admin_required
+@json_api(
+    {
+        vol.Required(KEY_USER_ID): int,
+        vol.Optional(KEY_CMS_ID, default=None): vol.Any(None, int),
+        vol.Optional(KEY_MANUAL_PASSWORD, default=None): vol.Any(None, str),
+    }
+)
+def create_participation(data, contest_uuid: str):
+    c: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
+    if c is None:
+        raise AOINotFound("Contest not found")
     user: Optional[User] = User.query.filter_by(id=data[KEY_USER_ID]).first()
     if user is None:
-        raise NotFound("User not found")
-    
-    from aoiportal.helpers import create_participation
-    part = create_participation(user, c, manual_password=data[KEY_MANUAL_PASSWORD])
+        raise AOINotFound("User not found")
+
+    if data[KEY_CMS_ID] is None:
+        from aoiportal.helpers import create_participation
+
+        part = create_participation(user, c, manual_password=data[KEY_MANUAL_PASSWORD])
+    else:
+        part = Participation(
+            cms_id=data[KEY_CMS_ID],
+            contest=c,
+            user=user,
+        )
+        db.session.add(part)
+        db.session.commit()
+
+        if data[KEY_MANUAL_PASSWORD] is not None:
+            from aoiportal.cms_bridge import cms
+
+            cms.set_participation_password(
+                contest_id=c.cms_id,
+                participation_id=part.cms_id,
+                manual_password=data[KEY_MANUAL_PASSWORD],
+            )
+            part.manual_password = data[KEY_MANUAL_PASSWORD]
+            db.session.commit()
+
     return {
         "success": True,
         "id": part.id,
     }
 
 
-@admin_bp.route("/api/admin/contests/<int:contest_id>/participations/<int:part_id>")
+@admin_bp.route("/api/admin/contests/<contest_uuid>/participations/<int:part_id>")
 @admin_required
-@json_response()
-def get_participation(contest_id: int, part_id: int):
-    part = Participation.query.filter_by(part_id=part_id, contest_id=contest_id).first()
+@json_api()
+def get_participation(contest_uuid: str, part_id: int):
+    c: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
+    if c is None:
+        raise AOINotFound("Contest not found")
+    part = Participation.query.filter_by(id=part_id, contest_id=c.id).first()
     if part is None:
-        raise NotFound("Participation not found")
-        
+        raise AOINotFound("Participation not found")
+
     return {
         "cms_id": part.cms_id,
         "user": {
@@ -328,30 +520,38 @@ def get_participation(contest_id: int, part_id: int):
             "email": part.user.email,
             "cms_username": part.user.cms_username,
         },
-        "manual_password": part.user.manual_password,
+        "manual_password": part.manual_password,
     }
 
 
-@admin_bp.route("/api/admin/contests/<int:contest_id>/participations/<int:part_id>/update", methods=["PUT"])
+@admin_bp.route(
+    "/api/admin/contests/<contest_uuid>/participations/<int:part_id>/update",
+    methods=["PUT"],
+)
 @admin_required
-@json_request({
-    vol.Optional(KEY_CMS_ID): int,
-    vol.Optional(KEY_MANUAL_PASSWORD): vol.Any(None, str),
-})
-@json_response()
-def update_participation(data, contest_id: int, part_id: int):
-    part = Participation.query.filter_by(part_id=part_id, contest_id=contest_id).first()
+@json_api(
+    {
+        vol.Optional(KEY_CMS_ID): int,
+        vol.Optional(KEY_MANUAL_PASSWORD): vol.Any(None, str),
+    }
+)
+def update_participation(data, contest_uuid: str, part_id: int):
+    c: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
+    if c is None:
+        raise AOINotFound("Contest not found")
+    part = Participation.query.filter_by(part_id=part_id, contest_id=c.id).first()
     if part is None:
-        raise NotFound("Participation not found")
+        raise AOINotFound("Participation not found")
     if KEY_CMS_ID in data:
         part.cms_id = data[KEY_CMS_ID]
         db.session.commit()
     if KEY_MANUAL_PASSWORD in data:
         from aoiportal.cms_bridge import cms
+
         cms.set_participation_password(
             contest_id=part.contest.cms_id,
             participation_id=part.cms_id,
-            manual_password=data[KEY_MANUAL_PASSWORD]
+            manual_password=data[KEY_MANUAL_PASSWORD],
         )
         part.manual_password = data[KEY_MANUAL_PASSWORD]
         db.session.commit()
@@ -360,53 +560,59 @@ def update_participation(data, contest_id: int, part_id: int):
     }
 
 
-@admin_bp.route("/api/admin/contests/<int:contest_id>/participations/<int:part_id>/delete", methods=["DELETE"])
+@admin_bp.route(
+    "/api/admin/contests/<contest_uuid>/participations/<int:part_id>/delete",
+    methods=["DELETE"],
+)
 @admin_required
-@json_response()
-def delete_participation(data, contest_id: int, part_id: int):
-    part = Participation.query.filter_by(part_id=part_id, contest_id=contest_id).first()
+@json_api()
+def delete_participation(data, contest_uuid: str, part_id: int):
+    c: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
+    if c is None:
+        raise AOINotFound("Contest not found")
+    part = Participation.query.filter_by(part_id=part_id, contest_id=c.id).first()
     if part is None:
-        raise NotFound("Participation not found")
+        raise AOINotFound("Participation not found")
 
     db.session.delete(part)
     db.session.commit()
     # TODO: should we remove the participation in CMS as well?
 
-    return {
-        "success": True
-    }
+    return {"success": True}
 
 
-@admin_bp.route("/api/admin/contests/<int:contest_id>/import-group", methods=["POST"])
+@admin_bp.route("/api/admin/contests/<contest_uuid>/import-group", methods=["POST"])
 @admin_required
-@json_request({
-    vol.Required(KEY_GROUP_ID): int,
-    vol.Optional(KEY_RANDOM_MANUAL_PASSWORDS, default=False): bool,
-})
-@json_response()
-def contest_import_group(data, contest_id: int):
-    c: Optional[Contest] = Contest.query.filter_by(id=contest_id).first()
+@json_api(
+    {
+        vol.Required(KEY_GROUP_ID): int,
+        vol.Optional(KEY_RANDOM_MANUAL_PASSWORDS, default=False): bool,
+    }
+)
+def contest_import_group(data, contest_uuid: str):
+    c: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
     if c is None:
-        raise NotFound("Contest not found")
+        raise AOINotFound("Contest not found")
     g: Optional[Group] = Group.query.filter_by(id=data[KEY_GROUP_ID]).first()
     if g is None:
-        raise NotFound("Group not found")
+        raise AOINotFound("Group not found")
     for u in g.users:
-        existing: Optional[Participation] = Participation.query.filter_by(user_id=u.id, contest_id=c.id).first()
+        existing: Optional[Participation] = Participation.query.filter_by(
+            user_id=u.id, contest_id=c.id
+        ).first()
         if existing is not None:
             continue
         from aoiportal.helpers import create_participation, random_password
+
         create_participation(u, c, manual_password=random_password())
 
     db.session.commit()
-    return {
-        "success": True
-    }
+    return {"success": True}
 
 
 @admin_bp.route("/api/admin/groups")
 @admin_required
-@json_response()
+@json_api()
 def list_groups():
     return [
         {
@@ -421,11 +627,11 @@ def list_groups():
 
 @admin_bp.route("/api/admin/groups/<int:group_id>")
 @admin_required
-@json_response()
+@json_api()
 def get_group(group_id: int):
     g: Optional[Group] = Group.query.filter_by(id=group_id).first()
     if g is None:
-        raise NotFound("Group not found")
+        raise AOINotFound("Group not found")
     return {
         "id": g.id,
         "name": g.name,
@@ -438,22 +644,23 @@ def get_group(group_id: int):
                 "email": u.email,
             }
             for u in g.users
-        ]
+        ],
     }
 
 
 @admin_bp.route("/api/admin/groups/<int:group_id>/update", methods=["PUT"])
 @admin_required
-@json_request({
-    vol.Optional(KEY_NAME): str,
-    vol.Optional(KEY_DESCRIPTION): str,
-    vol.Optional(KEY_USERS): [int],
-})
-@json_response()
+@json_api(
+    {
+        vol.Optional(KEY_NAME): str,
+        vol.Optional(KEY_DESCRIPTION): str,
+        vol.Optional(KEY_USERS): [int],
+    }
+)
 def update_group(data, group_id: int):
     g: Optional[Group] = Group.query.filter_by(id=group_id).first()
     if g is None:
-        raise NotFound("Group not found")
+        raise AOINotFound("Group not found")
     if KEY_NAME in data:
         g.name = data[KEY_NAME]
     if KEY_DESCRIPTION in data:
@@ -463,22 +670,21 @@ def update_group(data, group_id: int):
         for uid in data[KEY_USERS]:
             user = User.query.filter_by(id=uid).first()
             if user is None:
-                raise NotFound("User not found")
+                raise AOINotFound("User not found")
             g.users.append(user)
     db.session.commit()
-    return {
-        "success": True
-    }
+    return {"success": True}
 
 
 @admin_bp.route("/api/admin/groups/create", methods=["POST"])
 @admin_required
-@json_request({
-    vol.Required(KEY_NAME): str,
-    vol.Required(KEY_DESCRIPTION): str,
-    vol.Optional(KEY_USERS, default=[]): [int],
-})
-@json_response()
+@json_api(
+    {
+        vol.Required(KEY_NAME): str,
+        vol.Required(KEY_DESCRIPTION): str,
+        vol.Optional(KEY_USERS, default=[]): [int],
+    }
+)
 def create_group(data):
     g = Group(
         name=data[KEY_NAME],
@@ -488,7 +694,7 @@ def create_group(data):
     for uid in data[KEY_USERS]:
         user = User.query.filter_by(id=uid).first()
         if user is None:
-            raise NotFound("User not found")
+            raise AOINotFound("User not found")
         g.users.append(user)
     db.session.add(g)
     db.session.commit()
@@ -500,13 +706,11 @@ def create_group(data):
 
 @admin_bp.route("/api/admin/groups/<int:group_id>/delete", methods=["DELETE"])
 @admin_required
-@json_response()
+@json_api()
 def delete_group(group_id: int):
     g: Optional[Group] = Group.query.filter_by(id=group_id).first()
     if g is None:
-        raise NotFound("Group not found")
+        raise AOINotFound("Group not found")
     db.session.delete(g)
     db.session.commit()
-    return {
-        "success": True
-    }
+    return {"success": True}

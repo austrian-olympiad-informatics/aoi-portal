@@ -1,8 +1,8 @@
 import secrets
 from typing import Optional
 
-from aoiportal.models import Contest, Participation, User, db
 from aoiportal.cms_bridge import cms
+from aoiportal.models import Contest, Participation, User, db
 
 
 def create_cms_user(user: User) -> int:
@@ -17,16 +17,21 @@ def create_cms_user(user: User) -> int:
     return user.cms_id
 
 
-def create_participation(user: User, contest: Contest, *, manual_password: Optional[str] = None) -> Participation: 
+def create_participation(
+    user: User, contest: Contest, *, manual_password: Optional[str] = None
+) -> Participation:
     if user.cms_id is None:
         create_cms_user(user)
 
     res = cms.create_participation(
-        user_id=user.cms_id, contest_id=contest.cms_id,
+        user_id=user.cms_id,
+        contest_id=contest.cms_id,
         manual_password=manual_password,
     )
     part = Participation(
-        cms_id=res, user_id=user.id, contest_id=contest.id,
+        cms_id=res,
+        user_id=user.id,
+        contest_id=contest.id,
         manual_password=manual_password,
     )
     db.session.add(part)
@@ -37,6 +42,4 @@ def create_participation(user: User, contest: Contest, *, manual_password: Optio
 def random_password(*, length: int = 12) -> str:
     # excluding lookalive characters "lBGIO0168"
     ALLOWED_CHARS = "abcdefghijkmnopqrstuvwxyzACDEFHJKLMNPQRSTUVWXYZ234579"
-    return ''.join(
-        secrets.choice(ALLOWED_CHARS) for _ in range(length)
-    )
+    return "".join(secrets.choice(ALLOWED_CHARS) for _ in range(length))

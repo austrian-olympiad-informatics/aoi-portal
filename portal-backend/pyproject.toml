@@ -1,0 +1,31 @@
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.black]
+target-version = ['py37']
+
+[tool.pylint.MASTER]
+reports = 'no'
+disable = [
+  "missing-docstring",
+  "duplicate-code",
+  "invalid-name",
+  "line-too-long",
+  "unnecessary-pass",
+  "redefined-outer-name",
+  "too-few-public-methods",
+  "unspecified-encoding",
+  "no-self-use",
+  "too-many-branches",
+  "too-many-statements",
+  "too-many-locals",
+  "import-outside-toplevel",
+  "arguments-differ",
+  "unused-argument",
+  "too-many-return-statements",
+  "logging-fstring-interpolation",
+  "f-string-without-interpolation",
+  "fixme",
+  "too-many-arguments",
+]
