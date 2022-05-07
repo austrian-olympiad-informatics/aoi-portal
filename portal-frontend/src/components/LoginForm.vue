@@ -85,6 +85,8 @@ export default class LoginForm extends Vue {
           position: "is-top-right",
         });
       }
+
+      this.password = "";
     }
   }
 }

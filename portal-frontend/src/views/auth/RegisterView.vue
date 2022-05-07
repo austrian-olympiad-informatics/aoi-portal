@@ -26,6 +26,8 @@ import { Component, Vue } from "vue-property-decorator";
 import RegisterInput, {
   RegisterInputData,
 } from "@/components/RegisterInput.vue";
+import { NotificationProgrammatic as Notification } from "buefy";
+import { AxiosError } from "axios";
 
 @Component({
   components: {
@@ -41,17 +43,44 @@ export default class RegisterView extends Vue {
   };
 
   async register() {
-    const resp = await auth.register({
-      first_name: this.data.first_name,
-      last_name: this.data.last_name,
-      email: this.data.email,
-      password: this.data.password,
-    });
-    this.$store.commit("setRegisterVerifyState", {
-      registerVerifyEmail: this.data.email,
-      registerVerifyUuid: resp.uuid,
-    });
-    this.$router.push({ name: "RegisterVerify" });
+
+    try {
+      const resp = await auth.register({
+        first_name: this.data.first_name,
+        last_name: this.data.last_name,
+        email: this.data.email,
+        password: this.data.password,
+      });
+
+      this.$store.commit("setRegisterVerifyState", {
+        registerVerifyEmail: this.data.email,
+        registerVerifyUuid: resp.uuid,
+      });
+
+      this.$router.push({ name: "RegisterVerify" });
+    } catch(error) {
+      const err = error as AxiosError;
+
+      if(err.response?.status == 409)
+      {
+          Notification.open({
+          message: "Diese E-Mail-Adresse ist bereits in Verwendung.",
+          type: "is-danger",
+          hasIcon: true,
+          position: "is-top-right",
+        });
+      }
+      else
+      {
+        Notification.open({
+          message: "Beim Registrieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+          type: "is-danger",
+          hasIcon: true,
+          position: "is-top-right",
+        });
+      }
+    }
+    
   }
   mounted(): void {
     if (this.$store.getters.isAuthenticated) {
