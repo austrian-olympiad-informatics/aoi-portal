@@ -27,7 +27,7 @@
         </div>
       </b-navbar-item>
 
-      <b-navbar-dropdown v-if="isAuthenticated && !$route.meta.noNavAuth">
+      <b-navbar-dropdown v-if="isAuthenticated">
         <template slot="label">
           <b-icon class="ml-1 mr-2" icon="account-circle" /> {{ name }}
         </template>
