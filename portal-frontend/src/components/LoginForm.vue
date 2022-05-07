@@ -36,6 +36,7 @@
 import { Component, Vue } from "vue-property-decorator";
 import { NotificationProgrammatic as Notification } from "buefy";
 import auth from "@/services/auth";
+import { AxiosError } from "axios";
 
 @Component
 export default class LoginForm extends Vue {
@@ -52,23 +53,38 @@ export default class LoginForm extends Vue {
 
       this.$store.commit("setAuthToken", resp.token);
       let result = await this.$store.dispatch("checkStatus");
+      this.$emit("logged-in");
 
-      if(!result.isAuthenticated) {
+    } catch(error) {
+      const err = error as AxiosError;
+
+      if(err.response?.status == 400)
+      {
         Notification.open({
-          message: "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
+          message: "Du bist bereits angemeldet",
           type: "is-danger",
+          hasIcon: true,
           position: "is-top-right",
         });
       }
-
-      this.$emit("logged-in");
-
-    } catch(except) {
+      else if(err.response?.status == 404 || err.response?.status == 401)
+      {
+        Notification.open({
+          message: "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
+          type: "is-danger",
+          hasIcon: true,
+          position: "is-top-right",
+        });
+      }
+      else
+      {
         Notification.open({
           message: "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
           type: "is-danger",
+          hasIcon: true,
           position: "is-top-right",
         });
+      }
     }
   }
 }

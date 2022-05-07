@@ -45,6 +45,7 @@ export default class AppComponent extends Vue {
       Notification.open({
           message: "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
           type: "is-danger",
+          hasIcon: true,
           position: "is-top-right",
       });
     }
