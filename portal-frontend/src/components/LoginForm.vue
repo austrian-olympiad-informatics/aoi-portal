@@ -34,6 +34,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
+import { NotificationProgrammatic as Notification } from "buefy";
 import auth from "@/services/auth";
 
 @Component
@@ -52,24 +53,21 @@ export default class LoginForm extends Vue {
       this.$store.commit("setAuthToken", resp.token);
       let result = await this.$store.dispatch("checkStatus");
 
-      if(!result.isAuthenticated)
-      {
-          this.$notify({
-            group: "auth",
-            type: "error",
-            title: "Fehler",
-            text: "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
+      if(!result.isAuthenticated) {
+        Notification.open({
+          message: "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
+          type: "is-danger",
+          position: "is-top-right",
         });
       }
 
       this.$emit("logged-in");
 
     } catch(except) {
-        this.$notify({
-          group: "auth",
-          type: "error",
-          title: "Fehler",
-          text: "Beim Login ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+        Notification.open({
+          message: "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+          type: "is-danger",
+          position: "is-top-right",
         });
     }
   }

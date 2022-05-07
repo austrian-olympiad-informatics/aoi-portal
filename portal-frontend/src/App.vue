@@ -6,8 +6,6 @@
       <router-view />
     </section>
 
-    <notifications group="auth" />
-
     <footer class="footer">
       <div class="content container is-max-desktop has-text-centered">
         <p>&copy; Österreichische Informatikolympiade 2022</p>
@@ -29,6 +27,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import Navbar from "./components/Navbar.vue";
+import { NotificationProgrammatic as Notification } from "buefy";
 
 @Component({
   components: {
@@ -43,11 +42,10 @@ export default class AppComponent extends Vue {
     try {
       await this.$store.dispatch("checkStatus");
     } catch(except) {
-      this.$notify({
-        group: "auth",
-        type: "error",
-        title: "Fehler",
-        text: "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+      Notification.open({
+          message: "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+          type: "is-danger",
+          position: "is-top-right",
       });
     }
   }
