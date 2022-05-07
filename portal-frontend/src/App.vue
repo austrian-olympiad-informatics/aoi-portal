@@ -6,6 +6,8 @@
       <router-view />
     </section>
 
+    <notifications group="auth" />
+
     <footer class="footer">
       <div class="content container is-max-desktop has-text-centered">
         <p>&copy; Österreichische Informatikolympiade 2022</p>
@@ -38,7 +40,16 @@ export default class AppComponent extends Vue {
     return this.$store.getters.isAdmin;
   }
   async mounted(): Promise<void> {
-    this.$store.dispatch("checkStatus");
+    try {
+      await this.$store.dispatch("checkStatus");
+    } catch(except) {
+      this.$notify({
+        group: "auth",
+        type: "error",
+        title: "Fehler",
+        text: "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+      });
+    }
   }
 }
 </script>

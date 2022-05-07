@@ -11,11 +11,21 @@ import ChangeEmailView from "../views/auth/ChangeEmailView.vue";
 import ChangeEmailVerifyView from "../views/auth/ChangeEmailVerifyView.vue";
 import PasswordResetView from "../views/auth/PasswordResetView.vue";
 import PasswordResetVerifyView from "../views/auth/PasswordResetVerifyView.vue";
+import ErrorView from "../views/ErrorView.vue";
 import store from "@/store";
 
 Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
+  {
+    path: "/error",
+    name: "Error",
+    component: ErrorView,
+    meta: {
+      requiresAuth: false,
+      noNavAuth: true
+    }
+  },
   {
     path: "/",
     name: "Home",
@@ -30,6 +40,7 @@ const routes: Array<RouteConfig> = [
     component: LoginView,
     meta: {
       requiresAuth: false,
+      noNavAuth: true,
     },
   },
   {
@@ -38,6 +49,7 @@ const routes: Array<RouteConfig> = [
     component: RegisterView,
     meta: {
       requiresAuth: false,
+      noNavAuth: true,
     },
   },
   {
@@ -46,6 +58,7 @@ const routes: Array<RouteConfig> = [
     component: RegisterVerifyView,
     meta: {
       requiresAuth: false,
+      noNavAuth: true,
     },
   },
   {
@@ -74,6 +87,7 @@ const routes: Array<RouteConfig> = [
     component: PasswordResetView,
     meta: {
       requiresAuth: false,
+      noNavAuth: true,
     },
   },
   {
@@ -82,6 +96,7 @@ const routes: Array<RouteConfig> = [
     component: PasswordResetVerifyView,
     meta: {
       requiresAuth: false,
+      noNavAuth: true,
     },
   },
   {

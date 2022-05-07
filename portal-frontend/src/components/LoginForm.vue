@@ -42,13 +42,36 @@ export default class LoginForm extends Vue {
   password = "";
 
   async login(): Promise<void> {
-    const resp = await auth.login({
-      email: this.email,
-      password: this.password,
-    });
-    this.$store.commit("setAuthToken", resp.token);
-    await this.$store.dispatch("checkStatus");
-    this.$emit("logged-in");
+
+    try {
+      const resp = await auth.login({
+        email: this.email,
+        password: this.password,
+      });
+
+      this.$store.commit("setAuthToken", resp.token);
+      let result = await this.$store.dispatch("checkStatus");
+
+      if(!result.isAuthenticated)
+      {
+          this.$notify({
+            group: "auth",
+            type: "error",
+            title: "Fehler",
+            text: "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
+        });
+      }
+
+      this.$emit("logged-in");
+
+    } catch(except) {
+        this.$notify({
+          group: "auth",
+          type: "error",
+          title: "Fehler",
+          text: "Beim Login ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+        });
+    }
   }
 }
 </script>

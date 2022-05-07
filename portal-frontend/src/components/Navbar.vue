@@ -16,7 +16,7 @@
     </template>
 
     <template #end>
-      <b-navbar-item v-if="!isAuthenticated" tag="div">
+      <b-navbar-item v-if="!isAuthenticated && !$route.meta.noNavAuth" tag="div">
         <div class="buttons">
           <b-button type="is-primary" tag="router-link" :to="{ name: 'Register' }"
             ><strong>Registrieren</strong></b-button
@@ -27,7 +27,7 @@
         </div>
       </b-navbar-item>
 
-      <b-navbar-dropdown v-else>
+      <b-navbar-dropdown v-if="isAuthenticated && !$route.meta.noNavAuth">
         <template slot="label">
           <b-icon class="ml-1 mr-2" icon="account-circle" /> {{ name }}
         </template>
@@ -51,6 +51,7 @@ export default class Navbar extends Vue {
   get isAuthenticated(): boolean {
     return this.$store.getters.isAuthenticated;
   }
+
   get name(): string {
     return `${this.$store.getters.firstName} ${this.$store.getters.lastName}`;
   }

@@ -1,4 +1,5 @@
 import Vue from "vue";
+import Notfifications from "vue-notification"
 import App from "./App.vue";
 import router from "./router";
 import Buefy from "buefy";
@@ -7,6 +8,7 @@ import store from "./store";
 import '@/scss/style.scss';
 
 Vue.use(Buefy);
+Vue.use(Notfifications);
 Vue.config.productionTip = false;
 
 new Vue({
