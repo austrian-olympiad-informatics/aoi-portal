@@ -58,7 +58,7 @@ SET_PASSWORD_SCHEMA = vol.All(str, vol.Length(min=8))
 )
 def login(data):
     if get_current_user() is not None:
-        raise AOIBadRequest("Already logged in")
+        raise AOIConflict("Already logged in")
 
     user: Optional[User] = User.query.filter_by(email=data[KEY_EMAIL]).first()
     if user is None:

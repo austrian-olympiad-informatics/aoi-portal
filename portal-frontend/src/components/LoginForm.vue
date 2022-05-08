@@ -58,8 +58,7 @@ export default class LoginForm extends Vue {
     } catch(error) {
       const err = error as AxiosError;
 
-      if(err.response?.status == 400)
-      {
+      if(err.response?.status == 409) {
         Notification.open({
           message: "Du bist bereits angemeldet",
           type: "is-danger",
@@ -67,8 +66,7 @@ export default class LoginForm extends Vue {
           position: "is-top-right",
         });
       }
-      else if(err.response?.status == 404 || err.response?.status == 401)
-      {
+      else if(err.response?.status == 404 || err.response?.status == 401) {
         Notification.open({
           message: "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
           type: "is-danger",
@@ -76,8 +74,15 @@ export default class LoginForm extends Vue {
           position: "is-top-right",
         });
       }
-      else
-      {
+      else if(err.response?.status == 400) {
+        Notification.open({
+          message: "Die übermittelten Daten haben ein invalides Format.",
+          type: "is-danger",
+          hasIcon: true,
+          position: "is-top-right",
+        });
+      }
+      else {
         Notification.open({
           message: "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
           type: "is-danger",
