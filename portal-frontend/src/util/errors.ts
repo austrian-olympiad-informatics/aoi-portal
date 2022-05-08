@@ -29,7 +29,6 @@ export const matchError = (err: unknown, handlers: Handlers) => {
   if (!err.response) throw err;
   const rawData = err.response.data;
 
-  console.log(err, handlers);
   if (!Object.prototype.hasOwnProperty.call(rawData, "error")) {
     throw err;
   }
