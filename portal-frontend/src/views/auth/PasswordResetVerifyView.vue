@@ -77,6 +77,8 @@
 
 <script lang="ts">
 import auth from "@/services/auth";
+import { AuthResetPasswordResult } from "@/types/auth";
+import { matchError } from "@/util/errors";
 import { Component, Vue } from "vue-property-decorator";
 
 @Component
@@ -102,11 +104,22 @@ export default class PasswordResetVerifyView extends Vue {
   }
   async passwordResetComplete() {
     if (!this.newPasswordsMatch) return;
-    const resp = await auth.resetPassword({
-      uuid: this.$store.getters.passwordResetVerifyUuid,
-      verification_code: this.verifyCode,
-      new_password: this.newPassword,
-    });
+    let resp: AuthResetPasswordResult;
+    try {
+      resp = await auth.resetPassword({
+        uuid: this.$store.getters.passwordResetVerifyUuid,
+        verification_code: this.verifyCode,
+        new_password: this.newPassword,
+      });
+    } catch (err) {
+      matchError(err, {
+        no_longer_valid: "Dieser Verifizierungscode ist nicht mehr gültig.",
+        too_many_attempts: "Zu viele falsche Versuche.",
+        invalid_verification_code: "Der Verifizierunscode ist nicht korrekt. Bitte versuche es erneut.",
+        default: "Beim Verifizieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+      });
+      return;
+    }
     this.$store.commit("setAuthToken", resp.token);
     this.$store.commit("setPasswordResetVerifyState", {
       passwordResetVerifyEmail: "",

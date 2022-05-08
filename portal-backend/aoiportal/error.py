@@ -2,9 +2,17 @@ from typing import Optional
 
 from flask import Flask, jsonify
 
+ERROR_ALREADY_LOGGED_IN = "already_logged_in"
 ERROR_LOGIN_REQUIRED = "login_required"
 ERROR_ADMIN_REQUIRED = "admin_required"
 ERROR_VALIDATION_ERROR = "validation_error"
+ERROR_USER_NOT_FOUND = "user_not_found"
+ERROR_INVALID_PASSWORD = "invalid_password"
+ERROR_EMAIL_EXISTS = "email_exists"
+ERROR_RATE_LIMIT = "rate_limit"
+ERROR_NO_LONGER_VALID = "no_longer_valid"
+ERROR_TOO_MANY_ATTEMPTS = "too_many_attempts"
+ERROR_INVALID_VERIFICATION_CODE = "invalid_verification_code"
 
 
 class _AOIHTTPError(Exception):

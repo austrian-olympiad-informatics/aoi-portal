@@ -29,6 +29,7 @@
 
 <script lang="ts">
 import auth from "@/services/auth";
+import { matchError } from "@/util/errors";
 import { Component, Vue } from "vue-property-decorator";
 
 @Component
@@ -40,10 +41,21 @@ export default class ChangeEmailVerifyView extends Vue {
   }
 
   async changeEmailVerify() {
-    const resp = await auth.changeEmailVerify({
+    try {
+      await auth.changeEmailVerify({
       uuid: this.$store.getters.changeEmailVerifyUuid,
       verification_code: this.verifyCode,
     });
+    } catch (err) {
+      matchError(err, {
+        no_longer_valid: "Dieser Verifizierungscode ist nicht mehr gültig.",
+        too_many_attempts: "Zu viele falsche Versuche.",
+        invalid_verification_code: "Der Verifizierunscode ist nicht korrekt. Bitte versuche es erneut.",
+        default: "Beim Verifizieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+      });
+      return;
+    }
+    
     this.$store.commit("setChangeEmailVerifyState", {
       changeEmailVerifyEmail: "",
       changeEmailVerifyUuid: "",
