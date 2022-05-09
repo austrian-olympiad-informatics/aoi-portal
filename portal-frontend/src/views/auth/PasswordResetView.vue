@@ -22,6 +22,8 @@
 import auth from "@/services/auth";
 import { Component, Vue } from "vue-property-decorator";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
+import { AuthRequestPasswordResetResult } from "@/types/auth";
+import { matchError } from "@/util/errors";
 
 @Component({
   components: {
@@ -32,9 +34,21 @@ export default class PasswordResetView extends Vue {
   email: string = "";
 
   async submit() {
-    const resp = await auth.requestPasswordReset({
-      email: this.email,
-    });
+    let resp: AuthRequestPasswordResetResult;
+    try {
+      resp = await auth.requestPasswordReset({
+        email: this.email,
+      });
+    } catch (err) {
+      matchError(err, {
+        user_not_found: "Diese E-Mail-Adresse ist noch nicht registriert.",
+        rate_limit:
+          "Zu viele Passwort zurücksetzen Anfragen für diese E-Mail-Adresse.",
+        default:
+          "Beim Passwort zurücksetzen ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+      });
+      return;
+    }
     this.$store.commit("setPasswordResetVerifyState", {
       passwordResetVerifyEmail: this.email,
       passwordResetVerifyUuid: resp.uuid,

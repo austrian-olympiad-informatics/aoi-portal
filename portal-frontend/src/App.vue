@@ -27,6 +27,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import Navbar from "./components/Navbar.vue";
+import { NotificationProgrammatic as Notification } from "buefy";
 
 @Component({
   components: {
@@ -38,7 +39,16 @@ export default class AppComponent extends Vue {
     return this.$store.getters.isAdmin;
   }
   async mounted(): Promise<void> {
-    this.$store.dispatch("checkStatus");
+    try {
+      await this.$store.dispatch("checkStatus");
+    } catch(except) {
+      Notification.open({
+          message: "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+          type: "is-danger",
+          hasIcon: true,
+          position: "is-top-right",
+      });
+    }
   }
 }
 </script>

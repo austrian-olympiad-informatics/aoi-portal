@@ -26,6 +26,8 @@ import { Component, Vue } from "vue-property-decorator";
 import RegisterInput, {
   RegisterInputData,
 } from "@/components/RegisterInput.vue";
+import { AuthRegisterResult } from "@/types/auth";
+import { matchError } from "@/util/errors";
 
 @Component({
   components: {
@@ -41,16 +43,30 @@ export default class RegisterView extends Vue {
   };
 
   async register() {
-    const resp = await auth.register({
-      first_name: this.data.first_name,
-      last_name: this.data.last_name,
-      email: this.data.email,
-      password: this.data.password,
-    });
+    let resp: AuthRegisterResult;
+
+    try {
+      resp = await auth.register({
+        first_name: this.data.first_name,
+        last_name: this.data.last_name,
+        email: this.data.email,
+        password: this.data.password,
+      });
+    } catch (error) {
+      matchError(error, {
+        email_exists: "Diese E-Mail-Adresse ist bereits in Verwendung.",
+        rate_limit: "Zu viele Registrierversuche für diese E-Mail-Adresse.",
+        default:
+          "Beim Registrieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+      });
+      return;
+    }
+
     this.$store.commit("setRegisterVerifyState", {
       registerVerifyEmail: this.data.email,
       registerVerifyUuid: resp.uuid,
     });
+
     this.$router.push({ name: "RegisterVerify" });
   }
   mounted(): void {

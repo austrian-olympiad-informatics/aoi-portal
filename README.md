@@ -15,6 +15,8 @@ Zusätzlich gibt es eine cms-bridge, die interaktionen zwischen dem backend und 
 
 ## Dev Installation
 
+### MacOS or Unix
+
 ```bash
 $ cd portal-backend/
 $ python3 -m venv venv
@@ -29,6 +31,34 @@ $ python3 run.py wsgi  # start server
 $ cd cms-bridge/
 $ python3 -m venv venv
 $ source venv/bin/activate
+$ pip3 install -e .
+$ python3 run.py wsgi  # start server
+```
+
+```bash
+$ cd portal-frontend
+$ npm install
+$ npm run serve
+```
+
+### Windows
+
+Make sure to run the powershell as admin.
+
+```bash
+$ cd portal-backend/
+$ python3 -m venv venv
+$ venv/Scripts/activate.bat
+$ pip3 install -e .
+$ python3 run.py createdb  # create db
+$ python3 run.py addadmin --first-name John --last-name Smith --password password1 --email me@example.org
+$ python3 run.py wsgi  # start server
+```
+
+```bash
+$ cd cms-bridge/
+$ python3 -m venv venv
+$ venv/Scripts/activate.bat
 $ pip3 install -e .
 $ python3 run.py wsgi  # start server
 ```

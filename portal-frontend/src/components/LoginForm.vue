@@ -23,7 +23,8 @@
     >
 
     <p class="mt-5">
-      Kein Konto? <router-link :to="{ name: 'Register' }">Hier registrieren</router-link>
+      Kein Konto?
+      <router-link :to="{ name: 'Register' }">Hier registrieren</router-link>
     </p>
     <p class="mt-2">
       Passwort vergessen?
@@ -35,6 +36,8 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import auth from "@/services/auth";
+import { matchError } from "../util/errors";
+import { AuthLoginResult } from "@/types/auth";
 
 @Component
 export default class LoginForm extends Vue {
@@ -42,10 +45,23 @@ export default class LoginForm extends Vue {
   password = "";
 
   async login(): Promise<void> {
-    const resp = await auth.login({
-      email: this.email,
-      password: this.password,
-    });
+    let resp: AuthLoginResult;
+    try {
+      resp = await auth.login({
+        email: this.email,
+        password: this.password,
+      });
+    } catch (error) {
+      matchError(error, {
+        already_logged_in: "Du bist bereits angemeldet.",
+        invalid_password: "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
+        user_not_found: "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
+        default: "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+      });
+      this.password = "";
+      return;
+    }
+
     this.$store.commit("setAuthToken", resp.token);
     await this.$store.dispatch("checkStatus");
     this.$emit("logged-in");

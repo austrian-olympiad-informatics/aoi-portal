@@ -30,6 +30,8 @@
 import auth from "@/services/auth";
 import { Component, Vue } from "vue-property-decorator";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
+import { AuthChangeEmailResult } from "@/types/auth";
+import { matchError } from "@/util/errors";
 
 @Component({
   components: {
@@ -41,10 +43,22 @@ export default class ChangeEmailView extends Vue {
   newEmail: string = "";
 
   async submit() {
-    const resp = await auth.changeEmail({
-      email: this.newEmail,
-      password: this.currentPassword,
-    });
+    let resp: AuthChangeEmailResult;
+    try {
+      resp = await auth.changeEmail({
+        email: this.newEmail,
+        password: this.currentPassword,
+      });
+    } catch (err) {
+      matchError(err, {
+        invalid_password: "Das aktuelle Passwort ist inkorrekt.",
+        email_exists: "Diese E-Mail-Adresse ist bereits in Verwendung.",
+        rate_limit: "Zu viele Anfragen für diese E-Mail-Adresse.",
+        default:
+          "Beim Ändern der E-Mail-Adresse ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+      });
+      return;
+    }
     this.$store.commit("setChangeEmailVerifyState", {
       changeEmailVerifyEmail: this.newEmail,
       changeEmailVerifyUuid: resp.uuid,
