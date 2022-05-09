@@ -30,6 +30,13 @@ export const matchError = (err: unknown, handlers: Handlers) => {
   const rawData = err.response.data;
 
   if (!Object.prototype.hasOwnProperty.call(rawData, "error")) {
+    if (handlers.default !== undefined) {
+      if (typeof handlers.default === "string")
+        showErrorNotification(handlers.default);
+      else
+        handlers.default();
+      return;
+    }
     throw err;
   }
 

@@ -9,7 +9,7 @@ from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 
 from aoiportal.auth_util import get_current_user, login_required
-from aoiportal.error import AOIBadRequest, AOINotFound
+from aoiportal.error import AOIBadRequest, AOIConflict, AOINotFound
 from aoiportal.helpers import create_participation
 from aoiportal.models import Contest, Participation, db
 from aoiportal.utils import utcnow
@@ -77,7 +77,7 @@ def join_contest(contest_uuid: str):
         .first()
     )
     if existing_part is not None:
-        raise AOIBadRequest("Contest already joined.")
+        raise AOIConflict("Contest already joined.")
 
     create_participation(current_user, contest)
 
@@ -116,7 +116,7 @@ def gen_sso_token(contest_uuid: str):
         or not contest.cms_sso_secret_key
         or not contest.url
     ):
-        return AOIBadRequest("SSO is not enabled")
+        return AOIConflict("SSO is not enabled")
 
     keybytes = base64.b64decode(contest.cms_sso_secret_key.encode())
     box = nacl.secret.SecretBox(keybytes)
