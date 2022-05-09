@@ -39,6 +39,7 @@ from aoiportal.error import (
     AOIBadRequest,
     AOIConflict,
     AOINotFound,
+    AOITooManyRequests,
     AOIUnauthorized,
 )
 from aoiportal.mail import send_email
@@ -163,7 +164,7 @@ def register(data):
         .count()
     )
     if recent_req_count >= 3:
-        raise AOIBadRequest("Register rate limited.", error_code=ERROR_RATE_LIMIT)
+        raise AOITooManyRequests("Register rate limited.", error_code=ERROR_RATE_LIMIT)
 
     verification_code = "".join(secrets.choice("0123456789") for i in range(6))
     user_register_request = UserRegisterRequest(
@@ -302,7 +303,7 @@ def request_password_reset(data):
         .count()
     )
     if recent_req_count >= 3:
-        raise AOIBadRequest("Password reset rate limited.", error_code=ERROR_RATE_LIMIT)
+        raise AOITooManyRequests("Password reset rate limited.", error_code=ERROR_RATE_LIMIT)
 
     verification_code = "".join(secrets.choice("0123456789") for i in range(6))
     now = utcnow()

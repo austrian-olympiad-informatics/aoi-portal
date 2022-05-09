@@ -67,12 +67,15 @@ class AOIConflict(_AOIHTTPError):
 
     status_code = 409
 
+class AOITooManyRequests(_AOIHTTPError):
+    """A 429 Too Many Requests HTTP error."""
+
+    status_code = 429
 
 class AOIInternalServerError(_AOIHTTPError):
     """A 500 Internal Server Error HTTP error."""
 
     status_code = 500
-
 
 def _handle_aoi_http_error(err: _AOIHTTPError):
     return (
