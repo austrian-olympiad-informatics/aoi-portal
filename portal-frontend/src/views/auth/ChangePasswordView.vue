@@ -46,6 +46,7 @@
 import auth from "@/services/auth";
 import { Component, Vue } from "vue-property-decorator";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
+import { matchError } from "@/util/errors";
 
 @Component({
   components: {
@@ -63,10 +64,19 @@ export default class ChangePasswordView extends Vue {
 
   async submit() {
     if (!this.newPasswordsMatch) return;
-    await auth.changePassword({
-      old_password: this.currentPassword,
-      new_password: this.newPassword,
-    });
+    try {
+      await auth.changePassword({
+        old_password: this.currentPassword,
+        new_password: this.newPassword,
+      });
+    } catch (err) {
+      matchError(err, {
+        invalid_password: "Das aktuelle Passwort ist inkorrekt.",
+        default: "Beim Passwort Ändern ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+      });
+      return;
+    }
+
     this.$buefy.toast.open({
       message: "Passwort geändert!",
       type: "is-success",

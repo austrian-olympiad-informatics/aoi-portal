@@ -28,7 +28,6 @@
 
 <script lang="ts">
 import { Component, VModel, Vue } from "vue-property-decorator";
-import auth from "@/services/auth";
 import { PropType } from "vue";
 
 export interface RegisterInputData {

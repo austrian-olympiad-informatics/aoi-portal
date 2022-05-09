@@ -26,8 +26,8 @@ import { Component, Vue } from "vue-property-decorator";
 import RegisterInput, {
   RegisterInputData,
 } from "@/components/RegisterInput.vue";
-import { NotificationProgrammatic as Notification } from "buefy";
-import { AxiosError } from "axios";
+import { AuthRegisterResult } from "@/types/auth";
+import { matchError } from "@/util/errors";
 
 @Component({
   components: {
@@ -43,44 +43,31 @@ export default class RegisterView extends Vue {
   };
 
   async register() {
+    let resp: AuthRegisterResult;
 
     try {
-      const resp = await auth.register({
+      resp = await auth.register({
         first_name: this.data.first_name,
         last_name: this.data.last_name,
         email: this.data.email,
         password: this.data.password,
       });
-
-      this.$store.commit("setRegisterVerifyState", {
-        registerVerifyEmail: this.data.email,
-        registerVerifyUuid: resp.uuid,
+    } catch (error) {
+      matchError(error, {
+        email_exists: "Diese E-Mail-Adresse ist bereits in Verwendung.",
+        rate_limit: "Zu viele Registrierversuche für diese E-Mail-Adresse.",
+        default:
+          "Beim Registrieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       });
-
-      this.$router.push({ name: "RegisterVerify" });
-    } catch(error) {
-      const err = error as AxiosError;
-
-      if(err.response?.status == 409)
-      {
-          Notification.open({
-          message: "Diese E-Mail-Adresse ist bereits in Verwendung.",
-          type: "is-danger",
-          hasIcon: true,
-          position: "is-top-right",
-        });
-      }
-      else
-      {
-        Notification.open({
-          message: "Beim Registrieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-          type: "is-danger",
-          hasIcon: true,
-          position: "is-top-right",
-        });
-      }
+      return;
     }
-    
+
+    this.$store.commit("setRegisterVerifyState", {
+      registerVerifyEmail: this.data.email,
+      registerVerifyUuid: resp.uuid,
+    });
+
+    this.$router.push({ name: "RegisterVerify" });
   }
   mounted(): void {
     if (this.$store.getters.isAuthenticated) {

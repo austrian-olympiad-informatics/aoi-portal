@@ -23,7 +23,8 @@
     >
 
     <p class="mt-5">
-      Kein Konto? <router-link :to="{ name: 'Register' }">Hier registrieren</router-link>
+      Kein Konto?
+      <router-link :to="{ name: 'Register' }">Hier registrieren</router-link>
     </p>
     <p class="mt-2">
       Passwort vergessen?
@@ -34,9 +35,9 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { NotificationProgrammatic as Notification } from "buefy";
 import auth from "@/services/auth";
-import { AxiosError } from "axios";
+import { matchError } from "../util/errors";
+import { AuthLoginResult } from "@/types/auth";
 
 @Component
 export default class LoginForm extends Vue {
@@ -44,55 +45,26 @@ export default class LoginForm extends Vue {
   password = "";
 
   async login(): Promise<void> {
-
+    let resp: AuthLoginResult;
     try {
-      const resp = await auth.login({
+      resp = await auth.login({
         email: this.email,
         password: this.password,
       });
-
-      this.$store.commit("setAuthToken", resp.token);
-      let result = await this.$store.dispatch("checkStatus");
-      this.$emit("logged-in");
-
-    } catch(error) {
-      const err = error as AxiosError;
-
-      if(err.response?.status == 409) {
-        Notification.open({
-          message: "Du bist bereits angemeldet",
-          type: "is-danger",
-          hasIcon: true,
-          position: "is-top-right",
-        });
-      }
-      else if(err.response?.status == 404 || err.response?.status == 401) {
-        Notification.open({
-          message: "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
-          type: "is-danger",
-          hasIcon: true,
-          position: "is-top-right",
-        });
-      }
-      else if(err.response?.status == 400) {
-        Notification.open({
-          message: "Die übermittelten Daten haben ein invalides Format.",
-          type: "is-danger",
-          hasIcon: true,
-          position: "is-top-right",
-        });
-      }
-      else {
-        Notification.open({
-          message: "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-          type: "is-danger",
-          hasIcon: true,
-          position: "is-top-right",
-        });
-      }
-
+    } catch (error) {
+      matchError(error, {
+        already_logged_in: "Du bist bereits angemeldet.",
+        invalid_password: "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
+        user_not_found: "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
+        default: "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+      });
       this.password = "";
+      return;
     }
+
+    this.$store.commit("setAuthToken", resp.token);
+    await this.$store.dispatch("checkStatus");
+    this.$emit("logged-in");
   }
 }
 </script>
