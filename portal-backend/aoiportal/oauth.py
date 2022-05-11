@@ -43,7 +43,7 @@ def github_auth(data):
     }
     rsess = requests.Session()
     resp = rsess.post(access_token_url, json=payload, headers={"Accept": "application/json"})
-    if resp.status_code != 200:
+    if resp.status_code != 200 or "error" in resp:
         raise AOIBadRequest("Invalid token")
     js = resp.json()
     access_token = js["access_token"]
@@ -63,7 +63,7 @@ def github_auth(data):
     user_info = resp.json()
     user_id: int = user_info["id"]
     user_login: str = user_info["login"]
-    user_name: str = user_info["name"]
+    user_name: Optional[str] = user_info["name"]
 
     # https://docs.github.com/en/rest/users/emails#list-email-addresses-for-the-authenticated-user
     resp = rsess.get("https://api.github.com/user/emails", headers={'Authorization': 'token ' + access_token})
@@ -98,11 +98,14 @@ def github_auth(data):
             "token": token,
         }
 
-    parts = user_name.split(maxsplit=1)
-    if len(parts) == 2:
-        first_name, last_name = parts
+    if user_name is not None:
+        parts = user_name.split(maxsplit=1)
+        if len(parts) == 2:
+            first_name, last_name = parts
+        else:
+            first_name, last_name = parts[0], ""
     else:
-        first_name, last_name = parts[0], ""
+        first_name, last_name = user_login, ""
 
     # User does not exist
     user = User(
