@@ -1,9 +1,9 @@
 import functools
 from typing import Optional, Union
 
-import voluptuous as vol
+import voluptuous as vol  # type: ignore
 from flask import Response, jsonify, request
-from voluptuous.humanize import humanize_error
+from voluptuous.humanize import humanize_error  # type: ignore
 
 from aoiportal.error import ERROR_VALIDATION_ERROR, AOIBadRequest
 

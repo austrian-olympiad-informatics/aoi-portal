@@ -1,15 +1,16 @@
 import json
+from pathlib import Path
+
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
-from pathlib import Path
 
 from aoiportal import error
 from aoiportal.admin import admin_bp
 from aoiportal.auth import auth_bp
-from aoiportal.oauth import oauth_bp
 from aoiportal.contests import contests_bp
 from aoiportal.mail import mail
-from aoiportal.models import db
+from aoiportal.models import db  # type: ignore
+from aoiportal.oauth import oauth_bp
 from aoiportal.profile import profile_bp
 
 

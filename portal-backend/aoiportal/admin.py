@@ -6,7 +6,7 @@ from typing import Optional
 
 import nacl.secret
 import nacl.utils
-import voluptuous as vol
+import voluptuous as vol  # type: ignore
 from flask import Blueprint, current_app
 from sqlalchemy.orm import joinedload
 
@@ -40,7 +40,7 @@ from aoiportal.const import (
     KEY_USERS,
 )
 from aoiportal.error import ERROR_ADMIN_REQUIRED, AOIForbidden, AOINotFound
-from aoiportal.models import Contest, Group, Participation, User, db
+from aoiportal.models import Contest, Group, Participation, User, db  # type: ignore
 from aoiportal.web_utils import json_api
 
 admin_bp = Blueprint("admin", __name__)
@@ -484,8 +484,6 @@ def create_participation(data, contest_uuid: str):
         db.session.commit()
 
         if data[KEY_MANUAL_PASSWORD] is not None:
-            from aoiportal.cms_bridge import cms
-
             cms.set_participation_password(
                 contest_id=c.cms_id,
                 participation_id=part.cms_id,
@@ -546,8 +544,6 @@ def update_participation(data, contest_uuid: str, part_id: int):
         part.cms_id = data[KEY_CMS_ID]
         db.session.commit()
     if KEY_MANUAL_PASSWORD in data:
-        from aoiportal.cms_bridge import cms
-
         cms.set_participation_password(
             contest_id=part.contest.cms_id,
             participation_id=part.cms_id,

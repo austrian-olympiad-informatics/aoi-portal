@@ -37,7 +37,8 @@ export default class GitHubOAuthCallbackView extends Vue {
       });
     } catch (err) {
       matchError(err, {
-        default: "Beim Anmelden mit GitHub ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+        default:
+          "Beim Anmelden mit GitHub ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       });
       return;
     }

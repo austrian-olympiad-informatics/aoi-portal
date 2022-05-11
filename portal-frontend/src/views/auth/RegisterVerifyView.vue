@@ -38,7 +38,7 @@ import { Component, Vue } from "vue-property-decorator";
 
 @Component
 export default class RegisterVerifyView extends Vue {
-  verifyCode: string = "";
+  verifyCode = "";
 
   get registerEmail(): string {
     return this.$store.getters.registerVerifyEmail;
@@ -56,9 +56,11 @@ export default class RegisterVerifyView extends Vue {
         // TODO: add endpoint to rerequest verification code
         no_longer_valid: "Dieser Verifizierungscode ist nicht mehr gültig.",
         too_many_attempts: "Zu viele falsche Versuche.",
-        invalid_verification_code: "Der Verifizierunscode ist nicht korrekt. Bitte versuche es erneut.",
+        invalid_verification_code:
+          "Der Verifizierunscode ist nicht korrekt. Bitte versuche es erneut.",
         email_exists: "Diese E-Mail-Adresse ist bereits in Verwendung.",
-        default: "Beim Verifizieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+        default:
+          "Beim Verifizieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       });
       return;
     }

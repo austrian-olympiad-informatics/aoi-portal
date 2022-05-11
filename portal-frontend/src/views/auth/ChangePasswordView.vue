@@ -54,9 +54,9 @@ import { matchError } from "@/util/errors";
   },
 })
 export default class ChangePasswordView extends Vue {
-  currentPassword: string = "";
-  newPassword: string = "";
-  newPasswordConfirm: string = "";
+  currentPassword = "";
+  newPassword = "";
+  newPasswordConfirm = "";
 
   get newPasswordsMatch(): boolean {
     return this.newPassword === this.newPasswordConfirm;
@@ -72,7 +72,8 @@ export default class ChangePasswordView extends Vue {
     } catch (err) {
       matchError(err, {
         invalid_password: "Das aktuelle Passwort ist inkorrekt.",
-        default: "Beim Passwort Ändern ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+        default:
+          "Beim Passwort Ändern ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       });
       return;
     }

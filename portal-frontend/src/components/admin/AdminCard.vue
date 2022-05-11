@@ -3,7 +3,7 @@
     <p class="title is-3">
       <slot name="title"></slot>
     </p>
-    
+
     <div v-if="loading">
       <b-skeleton width="20%" animated></b-skeleton>
       <b-skeleton width="40%" animated></b-skeleton>

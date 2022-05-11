@@ -13,10 +13,7 @@
             </router-link>
           </li>
           <li>
-            <router-link
-              :to="{ name: 'AdminUsers' }"
-              active-class="is-active"
-            >
+            <router-link :to="{ name: 'AdminUsers' }" active-class="is-active">
               <b-icon icon="account" size="is-small" />&nbsp; Users
             </router-link>
           </li>
@@ -29,10 +26,7 @@
             </router-link>
           </li>
           <li>
-            <router-link
-              :to="{ name: 'AdminGroups' }"
-              active-class="is-active"
-            >
+            <router-link :to="{ name: 'AdminGroups' }" active-class="is-active">
               <b-icon icon="account-group" size="is-small" />&nbsp; Groups
             </router-link>
           </li>
@@ -43,8 +37,6 @@
         <router-view></router-view>
       </div>
     </div>
-
-    
   </section>
 </template>
 

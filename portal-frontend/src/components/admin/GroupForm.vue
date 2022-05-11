@@ -35,9 +35,7 @@
                 params: { userId: tag.id },
               }"
             >
-              {{ tag.first_name }} {{ tag.last_name }} ({{
-                tag.email
-              }})
+              {{ tag.first_name }} {{ tag.last_name }} ({{ tag.email }})
             </router-link>
           </b-tag>
         </template>

@@ -22,7 +22,9 @@ export default class GitHubOAuthView extends Vue {
     url.searchParams.append("state", state);
 
     const redirect_url = new URL(window.location.origin);
-    redirect_url.pathname = this.$router.resolve({ name: "GitHubOAuthCallback" }).href;
+    redirect_url.pathname = this.$router.resolve({
+      name: "GitHubOAuthCallback",
+    }).href;
     url.searchParams.append("redirect_uri", redirect_url.toString());
 
     // .replace to not affect browser history

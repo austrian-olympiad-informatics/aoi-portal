@@ -8,7 +8,7 @@ const apiClient: AxiosInstance = axios.create({
 const updateAuthToken = (authToken: string) => {
   if (authToken) {
     apiClient.defaults.headers.common = {
-      "Authorization": `Bearer ${authToken}`,
+      Authorization: `Bearer ${authToken}`,
     };
   } else {
     apiClient.defaults.headers.common = {};

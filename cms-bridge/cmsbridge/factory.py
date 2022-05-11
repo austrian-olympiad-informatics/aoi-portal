@@ -7,7 +7,7 @@ from cmsbridge.views import views_bp
 
 
 def create_app(base_config_obj, config_file):
-    package = __name__.split('.')[0]
+    package = __name__.split(".", 1)[0]
     app = Flask(package, instance_relative_config=True)
 
     app.config.from_object(base_config_obj)

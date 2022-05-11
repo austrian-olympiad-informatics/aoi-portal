@@ -83,10 +83,10 @@ import { Component, Vue } from "vue-property-decorator";
 
 @Component
 export default class PasswordResetVerifyView extends Vue {
-  verifyCode: string = "";
-  stageVerifyMail: boolean = true;
-  newPassword: string = "";
-  newPasswordConfirm: string = "";
+  verifyCode = "";
+  stageVerifyMail = true;
+  newPassword = "";
+  newPasswordConfirm = "";
 
   get email(): string {
     return this.$store.getters.passwordResetVerifyEmail;
@@ -115,8 +115,10 @@ export default class PasswordResetVerifyView extends Vue {
       matchError(err, {
         no_longer_valid: "Dieser Verifizierungscode ist nicht mehr gültig.",
         too_many_attempts: "Zu viele falsche Versuche.",
-        invalid_verification_code: "Der Verifizierunscode ist nicht korrekt. Bitte versuche es erneut.",
-        default: "Beim Verifizieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+        invalid_verification_code:
+          "Der Verifizierunscode ist nicht korrekt. Bitte versuche es erneut.",
+        default:
+          "Beim Verifizieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       });
       return;
     }

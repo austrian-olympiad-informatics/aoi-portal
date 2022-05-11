@@ -42,7 +42,6 @@
 </template>
 
 <script lang="ts">
-
 import { Component, Prop, Vue } from "vue-property-decorator";
 import contests from "@/services/contests";
 import { PropType } from "vue";
@@ -60,5 +59,4 @@ export default class ContestCard extends Vue {
     this.$emit("joined");
   }
 }
-
 </script>

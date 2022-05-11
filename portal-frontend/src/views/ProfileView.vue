@@ -3,8 +3,14 @@
     <form @submit.prevent="submit">
       <h1 class="is-size-2 mb-3">Profil</h1>
 
-      <b-message type="is-warning" has-icon v-if="missingFields.len" class="content">
-        Die folgenden Felder müssen noch ausgefüllt werden, damit du dich für Trainingscamps und den Bundesbewerb qualifieren kannst:
+      <b-message
+        type="is-warning"
+        has-icon
+        v-if="missingFields.len"
+        class="content"
+      >
+        Die folgenden Felder müssen noch ausgefüllt werden, damit du dich für
+        Trainingscamps und den Bundesbewerb qualifieren kannst:
         <ul>
           <li v-for="field in missingFields" :key="field">
             {{ field }}
@@ -28,13 +34,13 @@
         </b-field>
         <b-field label="Passwort">
           <b-button
-              type="is-warning is-light"
-              outlined
-              tag="router-link"
-              :to="{ name: 'ChangePassword' }"
-            >
-              Passwort ändern</b-button
-            >
+            type="is-warning is-light"
+            outlined
+            tag="router-link"
+            :to="{ name: 'ChangePassword' }"
+          >
+            Passwort ändern</b-button
+          >
         </b-field>
       </b-field>
 
@@ -101,9 +107,9 @@ import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
   },
 })
 export default class ProfileView extends Vue {
-  email: string = "";
-  firstName: string = "";
-  lastName: string = "";
+  email = "";
+  firstName = "";
+  lastName = "";
   birthday: Date | null = null;
   phoneNr: string | null = null;
   addressStreet: string | null = null;
@@ -115,20 +121,13 @@ export default class ProfileView extends Vue {
 
   calcMissingFields() {
     const missing: string[] = [];
-    if (!this.birthday)
-      missing.push("Geburtstag");
-    if (!this.phoneNr)
-      missing.push("Telefonnummer");
-    if (!this.addressStreet)
-      missing.push("Straße und Hausnummer");
-    if (!this.addressZip)
-      missing.push("ZIP");
-    if (!this.addressTown)
-      missing.push("Wohnort");
-    if (!this.schoolName)
-      missing.push("Name der Schule");
-    if (!this.schoolAddress)
-      missing.push("Adresse der Schule");
+    if (!this.birthday) missing.push("Geburtstag");
+    if (!this.phoneNr) missing.push("Telefonnummer");
+    if (!this.addressStreet) missing.push("Straße und Hausnummer");
+    if (!this.addressZip) missing.push("ZIP");
+    if (!this.addressTown) missing.push("Wohnort");
+    if (!this.schoolName) missing.push("Name der Schule");
+    if (!this.schoolAddress) missing.push("Adresse der Schule");
     this.missingFields = missing;
   }
 

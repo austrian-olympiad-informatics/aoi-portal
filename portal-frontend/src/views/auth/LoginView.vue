@@ -107,7 +107,6 @@ export default class LoginView extends Vue {
 }
 </script>
 
-
 <style scoped>
 .is-divider {
   display: block;

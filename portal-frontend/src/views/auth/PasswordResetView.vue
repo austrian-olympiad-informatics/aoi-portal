@@ -31,7 +31,7 @@ import { matchError } from "@/util/errors";
   },
 })
 export default class PasswordResetView extends Vue {
-  email: string = "";
+  email = "";
 
   async submit() {
     let resp: AuthRequestPasswordResetResult;

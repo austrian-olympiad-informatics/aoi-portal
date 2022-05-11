@@ -30,7 +30,7 @@ class _AOIHTTPError(Exception):
     ```
     """
 
-    status_code = None
+    status_code: Optional[int] = None
 
     def __init__(self, message: str, *, error_code: Optional[str] = None):
         super().__init__(message)
@@ -67,15 +67,18 @@ class AOIConflict(_AOIHTTPError):
 
     status_code = 409
 
+
 class AOITooManyRequests(_AOIHTTPError):
     """A 429 Too Many Requests HTTP error."""
 
     status_code = 429
 
+
 class AOIInternalServerError(_AOIHTTPError):
     """A 500 Internal Server Error HTTP error."""
 
     status_code = 500
+
 
 def _handle_aoi_http_error(err: _AOIHTTPError):
     return (

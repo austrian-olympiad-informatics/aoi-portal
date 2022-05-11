@@ -1,5 +1,5 @@
 from flask import render_template
-from flask_mail import Mail, Message
+from flask_mail import Mail, Message  # type: ignore
 
 mail = Mail()
 

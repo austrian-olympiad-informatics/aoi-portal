@@ -1,14 +1,30 @@
 import datetime
 import secrets
-from flask import Blueprint
-import voluptuous as vol
-from slugify import slugify
-from cms.db import SessionGen, Session, Contest, User, Participation
-from cms.grading.scoring import task_score
-from cmscommon.crypto import hash_password
-from cmsbridge.const import KEY_ALLOW_SSO_AUTHENTICATION, KEY_CONTEST_ID, KEY_DESCRIPTION, KEY_EMAIL, KEY_FIRST_NAME, KEY_ID, KEY_LAST_NAME, KEY_MANUAL_PASSWORD, KEY_NAME, KEY_PARTICIPATION_ID, KEY_SSO_REDIRECT_URL, KEY_SSO_SECRET_KEY, KEY_USER_ID, KEY_USERNAME
-from sqlalchemy.orm import joinedload
 
+import voluptuous as vol  # type: ignore
+from cms.db import Contest, Participation, Session, SessionGen, User  # type: ignore
+from cms.grading.scoring import task_score  # type: ignore
+from cmscommon.crypto import hash_password  # type: ignore
+from flask import Blueprint
+from slugify import slugify
+from sqlalchemy.orm import joinedload  # type: ignore
+
+from cmsbridge.const import (
+    KEY_ALLOW_SSO_AUTHENTICATION,
+    KEY_CONTEST_ID,
+    KEY_DESCRIPTION,
+    KEY_EMAIL,
+    KEY_FIRST_NAME,
+    KEY_ID,
+    KEY_LAST_NAME,
+    KEY_MANUAL_PASSWORD,
+    KEY_NAME,
+    KEY_PARTICIPATION_ID,
+    KEY_SSO_REDIRECT_URL,
+    KEY_SSO_SECRET_KEY,
+    KEY_USER_ID,
+    KEY_USERNAME,
+)
 from cmsbridge.web_utils import json_request, json_response
 
 views_bp = Blueprint("views", __name__)
@@ -30,7 +46,7 @@ def list_contests():
             for c in session.query(Contest)
         ]
 
-    
+
 @views_bp.route("/contests/<int:contest_id>")
 @json_response()
 def get_contest(contest_id: int):
@@ -47,16 +63,13 @@ def get_contest(contest_id: int):
 
 
 def _gen_username(session: Session, first_name: str, last_name: str) -> str:
-    username = slugify(f"{first_name} {last_name}", replacements=[
-        ("ä", "ae"), ("ü", "ue"), ("ö", "oe")
-    ])
+    username = slugify(
+        f"{first_name} {last_name}",
+        replacements=[("ä", "ae"), ("ü", "ue"), ("ö", "oe")],
+    )
 
     def exists(u):
-        return (
-            session.query(User)
-                .filter(User.username == u)
-                .first() is not None
-        )
+        return session.query(User).filter(User.username == u).first() is not None
 
     if not exists(username):
         return username
@@ -70,11 +83,13 @@ def _gen_username(session: Session, first_name: str, last_name: str) -> str:
 
 
 @views_bp.route("/create-user", methods=["POST"])
-@json_request({
-    vol.Required(KEY_EMAIL): str,
-    vol.Required(KEY_FIRST_NAME): str,
-    vol.Required(KEY_LAST_NAME): str,
-})
+@json_request(
+    {
+        vol.Required(KEY_EMAIL): str,
+        vol.Required(KEY_FIRST_NAME): str,
+        vol.Required(KEY_LAST_NAME): str,
+    }
+)
 @json_response()
 def create_user(data):
     with SessionGen() as session:
@@ -89,7 +104,7 @@ def create_user(data):
             password=stored_password,
             email=data[KEY_EMAIL],
             timezone=None,
-            preferred_languages=[]
+            preferred_languages=[],
         )
         session.add(user)
         session.commit()
@@ -103,11 +118,13 @@ def create_user(data):
 
 
 @views_bp.route("/create-participation", methods=["POST"])
-@json_request({
-    vol.Required(KEY_USER_ID): int,
-    vol.Required(KEY_CONTEST_ID): int,
-    vol.Required(KEY_MANUAL_PASSWORD): vol.Any(None, str),
-})
+@json_request(
+    {
+        vol.Required(KEY_USER_ID): int,
+        vol.Required(KEY_CONTEST_ID): int,
+        vol.Required(KEY_MANUAL_PASSWORD): vol.Any(None, str),
+    }
+)
 @json_response()
 def create_participation(data):
     with SessionGen() as session:
@@ -115,7 +132,9 @@ def create_participation(data):
         if data[KEY_MANUAL_PASSWORD] is not None:
             stored_password = hash_password(data[KEY_MANUAL_PASSWORD], "plaintext")
         user = session.query(User).filter(User.id == data[KEY_USER_ID]).first()
-        contest = session.query(Contest).filter(Contest.id == data[KEY_CONTEST_ID]).first()
+        contest = (
+            session.query(Contest).filter(Contest.id == data[KEY_CONTEST_ID]).first()
+        )
         part = Participation(
             user=user,
             contest=contest,
@@ -125,7 +144,7 @@ def create_participation(data):
             password=stored_password,
             team=None,
             hidden=False,
-            unrestricted=False
+            unrestricted=False,
         )
         session.add(part)
         session.commit()
@@ -137,19 +156,21 @@ def create_participation(data):
 
 
 @views_bp.route("/set-participation-password", methods=["POST"])
-@json_request({
-    vol.Required(KEY_CONTEST_ID): int,
-    vol.Required(KEY_PARTICIPATION_ID): int,
-    vol.Required(KEY_MANUAL_PASSWORD): vol.Any(None, str),
-})
+@json_request(
+    {
+        vol.Required(KEY_CONTEST_ID): int,
+        vol.Required(KEY_PARTICIPATION_ID): int,
+        vol.Required(KEY_MANUAL_PASSWORD): vol.Any(None, str),
+    }
+)
 @json_response()
 def set_participation_password(data):
     with SessionGen() as session:
         part = (
             session.query(Participation)
-                .filter(Participation.id == data[KEY_PARTICIPATION_ID])
-                .filter(Participation.contest_id == data[KEY_CONTEST_ID])
-                .first()
+            .filter(Participation.id == data[KEY_PARTICIPATION_ID])
+            .filter(Participation.contest_id == data[KEY_CONTEST_ID])
+            .first()
         )
         stored_password = None
         if data[KEY_MANUAL_PASSWORD] is not None:
@@ -165,13 +186,15 @@ def set_participation_password(data):
 @json_response()
 def get_contest_ranking(contest_id: int):
     with SessionGen() as session:
-        contest = session.query(Contest)\
-            .filter(Contest.id == contest_id)\
-            .options(joinedload('participations'))\
-            .options(joinedload('participations.submissions'))\
-            .options(joinedload('participations.submissions.token'))\
-            .options(joinedload('participations.submissions.results'))\
+        contest = (
+            session.query(Contest)
+            .filter(Contest.id == contest_id)
+            .options(joinedload("participations"))
+            .options(joinedload("participations.submissions"))
+            .options(joinedload("participations.submissions.token"))
+            .options(joinedload("participations.submissions.results"))
             .first()
+        )
 
         tasks = [task.name for task in contest.tasks]
         ranking = []
@@ -184,34 +207,33 @@ def get_contest_ranking(contest_id: int):
                 task_scores[task.name] = t_score
                 total_score += t_score
             total_score = round(total_score, contest.score_precision)
-            ranking.append({
-                "user_id": p.user.id,
-                "task_scores": task_scores,
-                total_score: total_score,
-            })
-        
-        return {
-            "tasks": tasks,
-            "ranking": ranking
-        }
+            ranking.append(
+                {
+                    "user_id": p.user.id,
+                    "task_scores": task_scores,
+                    total_score: total_score,
+                }
+            )
+
+        return {"tasks": tasks, "ranking": ranking}
 
 
 @views_bp.route("/update-contest", methods=["POST"])
-@json_request({
-    vol.Required(KEY_CONTEST_ID): int,
-    vol.Required(KEY_NAME): str,
-    vol.Required(KEY_DESCRIPTION): str,
-    vol.Required(KEY_ALLOW_SSO_AUTHENTICATION): bool,
-    vol.Required(KEY_SSO_SECRET_KEY): str,
-    vol.Required(KEY_SSO_REDIRECT_URL): str,
-})
+@json_request(
+    {
+        vol.Required(KEY_CONTEST_ID): int,
+        vol.Required(KEY_NAME): str,
+        vol.Required(KEY_DESCRIPTION): str,
+        vol.Required(KEY_ALLOW_SSO_AUTHENTICATION): bool,
+        vol.Required(KEY_SSO_SECRET_KEY): str,
+        vol.Required(KEY_SSO_REDIRECT_URL): str,
+    }
+)
 @json_response()
 def update_contest(data):
     with SessionGen() as session:
         c: Contest = (
-            session.query(Contest)
-                .filter(Contest.id == data[KEY_CONTEST_ID])
-                .first()
+            session.query(Contest).filter(Contest.id == data[KEY_CONTEST_ID]).first()
         )
         c.name = data[KEY_NAME]
         c.description = data[KEY_DESCRIPTION]

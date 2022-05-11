@@ -5,7 +5,6 @@
     </template>
 
     <template v-if="groups !== null">
-
       <div class="level">
         <div class="level-left">
           <div class="level-item">
@@ -36,7 +35,10 @@
               <ul class="mb-2">
                 <li>
                   <span class="icon-text">
-                    <b-icon icon="account-multiple"/>&nbsp;{{ group.user_count }} Users
+                    <b-icon icon="account-multiple" />&nbsp;{{
+                      group.user_count
+                    }}
+                    Users
                   </span>
                 </li>
               </ul>

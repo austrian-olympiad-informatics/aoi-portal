@@ -70,10 +70,12 @@
 
       <b-table :data="contest.participations" hoverable default-sort="id">
         <b-table-column label="Name" v-slot="props">
-          <router-link :to="{
-            name: 'AdminUser',
-            params: { userId: props.row.id }
-          }">
+          <router-link
+            :to="{
+              name: 'AdminUser',
+              params: { userId: props.row.id },
+            }"
+          >
             {{ props.row.user.first_name }} {{ props.row.user.last_name }}
           </router-link>
         </b-table-column>
@@ -81,9 +83,7 @@
           <template v-if="props.row.manual_password">
             <code>{{ props.row.manual_password }}</code>
           </template>
-          <template v-else>
-            No password
-          </template>
+          <template v-else> No password </template>
         </b-table-column>
 
         <b-table-column label="Actions" width="100" centered v-slot="props">

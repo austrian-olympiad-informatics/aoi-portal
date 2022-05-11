@@ -43,7 +43,8 @@ export default class GoogleOAuthCallbackView extends Vue {
       });
     } catch (err) {
       matchError(err, {
-        default: "Beim Anmelden mit Google ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+        default:
+          "Beim Anmelden mit Google ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       });
       return;
     }

@@ -56,11 +56,17 @@ const store = new Vuex.Store({
       state.registerVerifyEmail = registerVerifyEmail;
       state.registerVerifyUuid = registerVerifyUuid;
     },
-    setChangeEmailVerifyState(state, { changeEmailVerifyEmail, changeEmailVerifyUuid }) {
+    setChangeEmailVerifyState(
+      state,
+      { changeEmailVerifyEmail, changeEmailVerifyUuid }
+    ) {
       state.changeEmailVerifyEmail = changeEmailVerifyEmail;
       state.changeEmailVerifyUuid = changeEmailVerifyUuid;
     },
-    setPasswordResetVerifyState(state, { passwordResetVerifyEmail, passwordResetVerifyUuid }) {
+    setPasswordResetVerifyState(
+      state,
+      { passwordResetVerifyEmail, passwordResetVerifyUuid }
+    ) {
       state.passwordResetVerifyEmail = passwordResetVerifyEmail;
       state.passwordResetVerifyUuid = passwordResetVerifyUuid;
     },
@@ -81,8 +87,7 @@ const store = new Vuex.Store({
     },
     loadLocalStorage({ commit }) {
       const val = localStorage.getItem("aoiState");
-      if (!val)
-        return;
+      if (!val) return;
       const js = JSON.parse(val) as LocalStorageState;
       commit("restoreState", js);
     },

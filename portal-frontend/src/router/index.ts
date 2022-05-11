@@ -27,8 +27,8 @@ const routes: Array<RouteConfig> = [
     component: ErrorView,
     meta: {
       requiresAuth: false,
-      noNavAuth: true
-    }
+      noNavAuth: true,
+    },
   },
   {
     path: "/",

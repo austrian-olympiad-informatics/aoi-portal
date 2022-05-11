@@ -1,10 +1,10 @@
-from typing import Union
 import functools
+from typing import Union
 
+import voluptuous as vol  # type: ignore
 from flask import Response, jsonify, request
+from voluptuous.humanize import humanize_error  # type: ignore
 from werkzeug.exceptions import BadRequest
-import voluptuous as vol
-from voluptuous.humanize import humanize_error
 
 SchemaType = Union[vol.Schema, list, dict]
 
@@ -12,7 +12,7 @@ SchemaType = Union[vol.Schema, list, dict]
 def json_request(schema: SchemaType):
     if not isinstance(schema, vol.Schema):
         schema = vol.Schema(schema)
-    
+
     def decorator(fn):
         @functools.wraps(fn)
         def patched(*args, **kwargs):
@@ -21,7 +21,7 @@ def json_request(schema: SchemaType):
                 data = schema(request_data)
             except vol.Invalid as err:
                 msg = humanize_error(request_data, err)
-                raise BadRequest(msg)
+                raise BadRequest(msg) from err
             return fn(*args, data, **kwargs)
 
         return patched
@@ -43,6 +43,7 @@ def json_response():
             return ret
 
         return patched
+
     return decorator
 
 

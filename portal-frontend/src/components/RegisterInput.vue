@@ -40,7 +40,7 @@ export interface RegisterInputData {
 @Component
 export default class RegisterInput extends Vue {
   @VModel({
-    type: Object as PropType<RegisterInputData>
+    type: Object as PropType<RegisterInputData>,
   })
   data!: RegisterInputData;
 }

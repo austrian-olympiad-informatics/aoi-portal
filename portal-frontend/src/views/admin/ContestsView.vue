@@ -36,23 +36,29 @@
             <ul class="mb-2">
               <li>
                 <span class="icon-text">
-                  <b-icon icon="account-multiple"/>&nbsp;{{ contest.participant_count }} Users
+                  <b-icon icon="account-multiple" />&nbsp;{{
+                    contest.participant_count
+                  }}
+                  Users
                 </span>
               </li>
               <li>
                 <span class="icon-text" v-if="contest.public">
-                  <b-icon icon="earth"/>&nbsp;Public
+                  <b-icon icon="earth" />&nbsp;Public
                 </span>
                 <span class="icon-text" v-else>
-                  <b-icon icon="account"/>&nbsp;Private
+                  <b-icon icon="account" />&nbsp;Private
                 </span>
               </li>
               <li>
-                <span class="icon-text" v-if="contest.cms_allow_sso_authentication">
-                  <b-icon icon="login"/>&nbsp;SSO enabled
+                <span
+                  class="icon-text"
+                  v-if="contest.cms_allow_sso_authentication"
+                >
+                  <b-icon icon="login" />&nbsp;SSO enabled
                 </span>
                 <span class="icon-text" v-else>
-                  <b-icon icon="login"/>&nbsp;SSO disabled
+                  <b-icon icon="login" />&nbsp;SSO disabled
                 </span>
               </li>
             </ul>

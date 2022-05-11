@@ -1,3 +1,4 @@
+# type: ignore
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import (
     Boolean,
@@ -9,11 +10,9 @@ from sqlalchemy import (
     LargeBinary,
     String,
     Table,
-    UniqueConstraint,
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import backref, relationship
-from sqlalchemy.orm.collections import attribute_mapped_collection
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 Base = declarative_base()
@@ -50,7 +49,9 @@ class User(Base):
     cms_id = Column(Integer, nullable=True)
     cms_username = Column(String, nullable=True)
 
-    participations = relationship("Participation", back_populates="user", cascade="all, delete")
+    participations = relationship(
+        "Participation", back_populates="user", cascade="all, delete"
+    )
     groups = relationship("Group", secondary=GroupsUsers, back_populates="users")
     sessions = relationship("UserSession", back_populates="user", cascade="all, delete")
     email_change_requests = relationship(
@@ -169,7 +170,9 @@ class Contest(Base):
     public = Column(Boolean, default=False, nullable=False)
     auto_add_to_group_id = Column(Integer, ForeignKey("group.id"), nullable=True)
 
-    participations = relationship("Participation", back_populates="contest", cascade="all, delete")
+    participations = relationship(
+        "Participation", back_populates="contest", cascade="all, delete"
+    )
     auto_add_to_group = relationship("Group")
 
 

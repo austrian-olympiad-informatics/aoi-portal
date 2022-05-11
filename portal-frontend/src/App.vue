@@ -18,7 +18,8 @@
       type="is-danger"
       tag="router-link"
       :to="{ name: 'AdminIndex' }"
-      icon-right="cog">
+      icon-right="cog"
+    >
       Admin
     </b-button>
   </div>
@@ -27,7 +28,6 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import Navbar from "./components/Navbar.vue";
-import { NotificationProgrammatic as Notification } from "buefy";
 
 @Component({
   components: {

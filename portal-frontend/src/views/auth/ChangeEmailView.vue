@@ -39,8 +39,8 @@ import { matchError } from "@/util/errors";
   },
 })
 export default class ChangeEmailView extends Vue {
-  currentPassword: string = "";
-  newEmail: string = "";
+  currentPassword = "";
+  newEmail = "";
 
   async submit() {
     let resp: AuthChangeEmailResult;

@@ -4,7 +4,7 @@ from datetime import timedelta
 from typing import Optional
 from uuid import uuid4
 
-import voluptuous as vol
+import voluptuous as vol  # type: ignore
 from flask import Blueprint, render_template
 from sqlalchemy.exc import IntegrityError
 
@@ -43,7 +43,7 @@ from aoiportal.error import (
     AOIUnauthorized,
 )
 from aoiportal.mail import send_email
-from aoiportal.models import (
+from aoiportal.models import (  # type: ignore
     User,
     UserEmailChangeRequest,
     UserPasswordResetRequest,
@@ -89,10 +89,7 @@ def login(data):
 def auth_status():
     u = get_current_user()
     if u is None:
-        return {
-            "authenticated": False,
-            "admin": False
-        }
+        return {"authenticated": False, "admin": False}
     return {
         "authenticated": True,
         "admin": u.is_admin,
@@ -154,7 +151,9 @@ def send_password_reset_verification_code(req: UserPasswordResetRequest) -> None
 def register(data):
     existing_user: Optional[User] = User.query.filter_by(email=data[KEY_EMAIL]).first()
     if existing_user is not None:
-        raise AOIConflict("A user with that email already exists", error_code=ERROR_EMAIL_EXISTS)
+        raise AOIConflict(
+            "A user with that email already exists", error_code=ERROR_EMAIL_EXISTS
+        )
 
     now = utcnow()
     recent_req_count = (
@@ -189,35 +188,6 @@ def register(data):
     }
 
 
-"""
-# TODO: could be used to brute force verification code
-@auth_bp.route("/api/auth/register-rerequest-email", methods=["POST"])
-@json_api(
-    {
-        vol.Required(KEY_UUID): str,
-    }
-)
-def register_rerequest_email(data):
-    req: Optional[UserRegisterRequest] = UserRegisterRequest.query.filter_by(uuid=data[KEY_UUID]).first()
-    if req is None:
-        raise AOINotFound("Register request not found")
-    now = utcnow()
-    if not req.valid:
-        raise AOIBadRequest("Register request not valid")
-
-    new_verification_code = ''.join(secrets.choice("0123456789") for i in range(6))
-    now = utcnow()
-
-    req.verification_code = new_verification_code
-    req.valid_until = now + timedelta(hours=3)
-    req.attempts = 0
-    db.session.commit()
-
-    send_email_verification_code(req)
-    return {"success": True}
-"""
-
-
 @auth_bp.route("/api/auth/register-verify", methods=["POST"])
 @json_api(
     {
@@ -233,7 +203,9 @@ def register_verify(data):
         raise AOINotFound("Register request not found")
     now = utcnow()
     if not req.valid or now < as_utc(req.created_at) or now > as_utc(req.valid_until):
-        raise AOIBadRequest("Register request not valid", error_code=ERROR_NO_LONGER_VALID)
+        raise AOIBadRequest(
+            "Register request not valid", error_code=ERROR_NO_LONGER_VALID
+        )
     if req.attempts >= 3:
         raise AOIBadRequest("Too many attempts", error_code=ERROR_TOO_MANY_ATTEMPTS)
 
@@ -241,7 +213,9 @@ def register_verify(data):
     if not same:
         req.attempts += 1
         db.session.commit()
-        raise AOIBadRequest("Invalid verification code", error_code=ERROR_INVALID_VERIFICATION_CODE)
+        raise AOIBadRequest(
+            "Invalid verification code", error_code=ERROR_INVALID_VERIFICATION_CODE
+        )
     user = User(
         first_name=req.first_name,
         last_name=req.last_name,
@@ -277,7 +251,9 @@ def change_password(data):
         if KEY_OLD_PASSWORD not in data:
             raise AOIBadRequest("Need to specify old_password.")
         if not u.check_password(data[KEY_OLD_PASSWORD]):
-            raise AOIBadRequest("Old password does not match", error_code=ERROR_INVALID_PASSWORD)
+            raise AOIBadRequest(
+                "Old password does not match", error_code=ERROR_INVALID_PASSWORD
+            )
     u.password_hash = hash_password(data[KEY_NEW_PASSWORD])
     # TODO: invalidate old sessions except this one
     db.session.commit()
@@ -293,7 +269,9 @@ def change_password(data):
 def request_password_reset(data):
     user = User.query.filter_by(email=data[KEY_EMAIL]).first()
     if user is None:
-        raise AOINotFound("No user with that email address.", error_code=ERROR_USER_NOT_FOUND)
+        raise AOINotFound(
+            "No user with that email address.", error_code=ERROR_USER_NOT_FOUND
+        )
 
     now = utcnow()
     recent_req_count = (
@@ -303,7 +281,9 @@ def request_password_reset(data):
         .count()
     )
     if recent_req_count >= 3:
-        raise AOITooManyRequests("Password reset rate limited.", error_code=ERROR_RATE_LIMIT)
+        raise AOITooManyRequests(
+            "Password reset rate limited.", error_code=ERROR_RATE_LIMIT
+        )
 
     verification_code = "".join(secrets.choice("0123456789") for i in range(6))
     now = utcnow()
@@ -342,7 +322,9 @@ def reset_password(data):
         raise AOINotFound("Password reset request not found")
     now = utcnow()
     if not req.valid or now < as_utc(req.created_at) or now > as_utc(req.valid_until):
-        raise AOIBadRequest("Password reset request not valid", error_code=ERROR_NO_LONGER_VALID)
+        raise AOIBadRequest(
+            "Password reset request not valid", error_code=ERROR_NO_LONGER_VALID
+        )
     if req.attempts >= 3:
         raise AOIBadRequest("Too many attempts", error_code=ERROR_TOO_MANY_ATTEMPTS)
 
@@ -350,7 +332,9 @@ def reset_password(data):
     if not same:
         req.attempts += 1
         db.session.commit()
-        raise AOIBadRequest("Invalid verification code", error_code=ERROR_INVALID_VERIFICATION_CODE)
+        raise AOIBadRequest(
+            "Invalid verification code", error_code=ERROR_INVALID_VERIFICATION_CODE
+        )
 
     if KEY_NEW_PASSWORD not in data:
         return {
@@ -383,10 +367,15 @@ def change_email(data):
         if KEY_PASSWORD not in data:
             raise AOIBadRequest("Password is required")
         if not check_password(data[KEY_PASSWORD], current_user.password_hash):
-            raise AOIBadRequest("Password does not match", error_code=ERROR_INVALID_PASSWORD)
+            raise AOIBadRequest(
+                "Password does not match", error_code=ERROR_INVALID_PASSWORD
+            )
     existing = User.query.filter_by(email=data[KEY_EMAIL]).first()
     if existing is not None:
-        raise AOIBadRequest("Email already registered for a different user.", error_code=ERROR_EMAIL_EXISTS)
+        raise AOIBadRequest(
+            "Email already registered for a different user.",
+            error_code=ERROR_EMAIL_EXISTS,
+        )
 
     now = utcnow()
     recent_req_count = (
@@ -434,7 +423,9 @@ def change_email_verify(data):
         raise AOINotFound("Email change request not found")
     now = utcnow()
     if not req.valid or now < as_utc(req.created_at) or now > as_utc(req.valid_until):
-        raise AOIBadRequest("Email change request not valid", error_code=ERROR_NO_LONGER_VALID)
+        raise AOIBadRequest(
+            "Email change request not valid", error_code=ERROR_NO_LONGER_VALID
+        )
     if req.attempts >= 3:
         raise AOIBadRequest("Too many attempts", error_code=ERROR_TOO_MANY_ATTEMPTS)
 
@@ -442,7 +433,9 @@ def change_email_verify(data):
     if not same:
         req.attempts += 1
         db.session.commit()
-        raise AOIBadRequest("Invalid verification code", error_code=ERROR_INVALID_VERIFICATION_CODE)
+        raise AOIBadRequest(
+            "Invalid verification code", error_code=ERROR_INVALID_VERIFICATION_CODE
+        )
 
     req.user.email = req.new_email
     # TODO: invalidate old sessions except this one

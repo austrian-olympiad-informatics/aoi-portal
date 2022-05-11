@@ -12,13 +12,18 @@
         <span class="aoi-logo-text">Informatikolympiade</span>
       </b-navbar-item>
     </template>
-    <template #start>
-    </template>
+    <template #start> </template>
 
     <template #end>
-      <b-navbar-item v-if="!isAuthenticated && !$route.meta.noNavAuth" tag="div">
+      <b-navbar-item
+        v-if="!isAuthenticated && !$route.meta.noNavAuth"
+        tag="div"
+      >
         <div class="buttons">
-          <b-button type="is-primary" tag="router-link" :to="{ name: 'Register' }"
+          <b-button
+            type="is-primary"
+            tag="router-link"
+            :to="{ name: 'Register' }"
             ><strong>Registrieren</strong></b-button
           >
           <b-button type="is-light" tag="router-link" :to="{ name: 'Login' }"

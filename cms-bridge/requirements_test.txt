@@ -3,4 +3,4 @@ black==22.3.0
 flake8==4.0.1
 isort==5.10.1
 mypy==0.950
-types-requests==2.27.25
+types-python-slugify==5.0.4

@@ -9,9 +9,9 @@ from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 
 from aoiportal.auth_util import get_current_user, login_required
-from aoiportal.error import AOIBadRequest, AOIConflict, AOINotFound
+from aoiportal.error import AOIConflict, AOINotFound
 from aoiportal.helpers import create_participation
-from aoiportal.models import Contest, Participation, db
+from aoiportal.models import Contest, Participation, db  # type: ignore
 from aoiportal.utils import utcnow
 from aoiportal.web_utils import json_api
 
@@ -70,6 +70,7 @@ def join_contest(contest_uuid: str):
         raise AOINotFound("Contest not found")
 
     current_user = get_current_user()
+    assert current_user is not None
     existing_part = (
         db.session.query(Participation)
         .filter(Participation.contest_id == contest.id)
@@ -102,10 +103,12 @@ def gen_sso_token(contest_uuid: str):
     if contest is None:
         return AOINotFound("Contest not found")
 
+    current_user = get_current_user()
+    assert current_user is not None
     part: Optional[Participation] = (
         db.session.query(Participation)
         .filter(Participation.contest_id == contest.id)
-        .filter(Participation.user_id == get_current_user().id)
+        .filter(Participation.user_id == current_user.id)
         .first()
     )
     if part is None:

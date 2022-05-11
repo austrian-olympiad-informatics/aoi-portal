@@ -4,7 +4,7 @@ import router from "./router";
 import Buefy from "buefy";
 import "@mdi/font/css/materialdesignicons.css";
 import store from "./store";
-import '@/scss/style.scss';
+import "@/scss/style.scss";
 
 Vue.use(Buefy);
 Vue.config.productionTip = false;

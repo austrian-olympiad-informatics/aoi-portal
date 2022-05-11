@@ -1,4 +1,3 @@
-
 export interface GitHubAuthorizeURLResponse {
   url: string;
 }

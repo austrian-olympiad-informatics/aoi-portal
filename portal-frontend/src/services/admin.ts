@@ -143,7 +143,10 @@ class AdminService {
     groupId: number,
     params: AdminGroupUpdateParams
   ): Promise<void> {
-    await http.put(`/api/admin/groups/${encodeURIComponent(groupId)}/update`, params);
+    await http.put(
+      `/api/admin/groups/${encodeURIComponent(groupId)}/update`,
+      params
+    );
   }
   async createGroup(params: AdminGroupCreateParams): Promise<number> {
     const resp = await http.post("/api/admin/groups/create", params);

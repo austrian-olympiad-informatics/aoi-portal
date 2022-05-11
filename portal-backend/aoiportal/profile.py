@@ -1,8 +1,9 @@
 import datetime
 
-import voluptuous as vol
+import voluptuous as vol  # type: ignore
 from flask import Blueprint
 
+from aoiportal.auth_util import get_current_user, login_required
 from aoiportal.const import (
     KEY_ADDRESS_STREET,
     KEY_ADDRESS_TOWN,
@@ -14,9 +15,8 @@ from aoiportal.const import (
     KEY_SCHOOL_ADDRESS,
     KEY_SCHOOL_NAME,
 )
-from aoiportal.models import User, db
+from aoiportal.models import User, db  # type: ignore
 from aoiportal.web_utils import json_api
-from aoiportal.auth_util import login_required, get_current_user
 
 profile_bp = Blueprint("profile", __name__)
 

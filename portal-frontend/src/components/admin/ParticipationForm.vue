@@ -10,8 +10,8 @@
         :custom-formatter="formatUser"
         required
         open-on-focus
-        @select="u => data.user_id = u.id"
-        >
+        @select="(u) => (data.user_id = u.id)"
+      >
       </b-autocomplete>
     </b-field>
 
@@ -60,9 +60,8 @@ export default class ParticipationForm extends Vue {
   }
 
   get userValue(): string {
-    if (this.data.user_id === null || this.users === null)
-      return "";
-    const uidMap = new Map(this.users.map(u => [u.id, u]));
+    if (this.data.user_id === null || this.users === null) return "";
+    const uidMap = new Map(this.users.map((u) => [u.id, u]));
     return this.formatUser(uidMap.get(this.data.user_id)!);
   }
 

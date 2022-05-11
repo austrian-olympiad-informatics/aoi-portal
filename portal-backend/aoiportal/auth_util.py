@@ -9,10 +9,9 @@ import nacl.exceptions
 import nacl.secret
 from flask import current_app, g, request
 from sqlalchemy.orm import joinedload
-from werkzeug.local import LocalProxy
 
 from aoiportal.error import ERROR_LOGIN_REQUIRED, AOIUnauthorized
-from aoiportal.models import User, UserSession, db
+from aoiportal.models import User, UserSession, db  # type: ignore
 from aoiportal.utils import as_utc, utcnow
 
 _G_CURRENT_SESSION_KEY = "_aoi_auth_current_session"

@@ -31,7 +31,7 @@ export interface LoginInputData {
 @Component
 export default class LoginForm extends Vue {
   @VModel({
-    type: Object as PropType<LoginInputData>
+    type: Object as PropType<LoginInputData>,
   })
   data!: LoginInputData;
 }
