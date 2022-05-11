@@ -1,23 +1,46 @@
 <template>
-  <section class="section">
-    <div class="container">
+  <div class="container">
+    <section class="section">
       <div class="columns is-centered">
         <div class="column is-5">
-          <form class="box" @submit.prevent="register">
-            <h1 class="is-size-2 mb-3">Registrieren</h1>
-            <RegisterInput v-model="data" />
-            <b-button type="is-primary" native-type="submit" expanded
-              >Registrieren</b-button
-            >
+          <div class="box">
+            <form @submit.prevent="register">
+              <h1 class="is-size-2 mb-3">Registrieren</h1>
+              <RegisterInput v-model="data" />
+              <b-button type="is-primary" native-type="submit" expanded
+                >Registrieren</b-button
+              >
+            </form>
 
             <p class="mt-5">
               <router-link :to="{ name: 'Login' }">Zur Anmeldung</router-link>
             </p>
-          </form>
+            <div class="is-divider" data-content="ODER"></div>
+            <router-link
+              class="button is-rounded is-fullwidth"
+              type="button"
+              :to="{ name: 'GitHubOAuth' }"
+            >
+              <span class="icon">
+                <img src="../../assets/github-icon.svg" />
+              </span>
+              Mit GitHub registrieren
+            </router-link>
+            <router-link
+              class="button is-rounded is-fullwidth mt-2"
+              type="button"
+              :to="{ name: 'GoogleOAuth' }"
+            >
+              <span class="icon">
+                <img src="../../assets/google-icon.svg" />
+              </span>
+              Mit Google registrieren
+            </router-link>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
 </template>
 
 <script lang="ts">
@@ -76,3 +99,32 @@ export default class RegisterView extends Vue {
   }
 }
 </script>
+
+<style scoped>
+.is-divider {
+  display: block;
+  position: relative;
+  border-top: 0.1rem solid #dbdbdb;
+  height: 0.1rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+.is-divider::after {
+  background: #fff;
+  color: #b5b5b5;
+  content: attr(data-content);
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.8rem;
+  transform: translateY(-1.1rem);
+  text-align: center;
+}
+
+.button .icon {
+  margin-right: 0.5em !important;
+}
+.button .icon img {
+  height: 1.5em;
+  display: inline-block;
+}
+</style>

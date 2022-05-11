@@ -39,16 +39,7 @@ export default class AppComponent extends Vue {
     return this.$store.getters.isAdmin;
   }
   async mounted(): Promise<void> {
-    try {
-      await this.$store.dispatch("checkStatus");
-    } catch(except) {
-      Notification.open({
-          message: "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-          type: "is-danger",
-          hasIcon: true,
-          position: "is-top-right",
-      });
-    }
+    await this.$store.dispatch("checkStatus");
   }
 }
 </script>

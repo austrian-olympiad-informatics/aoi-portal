@@ -59,6 +59,12 @@ class User(Base):
     password_reset_requests = relationship(
         "UserPasswordResetRequest", back_populates="user", cascade="all, delete"
     )
+    github_oauths = relationship(
+        "UserGitHubOAuth", back_populates="user", cascade="all, delete"
+    )
+    google_oauths = relationship(
+        "UserGoogleOAuth", back_populates="user", cascade="all, delete"
+    )
 
 
 class UserSession(Base):
@@ -116,6 +122,28 @@ class UserPasswordResetRequest(Base):
     valid_until = Column(DateTime, nullable=False)
     attempts = Column(Integer, nullable=False)
     valid = Column(Boolean, nullable=False)
+
+
+class UserGitHubOAuth(Base):
+    __tablename__ = "user_github_oauth"
+
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, nullable=False)
+    access_token = Column(String, nullable=False, unique=True, index=True)
+    user_id = Column(Integer, ForeignKey(User.id))
+    user = relationship(User, back_populates="github_oauths")
+    extra_data = Column(String, nullable=False)
+
+
+class UserGoogleOAuth(Base):
+    __tablename__ = "user_google_oauth"
+
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, nullable=False)
+    access_token = Column(String, nullable=False, unique=True, index=True)
+    user_id = Column(Integer, ForeignKey(User.id))
+    user = relationship(User, back_populates="google_oauths")
+    extra_data = Column(String, nullable=False)
 
 
 class Contest(Base):

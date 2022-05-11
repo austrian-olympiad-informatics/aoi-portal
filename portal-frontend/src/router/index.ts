@@ -11,6 +11,10 @@ import ChangeEmailView from "../views/auth/ChangeEmailView.vue";
 import ChangeEmailVerifyView from "../views/auth/ChangeEmailVerifyView.vue";
 import PasswordResetView from "../views/auth/PasswordResetView.vue";
 import PasswordResetVerifyView from "../views/auth/PasswordResetVerifyView.vue";
+import GitHubOAuthView from "../views/auth/GitHubOAuthView.vue";
+import GitHubOAuthCallbackView from "../views/auth/GitHubOAuthCallbackView.vue";
+import GoogleOAuthView from "../views/auth/GoogleOAuthView.vue";
+import GoogleOAuthCallbackView from "../views/auth/GoogleOAuthCallbackView.vue";
 import ErrorView from "../views/ErrorView.vue";
 import store from "@/store";
 
@@ -97,6 +101,38 @@ const routes: Array<RouteConfig> = [
     meta: {
       requiresAuth: false,
       noNavAuth: true,
+    },
+  },
+  {
+    path: "/auth/oauth/github/authorize",
+    name: "GitHubOAuth",
+    component: GitHubOAuthView,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: "/auth/oauth/github/callback",
+    name: "GitHubOAuthCallback",
+    component: GitHubOAuthCallbackView,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: "/auth/oauth/google/authorize",
+    name: "GoogleOAuth",
+    component: GoogleOAuthView,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: "/auth/oauth/google/callback",
+    name: "GoogleOAuthCallback",
+    component: GoogleOAuthCallbackView,
+    meta: {
+      requiresAuth: false,
     },
   },
   {
