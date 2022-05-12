@@ -10,6 +10,11 @@
   },
   "dependencies": {
     "@mdi/font": "^6.6.96",
+    "@tiptap/extension-bubble-menu": "^2.0.0-beta.56",
+    "@tiptap/extension-link": "^2.0.0-beta.37",
+    "@tiptap/extension-underline": "^2.0.0-beta.23",
+    "@tiptap/starter-kit": "^2.0.0-beta.184",
+    "@tiptap/vue-2": "^2.0.0-beta.78",
     "axios": "^0.27.2",
     "buefy": "^0.9.0",
     "core-js": "^3.8.3",

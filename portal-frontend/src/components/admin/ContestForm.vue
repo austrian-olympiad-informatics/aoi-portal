@@ -42,10 +42,10 @@
       <b-input v-model="data.name" />
     </b-field>
     <b-field label="Teaser">
-      <b-input v-model="data.teaser" type="textarea" />
+      <RichTextEditor v-model="data.teaser" />
     </b-field>
     <b-field label="Description">
-      <b-input v-model="data.description" type="textarea" />
+      <RichTextEditor v-model="data.description" class="description-editor" />
     </b-field>
 
     <b-field label="Open Signup">
@@ -93,6 +93,7 @@ import admin from "@/services/admin";
 import { AdminGroups } from "@/types/admin";
 import { PropType } from "vue";
 import { Component, VModel, Vue } from "vue-property-decorator";
+import RichTextEditor from "@/components/RichTextEditor.vue";
 
 export interface ContestFormData {
   cms_id: number;
@@ -113,7 +114,11 @@ export interface ContestFormData {
   auto_add_to_group_id: number | null;
 }
 
-@Component
+@Component({
+  components: {
+    RichTextEditor,
+  }
+})
 export default class ContestForm extends Vue {
   @VModel({
     type: Object as PropType<ContestFormData>,
@@ -137,4 +142,8 @@ export default class ContestForm extends Vue {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.description-editor {
+  min-height: 400px;
+}
+</style>
