@@ -6,6 +6,8 @@ import Vuex from "vuex";
 Vue.use(Vuex);
 
 interface LocalStorageState {
+  isAuthenticated: boolean;
+  isAdmin: boolean;
   authToken: string;
   registerVerifyEmail: string;
   registerVerifyUuid: string;
@@ -71,6 +73,8 @@ const store = new Vuex.Store({
       state.passwordResetVerifyUuid = passwordResetVerifyUuid;
     },
     restoreState(state, savedState: LocalStorageState) {
+      state.isAuthenticated = savedState.isAuthenticated;
+      state.isAdmin = savedState.isAdmin;
       state.authToken = savedState.authToken;
       state.registerVerifyEmail = savedState.registerVerifyEmail;
       state.registerVerifyUuid = savedState.registerVerifyUuid;
@@ -101,6 +105,8 @@ const store = new Vuex.Store({
 store.subscribe((mutation, state) => {
   if (mutation.type !== "restoreState") {
     const val: LocalStorageState = {
+      isAuthenticated: state.isAuthenticated,
+      isAdmin: state.isAdmin,
       authToken: state.authToken,
       registerVerifyEmail: state.registerVerifyEmail,
       registerVerifyUuid: state.registerVerifyUuid,

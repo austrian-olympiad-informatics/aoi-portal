@@ -56,6 +56,11 @@ class AdminService {
     );
     return resp.data;
   }
+  async deleteContest(contestUuid: string): Promise<void> {
+    await http.delete(
+      `/api/admin/contests/${encodeURIComponent(contestUuid)}/delete`
+    );
+  }
   async updateContest(
     contestUuid: string,
     params: AdminContestUpdateParams

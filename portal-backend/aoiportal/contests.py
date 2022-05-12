@@ -22,29 +22,38 @@ contests_bp = Blueprint("contests", __name__)
 @login_required
 @json_api()
 def list_contests():
-    q = db.session.query(Contest, Participation).join(
-        Participation,
-        and_(
-            Contest.id == Participation.contest_id,
-            Participation.user_id == get_current_user().id,
-        ),
-        isouter=True,
+    q = (
+        db.session.query(Contest, Participation)
+        .join(
+            Participation,
+            and_(
+                Contest.id == Participation.contest_id,
+                Participation.user_id == get_current_user().id,
+            ),
+            isouter=True,
+        )
+        .filter(Contest.deleted == False)
+        .order_by(Contest.order_priority.desc())
     )
     ret = []
     for contest, part in q:
         joined = part is not None
         can_join = False
         if not joined:
-            can_join = contest.public
+            can_join = contest.open_signup
         if not joined and not can_join:
             continue
 
         value = {
             "uuid": contest.uuid,
-            "name": contest.cms_name,
-            "description": contest.cms_description,
+            "name": contest.name,
+            "teaser": contest.teaser,
+            "description": contest.description,
             "joined": joined,
-            "can_join": can_join,
+            "open_signup": contest.open_signup,
+            "quali_round": contest.quali_round,
+            "order_priority": contest.order_priority,
+            "archived": contest.archived,
         }
         if joined:
             value["url"] = contest.url
@@ -60,12 +69,56 @@ def list_contests():
     return ret
 
 
+@contests_bp.route("/api/contests/<contest_uuid>")
+@login_required
+@json_api()
+def get_contest(contest_uuid: str):
+    contest = Contest.query.filter_by(uuid=contest_uuid).first()
+    if contest is None or contest.deleted:
+        raise AOINotFound("Contest not found")
+
+    current_user = get_current_user()
+    assert current_user is not None
+    part: Optional[Participation] = (
+        db.session.query(Participation)
+        .filter(Participation.contest == contest)
+        .filter(Participation.user == current_user)
+    )
+    joined = part is not None
+    can_join = False
+    if not joined:
+        can_join = contest.open_signup
+    if not joined and not can_join:
+        raise AOINotFound("Contest not found")
+
+    value = {
+        "name": contest.name,
+        "teaser": contest.teaser,
+        "description": contest.description,
+        "joined": joined,
+        "open_signup": contest.open_signup,
+        "quali_round": contest.quali_round,
+        "order_priority": contest.order_priority,
+        "archived": contest.archived,
+    }
+    if joined:
+        value["url"] = contest.url
+        sso_enabled = bool(
+            contest.cms_allow_sso_authentication
+            and contest.cms_sso_secret_key
+            and contest.url
+        )
+        value["sso_enabled"] = sso_enabled
+
+    return value
+
+
 @contests_bp.route("/api/contests/<contest_uuid>/join", methods=["POST"])
 @login_required
 @json_api()
 def join_contest(contest_uuid: str):
     contest = Contest.query.filter_by(uuid=contest_uuid).first()
-    can_join = contest is not None and contest.public
+    can_join = contest is not None and contest.open_signup and not contest.deleted
     if not can_join:
         raise AOINotFound("Contest not found")
 

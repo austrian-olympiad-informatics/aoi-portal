@@ -178,7 +178,14 @@ export default class ContestView extends Vue {
       cms_sso_secret_key: this.contest.cms_sso_secret_key,
       cms_sso_redirect_url: this.contest.cms_sso_redirect_url,
       url: this.contest.url,
-      public: this.contest.public,
+      open_signup: this.contest.open_signup,
+      quali_round: this.contest.quali_round,
+      name: this.contest.name,
+      teaser: this.contest.teaser,
+      description: this.contest.description,
+      archived: this.contest.archived,
+      deleted: this.contest.deleted,
+      order_priority: this.contest.order_priority,
       auto_add_to_group_id:
         this.contest.auto_add_to_group == null
           ? null
@@ -188,9 +195,15 @@ export default class ContestView extends Vue {
 
   async updateContest(data: ContestFormData) {
     let params: AdminContestUpdateParams = {
-      public: data.public,
+      open_signup: data.open_signup,
       auto_add_to_group_id: data.auto_add_to_group_id,
       url: data.url,
+      name: data.name,
+      teaser: data.teaser,
+      description: data.description,
+      quali_round: data.quali_round,
+      archived: data.archived,
+      order_priority: data.order_priority,
     };
     await admin.updateContest(this.contestUuid, params);
     this.$buefy.toast.open({

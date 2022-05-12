@@ -6,7 +6,7 @@
       <b-message
         type="is-warning"
         has-icon
-        v-if="missingFields.len"
+        v-if="missingFields.length"
         class="content"
       >
         Die folgenden Felder müssen noch ausgefüllt werden, damit du dich für

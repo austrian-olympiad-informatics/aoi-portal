@@ -10,6 +10,7 @@ from sqlalchemy import (
     LargeBinary,
     String,
     Table,
+    Float,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -167,8 +168,16 @@ class Contest(Base):
     # cms_analysis_start_time = Column(DateTime, nullable=False)
     # cms_analysis_end_time = Column(DateTime, nullable=False)
 
-    public = Column(Boolean, default=False, nullable=False)
+    order_priority = Column(Float, nullable=False, default=0)
+    open_signup = Column(Boolean, default=False, nullable=False)
+    quali_round = Column(Boolean, default=False, nullable=False)
+    archived = Column(Boolean, default=False, nullable=False)
     auto_add_to_group_id = Column(Integer, ForeignKey("group.id"), nullable=True)
+    deleted = Column(Boolean, default=False, nullable=False)
+
+    name = Column(String, nullable=False)
+    teaser = Column(String, nullable=False)
+    description = Column(String, nullable=False)
 
     participations = relationship(
         "Participation", back_populates="contest", cascade="all, delete"

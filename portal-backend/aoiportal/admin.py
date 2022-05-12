@@ -16,6 +16,7 @@ from aoiportal.const import (
     KEY_ADDRESS_STREET,
     KEY_ADDRESS_TOWN,
     KEY_ADDRESS_ZIP,
+    KEY_ARCHIVED,
     KEY_AUTO_ADD_TO_GROUP_ID,
     KEY_BIRTHDAY,
     KEY_CMS_ID,
@@ -29,12 +30,15 @@ from aoiportal.const import (
     KEY_LAST_NAME,
     KEY_MANUAL_PASSWORD,
     KEY_NAME,
+    KEY_ORDER_PRIORITY,
     KEY_PASSWORD,
     KEY_PHONE_NR,
-    KEY_PUBLIC,
+    KEY_OPEN_SIGNUP,
+    KEY_QUALI_ROUND,
     KEY_RANDOM_MANUAL_PASSWORDS,
     KEY_SCHOOL_ADDRESS,
     KEY_SCHOOL_NAME,
+    KEY_TEASER,
     KEY_URL,
     KEY_USER_ID,
     KEY_USERS,
@@ -273,25 +277,27 @@ def refresh_cms_contests():
             cmsc = Contest(
                 uuid=str(uuid.uuid4()),
                 cms_id=c.id,
-                cms_name=c.name,
-                cms_description=c.description,
-                cms_allow_sso_authentication=c.allow_sso_authentication,
-                cms_sso_secret_key=c.sso_secret_key,
-                cms_sso_redirect_url=c.sso_redirect_url,
+                name=c.name,
+                teaser=c.description,
+                description=c.description,
             )
-            db.session.add(cmsc)
-            continue
-        cmsc = ourids[c.id]
+        else:
+            cmsc = ourids[c.id]
+
         cmsc.cms_name = c.name
         cmsc.cms_description = c.name
         cmsc.cms_allow_sso_authentication = c.allow_sso_authentication
         cmsc.cms_sso_secret_key = c.sso_secret_key
         cmsc.cms_sso_redirect_url = c.sso_redirect_url
+        cmsc.deleted = False
+
+        if c.id not in ourids:
+            db.session.add(cmsc)
 
     for c in ourcontests:
         if c.cms_id not in cmsids:
             # no longer exists in cms, delete
-            db.session.delete(c)
+            c.deleted = True
 
     db.session.commit()
     return {"success": True}
@@ -310,7 +316,14 @@ def list_contests():
             "cms_allow_sso_authentication": c.cms_allow_sso_authentication,
             "cms_sso_redirect_url": c.cms_sso_redirect_url,
             "url": c.url,
-            "public": c.public,
+            "open_signup": c.open_signup,
+            "quali_round": c.quali_round,
+            "name": c.name,
+            "teaser": c.teaser,
+            "description": c.description,
+            "archived": c.archived,
+            "deleted": c.deleted,
+            "order_priority": c.order_priority,
             "auto_add_to_group": {
                 "id": c.auto_add_to_group.id,
                 "name": c.auto_add_to_group.name,
@@ -340,7 +353,14 @@ def get_contest(contest_uuid: str):
         "cms_sso_secret_key": c.cms_sso_secret_key,
         "cms_sso_redirect_url": c.cms_sso_redirect_url,
         "url": c.url,
-        "public": c.public,
+        "open_signup": c.open_signup,
+        "quali_round": c.quali_round,
+        "name": c.name,
+        "teaser": c.teaser,
+        "description": c.description,
+        "archived": c.archived,
+        "deleted": c.deleted,
+        "order_priority": c.order_priority,
         "auto_add_to_group": {
             "id": c.auto_add_to_group.id,
             "name": c.auto_add_to_group.name,
@@ -365,21 +385,39 @@ def get_contest(contest_uuid: str):
     }
 
 
+@admin_bp.route("/api/admin/contests/<contest_uuid>/delete", methods=["DELETE"])
+@admin_required
+@json_api()
+def delete_contest(contest_uuid: str):
+    c = Contest.query.filter_by(uuid=contest_uuid).first()
+    if c is None:
+        raise AOINotFound("Contest not found")
+    db.session.delete(c)
+    db.session.commit()
+    return {"success": True}
+
+
 @admin_bp.route("/api/admin/contests/<contest_uuid>/update", methods=["PUT"])
 @admin_required
 @json_api(
     {
-        vol.Optional(KEY_PUBLIC): bool,
+        vol.Optional(KEY_OPEN_SIGNUP): bool,
         vol.Optional(KEY_AUTO_ADD_TO_GROUP_ID): vol.Any(None, int),
         vol.Optional(KEY_URL): str,
+        vol.Optional(KEY_NAME): str,
+        vol.Optional(KEY_TEASER): str,
+        vol.Optional(KEY_DESCRIPTION): str,
+        vol.Optional(KEY_QUALI_ROUND): bool,
+        vol.Optional(KEY_ARCHIVED): bool,
+        vol.Optional(KEY_ORDER_PRIORITY): vol.Coerce(float),
     }
 )
 def update_contest(data, contest_uuid: str):
     c: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
     if c is None:
         raise AOINotFound("Contest not found")
-    if KEY_PUBLIC in data:
-        c.public = data[KEY_PUBLIC]
+    if KEY_OPEN_SIGNUP in data:
+        c.open_signup = data[KEY_OPEN_SIGNUP]
     if KEY_AUTO_ADD_TO_GROUP_ID in data:
         if data[KEY_AUTO_ADD_TO_GROUP_ID] is None:
             c.auto_add_to_group = None
@@ -392,6 +430,18 @@ def update_contest(data, contest_uuid: str):
             c.auto_add_to_group = group
     if KEY_URL in data:
         c.url = data[KEY_URL]
+    if KEY_NAME in data:
+        c.name = data[KEY_NAME]
+    if KEY_TEASER in data:
+        c.teaser = data[KEY_TEASER]
+    if KEY_DESCRIPTION in data:
+        c.description = data[KEY_DESCRIPTION]
+    if KEY_QUALI_ROUND in data:
+        c.quali_round = data[KEY_QUALI_ROUND]
+    if KEY_ARCHIVED in data:
+        c.archived = data[KEY_ARCHIVED]
+    if KEY_ORDER_PRIORITY in data:
+        c.order_priority = data[KEY_ORDER_PRIORITY]
     db.session.commit()
     return {"success": True}
 

@@ -83,7 +83,14 @@ export interface AdminContest {
   cms_allow_sso_authentication: boolean;
   cms_sso_redirect_url: string;
   url: string;
-  public: boolean;
+  open_signup: boolean;
+  quali_round: boolean;
+  name: string;
+  teaser: string;
+  description: string;
+  archived: boolean;
+  deleted: boolean;
+  order_priority: number;
   auto_add_to_group: null | {
     id: number;
     name: string;
@@ -112,9 +119,15 @@ export interface AdminContestDetail
 }
 
 export interface AdminContestUpdateParams {
-  public?: boolean;
+  open_signup?: boolean;
   auto_add_to_group_id?: number | null;
   url?: string;
+  name?: string;
+  teaser?: string;
+  description?: string;
+  quali_round?: boolean;
+  archived?: boolean;
+  order_priority?: number;
 }
 
 export interface AdminContestCreateParticipationParams {
