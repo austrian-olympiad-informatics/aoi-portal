@@ -32,7 +32,7 @@ def list_contests():
             ),
             isouter=True,
         )
-        .filter(Contest.deleted == False)
+        .filter(Contest.deleted == False)  # pylint: disable=singleton-comparison
         .order_by(Contest.order_priority.desc())
     )
     ret = []
@@ -83,6 +83,7 @@ def get_contest(contest_uuid: str):
         db.session.query(Participation)
         .filter(Participation.contest == contest)
         .filter(Participation.user == current_user)
+        .first()
     )
     joined = part is not None
     can_join = False
@@ -154,7 +155,7 @@ def gen_sso_token(contest_uuid: str):
     # that will log them in to different account
     contest: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
     if contest is None:
-        return AOINotFound("Contest not found")
+        raise AOINotFound("Contest not found")
 
     current_user = get_current_user()
     assert current_user is not None
@@ -165,14 +166,14 @@ def gen_sso_token(contest_uuid: str):
         .first()
     )
     if part is None:
-        return AOINotFound("Not registered in contest")
+        raise AOINotFound("Not registered in contest")
 
     if (
         not contest.cms_allow_sso_authentication
         or not contest.cms_sso_secret_key
         or not contest.url
     ):
-        return AOIConflict("SSO is not enabled")
+        raise AOIConflict("SSO is not enabled")
 
     keybytes = base64.b64decode(contest.cms_sso_secret_key.encode())
     box = nacl.secret.SecretBox(keybytes)

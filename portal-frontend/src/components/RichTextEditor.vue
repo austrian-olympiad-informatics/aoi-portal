@@ -285,7 +285,7 @@ export default class RichTextEditor extends Vue {
   }
 
   onLink() {
-    if (this.editor?.isActive('link')) {
+    if (this.editor?.isActive("link")) {
       this.editor?.chain().focus().unsetLink().run();
       return;
     }
@@ -296,10 +296,14 @@ export default class RichTextEditor extends Vue {
       },
       trapFocus: true,
       onConfirm: (value) => {
-        this.editor?.chain().focus().toggleLink({
-          href: value,
-          target: '_blank',
-        }).run();
+        this.editor
+          ?.chain()
+          .focus()
+          .toggleLink({
+            href: value,
+            target: "_blank",
+          })
+          .run();
       },
     });
   }

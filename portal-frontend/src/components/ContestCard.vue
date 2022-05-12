@@ -1,41 +1,65 @@
 <template>
   <div class="card">
-    <div class="card-content is-clearfix">
-      <p class="title is-4 mb-3">
-        {{ contest.name }}
-      </p>
-      <div class="content mb-1">
-        {{ contest.description }}
+    <div class="card-content">
+      <div class="mb-3">
+        <p class="title is-4 mb-3">
+          {{ contest.name }}
+        </p>
+        <div
+          v-if="contest.joined && contest.quali_round && !profileComplete"
+          class="profile-warning"
+        >
+          <span class="icon-text">
+            <b-icon icon="alert"></b-icon>
+            <router-link :to="{ name: 'Profile' }"
+              >Ausgefülltes Profil</router-link
+            >&nbsp; für Qualifizieren notwendig.
+          </span>
+        </div>
+        <div
+          v-if="contest.joined && contest.quali_round && profileComplete"
+          class="profile-success"
+        >
+          <span class="icon-text">
+            <b-icon icon="check-circle"></b-icon>
+            Alle Daten für qualifizieren vorhanden.
+          </span>
+        </div>
+        <div class="content" v-html="contest.teaser"></div>
+      </div>
 
-        <template v-if="contest.joined && contest.sso_enabled">
-          <b-button
-            tag="router-link"
-            icon-right="chevron-right"
-            class="is-pulled-right"
-            :to="{
-              name: 'ContestSSO',
-              params: { contestUuid: contest.uuid },
-            }"
-            >Zum Server</b-button
-          >
-        </template>
-        <template v-if="contest.joined && !contest.sso_enabled">
-          <b-button
-            tag="a"
-            icon-right="chevron-right"
-            class="is-pulled-right"
-            :href="contest.url"
-            >Zum Server</b-button
-          >
-        </template>
-        <template v-if="!contest.joined && contest.can_join">
-          <b-button
-            icon-right="chevron-right"
-            class="is-pulled-right"
-            @click="joinContest"
-            >Teilnehmen</b-button
-          >
-        </template>
+      <div class="buttons">
+        <b-button
+          tag="router-link"
+          icon-right="chevron-right"
+          class="is-pulled-right"
+          :to="{
+            name: 'Contest',
+            params: { contestUuid: contest.uuid },
+          }"
+          >Details</b-button
+        >
+        <b-button
+          v-if="contest.joined && contest.sso_enabled"
+          tag="router-link"
+          icon-right="chevron-right"
+          class="is-pulled-right"
+          :to="{
+            name: 'ContestSSO',
+            params: { contestUuid: contest.uuid },
+          }"
+          type="is-success is-light"
+          >Zum Server</b-button
+        >
+        <b-button
+          v-if="contest.joined && !contest.sso_enabled"
+          tag="a"
+          icon-right="chevron-right"
+          class="is-pulled-right"
+          :href="contest.url"
+          type="is-success is-light"
+          >Zum Server</b-button
+        >
       </div>
     </div>
   </div>
@@ -53,6 +77,10 @@ export default class ContestCard extends Vue {
     type: Object as PropType<Contest>,
   })
   contest!: Contest;
+  @Prop({
+    type: Boolean,
+  })
+  profileComplete!: Contest;
 
   async joinContest() {
     await contests.joinContest(this.contest.uuid);
@@ -60,3 +88,40 @@ export default class ContestCard extends Vue {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.profile-warning {
+  color: #946c00;
+  padding: 0.75em 1.5em;
+  background-color: #fffaeb;
+  border-top: 2px dashed #ffe08a;
+  border-bottom: 2px dashed #ffe08a;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  margin-bottom: 1rem;
+
+  a {
+    color: currentColor;
+    text-decoration: underline;
+  }
+}
+.profile-success {
+  color: #257953;
+  padding: 0.75em 1.5em;
+  background-color: #effaf5;
+  border-top: 2px dashed #48c78e;
+  border-bottom: 2px dashed #48c78e;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  margin-bottom: 1rem;
+}
+.card-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.buttons {
+  justify-content: flex-end;
+}
+</style>

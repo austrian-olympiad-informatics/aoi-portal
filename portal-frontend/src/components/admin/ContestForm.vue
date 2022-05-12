@@ -117,7 +117,7 @@ export interface ContestFormData {
 @Component({
   components: {
     RichTextEditor,
-  }
+  },
 })
 export default class ContestForm extends Vue {
   @VModel({

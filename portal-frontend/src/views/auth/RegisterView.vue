@@ -7,7 +7,11 @@
             <form @submit.prevent="register">
               <h1 class="is-size-2 mb-3">Registrieren</h1>
               <RegisterInput v-model="data" />
-              <b-button type="is-primary" native-type="submit" expanded
+              <b-button
+                type="is-primary"
+                native-type="submit"
+                expanded
+                :loading="submitButtonLoading"
                 >Registrieren</b-button
               >
             </form>
@@ -64,10 +68,12 @@ export default class RegisterView extends Vue {
     email: "",
     password: "",
   };
+  submitButtonLoading = false;
 
   async register() {
     let resp: AuthRegisterResult;
 
+    this.submitButtonLoading = true;
     try {
       resp = await auth.register({
         first_name: this.data.first_name,
@@ -83,6 +89,8 @@ export default class RegisterView extends Vue {
           "Beim Registrieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       });
       return;
+    } finally {
+      this.submitButtonLoading = false;
     }
 
     this.$store.commit("setRegisterVerifyState", {

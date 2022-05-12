@@ -16,6 +16,7 @@ import GitHubOAuthCallbackView from "../views/auth/GitHubOAuthCallbackView.vue";
 import GoogleOAuthView from "../views/auth/GoogleOAuthView.vue";
 import GoogleOAuthCallbackView from "../views/auth/GoogleOAuthCallbackView.vue";
 import ErrorView from "../views/ErrorView.vue";
+import ContestView from "../views/ContestView.vue";
 import store from "@/store";
 
 Vue.use(VueRouter);
@@ -220,6 +221,11 @@ const routes: Array<RouteConfig> = [
     path: "/contests/:contestUuid/sso",
     name: "ContestSSO",
     component: ContestSSOView,
+  },
+  {
+    path: "/contests/:contestUuid",
+    name: "Contest",
+    component: ContestView,
   },
 ];
 

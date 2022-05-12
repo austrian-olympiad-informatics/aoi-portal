@@ -124,7 +124,7 @@ export default class ProfileView extends Vue {
     if (!this.birthday) missing.push("Geburtstag");
     if (!this.phoneNr) missing.push("Telefonnummer");
     if (!this.addressStreet) missing.push("Straße und Hausnummer");
-    if (!this.addressZip) missing.push("ZIP");
+    if (!this.addressZip) missing.push("PLZ");
     if (!this.addressTown) missing.push("Wohnort");
     if (!this.schoolName) missing.push("Name der Schule");
     if (!this.schoolAddress) missing.push("Adresse der Schule");

@@ -1,0 +1,175 @@
+<template>
+  <div class="container">
+    <div class="section">
+      <div v-if="(profile === null || contest === null) && showLoading">
+        <b-skeleton width="20%" animated></b-skeleton>
+        <b-skeleton width="40%" animated></b-skeleton>
+        <b-skeleton width="80%" animated></b-skeleton>
+        <b-skeleton animated></b-skeleton>
+      </div>
+      <div v-if="profile !== null && contest !== null">
+        <b-message
+          type="is-warning"
+          has-icon
+          v-if="contest.quali_round && !profileComplete"
+        >
+          Dein Profil ist noch nicht fertig ausgefüllt. Damit du dich für
+          Trainingscamps und den Bundesbewerb qualifieren kannst, musst du diese
+          in den
+          <router-link :to="{ name: 'Profile' }"
+            >Profileinstellungen</router-link
+          >
+          ausfüllen.
+          <b-button
+            tag="router-link"
+            icon-right="chevron-right"
+            :to="{ name: 'Profile' }"
+            class="is-pulled-right"
+            type="is-text"
+            >Zu den Profileinstellungen</b-button
+          >
+        </b-message>
+        <b-message
+          type="is-success"
+          has-icon
+          v-if="contest.quali_round && profileComplete"
+        >
+          Alle Daten für qualifizieren vorhanden.
+        </b-message>
+
+        <h1 class="is-size-2">{{ contest.name }}</h1>
+        <div class="content" v-html="contest.description"></div>
+        <hr />
+        <template v-if="contest.joined">
+          <b-button
+            v-if="contest.sso_enabled"
+            tag="router-link"
+            icon-right="chevron-right"
+            expanded
+            type="is-primary"
+            :to="{
+              name: 'ContestSSO',
+              params: { contestUuid: contestUuid },
+            }"
+            >Zum Server</b-button
+          >
+          <b-button
+            v-if="!contest.sso_enabled"
+            tag="a"
+            icon-right="chevron-right"
+            expanded
+            type="is-primary"
+            :href="contest.url"
+            >Zum Server</b-button
+          >
+        </template>
+        <template v-else>
+          <b-button expanded type="is-primary" @click="joinContest"
+            >Teilnehmen / Bei diesem Bewerb registrieren</b-button
+          >
+        </template>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+import contests from "@/services/contests";
+import { ContestDetail } from "@/types/contests";
+import profile from "@/services/profile";
+import { ProfileInfoResponse } from "@/types/profile";
+import ConfirmRulesModal from "@/components/ConfirmRulesModal.vue";
+
+@Component
+export default class ContestView extends Vue {
+  contestUuid!: string;
+  contest: ContestDetail | null = null;
+  profile: ProfileInfoResponse | null = null;
+  showLoading = false;
+
+  get profileComplete(): boolean {
+    if (this.profile === null) return true;
+    return !!(
+      this.profile.first_name &&
+      this.profile.last_name &&
+      this.profile.birthday &&
+      this.profile.phone_nr &&
+      this.profile.address_street &&
+      this.profile.address_zip &&
+      this.profile.address_town &&
+      this.profile.school_name &&
+      this.profile.school_address
+    );
+  }
+
+  async loadContest() {
+    this.contest = await contests.getContest(this.contestUuid);
+  }
+  async loadProfile() {
+    this.profile = await profile.profileInfo();
+  }
+
+  async mounted() {
+    setTimeout(() => (this.showLoading = true), 500);
+    this.contestUuid = this.$route.params.contestUuid;
+    await Promise.all([this.loadContest(), this.loadProfile()]);
+  }
+
+  async doJoinContest() {
+    await contests.joinContest(this.contestUuid);
+    this.$buefy.toast.open({
+      message:
+        "Erfolgreich bei Wettbewerb registriert! Du kannst dich jetzt zum Server verbinden",
+      type: "is-success",
+    });
+    await this.loadContest();
+  }
+
+  async confirmJoinContest() {
+    if (this.contest?.quali_round) {
+      this.$buefy.modal.open({
+        parent: this,
+        component: ConfirmRulesModal,
+        hasModalCard: true,
+        trapFocus: true,
+        events: {
+          accepted: () => this.doJoinContest(),
+        },
+      });
+    } else {
+      await this.doJoinContest();
+    }
+  }
+
+  async joinContest() {
+    if (this.contest?.quali_round && !this.profileComplete) {
+      this.$buefy.dialog.confirm({
+        title: "Ausgefülltes Profil notwendig",
+        message: `
+        <div class="content">
+          <p>
+            <strong>Dein Profil ist noch nicht vollständig ausgefüllt. </strong>
+          </p>
+          <p>
+            <strong>Nur vollständig ausgefüllte Profile können für die Qualifikation berücksichtigt werden.</strong>
+          </p>
+          <p>
+            <i>Hinweis</i>: Du kannst dich auch ohne Profildaten anmelden, und so bspw. die Angaben
+            anschauen und das Abgabesystem testen. Achte aber darauf, dass du bis zum Ende der
+            Qualifikation diese Informationen ausgefüllt haben musst.
+          </p>
+        </div>
+          `,
+        confirmText: "Trotzdem Weiter",
+        type: "is-warning",
+        onConfirm: () => {
+          this.confirmJoinContest();
+        },
+      });
+    } else {
+      await this.confirmJoinContest();
+    }
+  }
+}
+</script>

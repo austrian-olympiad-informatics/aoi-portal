@@ -34,7 +34,6 @@
   </div>
 </template>
 
-
 <style scoped>
 .hero {
   /*min-height: calc(100vh - 6.5rem) !important;*/

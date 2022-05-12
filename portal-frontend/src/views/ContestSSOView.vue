@@ -1,7 +1,9 @@
 <template>
-  <section>
-    <h2 class="is-size-2">Redirecting...</h2>
-  </section>
+  <div class="container">
+    <div class="section">
+      <h2 class="is-size-2">Redirecting...</h2>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">

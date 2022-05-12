@@ -31,10 +31,29 @@
         </div>
 
         <div class="contests-container">
-          <div v-for="contest in contests" :key="contest.uuid">
-            <contest-card :contest="contest" @joined="loadContests" />
-          </div>
+          <ContestCard
+            :contest="contest"
+            :profileComplete="profileComplete"
+            v-for="contest in activeContests"
+            :key="contest.uuid"
+          />
         </div>
+
+        <template v-if="archivedContests.length">
+          <hr class="mt-6 mb-6" />
+          <h1 class="title">Archivierte Wettbewerbe</h1>
+          <div class="block">
+            <p>Hier findest du ältere Wettbewerbe.</p>
+          </div>
+          <div class="contests-container">
+            <ContestCard
+              :contest="contest"
+              :profileComplete="profileComplete"
+              v-for="contest in archivedContests"
+              :key="contest.uuid"
+            />
+          </div>
+        </template>
       </div>
     </section>
   </div>
@@ -73,6 +92,16 @@ export default class HomeContests extends Vue {
     );
   }
 
+  get activeContests(): Contests | null {
+    if (this.contests === null) return null;
+    return this.contests.filter((c) => !c.archived);
+  }
+
+  get archivedContests(): Contests | null {
+    if (this.contests === null) return null;
+    return this.contests.filter((c) => c.archived);
+  }
+
   async loadProfile() {
     this.profile = await profile.profileInfo();
   }
@@ -81,7 +110,7 @@ export default class HomeContests extends Vue {
   }
 
   async mounted() {
-    setTimeout(() => this.showLoading = true, 500);
+    setTimeout(() => (this.showLoading = true), 500);
     await Promise.all([this.loadContests(), this.loadProfile()]);
   }
 }
@@ -92,5 +121,10 @@ export default class HomeContests extends Vue {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
+}
+@media screen and (max-width: 768px) {
+  .contests-container {
+    grid-template-columns: repeat(1, 1fr);
+  }
 }
 </style>

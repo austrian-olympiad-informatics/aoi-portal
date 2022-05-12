@@ -11,7 +11,12 @@
         />
       </b-field>
 
-      <b-button type="is-primary" native-type="submit" expanded class="mt-5"
+      <b-button
+        type="is-primary"
+        native-type="submit"
+        expanded
+        class="mt-5"
+        :loading="submitButtonLoading"
         >Weiter</b-button
       >
     </form>
@@ -32,9 +37,11 @@ import { matchError } from "@/util/errors";
 })
 export default class PasswordResetView extends Vue {
   email = "";
+  submitButtonLoading = false;
 
   async submit() {
     let resp: AuthRequestPasswordResetResult;
+    this.submitButtonLoading = true;
     try {
       resp = await auth.requestPasswordReset({
         email: this.email,
@@ -48,7 +55,10 @@ export default class PasswordResetView extends Vue {
           "Beim Passwort zurücksetzen ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       });
       return;
+    } finally {
+      this.submitButtonLoading = false;
     }
+
     this.$store.commit("setPasswordResetVerifyState", {
       passwordResetVerifyEmail: this.email,
       passwordResetVerifyUuid: resp.uuid,

@@ -19,7 +19,12 @@
         />
       </b-field>
 
-      <b-button type="is-primary" native-type="submit" expanded class="mt-5"
+      <b-button
+        type="is-primary"
+        native-type="submit"
+        expanded
+        class="mt-5"
+        :loading="submitButtonLoading"
         >Weiter</b-button
       >
     </form>
@@ -41,9 +46,11 @@ import { matchError } from "@/util/errors";
 export default class ChangeEmailView extends Vue {
   currentPassword = "";
   newEmail = "";
+  submitButtonLoading = false;
 
   async submit() {
     let resp: AuthChangeEmailResult;
+    this.submitButtonLoading = true;
     try {
       resp = await auth.changeEmail({
         email: this.newEmail,
@@ -58,6 +65,8 @@ export default class ChangeEmailView extends Vue {
           "Beim Ändern der E-Mail-Adresse ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       });
       return;
+    } finally {
+      this.submitButtonLoading = false;
     }
     this.$store.commit("setChangeEmailVerifyState", {
       changeEmailVerifyEmail: this.newEmail,

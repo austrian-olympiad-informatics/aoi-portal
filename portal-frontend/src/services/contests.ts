@@ -7,7 +7,9 @@ class ContestsService {
     return resp.data;
   }
   async getContest(contestUuid: string): Promise<ContestDetail> {
-    const resp = await http.get(`/api/contests/${encodeURIComponent(contestUuid)}`);
+    const resp = await http.get(
+      `/api/contests/${encodeURIComponent(contestUuid)}`
+    );
     return resp.data;
   }
   async joinContest(contestUuid: string): Promise<void> {
