@@ -4,7 +4,7 @@
       <b-input v-model="data.name" required />
     </b-field>
     <b-field label="Description">
-      <b-input v-model="data.description" required />
+      <b-input v-model="data.description" />
     </b-field>
 
     <b-field label="Members">

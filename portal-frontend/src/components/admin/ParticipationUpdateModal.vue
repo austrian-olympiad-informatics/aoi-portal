@@ -52,18 +52,7 @@ export default class ParticipationUpdateModal extends Vue {
   }
 
   async updateParticipation(data: ParticipationFormData) {
-    await admin.updateContestParticipation(
-      this.contestUuid,
-      this.participationId,
-      {
-        cms_id: data.cms_id!,
-        manual_password: data.manual_password || null,
-      }
-    );
-    this.$buefy.toast.open({
-      message: "Participant has been updated!",
-      type: "is-success",
-    });
+    this.$emit("submit", data);
     this.$emit("close");
   }
 }

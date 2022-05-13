@@ -398,6 +398,37 @@ def get_contest(contest_uuid: str):
     }
 
 
+@admin_bp.route("/api/admin/contests/<contest_uuid>/ranking")
+@admin_required
+@json_api()
+def get_contest_ranking(contest_uuid: str):
+    c: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
+    if c is None:
+        raise AOINotFound("Contest not found")
+    res = cms.get_contest_ranking(contest_id=c.cms_id)
+
+    cmsid_to_uid = {
+        part.user.cms_id: part.user_id
+        for part in db.session.query(Participation).filter(
+            Participation.contest_id == c.id
+        )
+    }
+
+    return {
+        "success": True,
+        "tasks": res.tasks,
+        "ranking": [
+            {
+                "user_id": cmsid_to_uid[r.user_id],
+                "task_scores": r.task_scores,
+                "total_score": r.total_score,
+            }
+            for r in res.ranking
+            if r.user_id in cmsid_to_uid
+        ],
+    }
+
+
 @admin_bp.route("/api/admin/contests/<contest_uuid>/delete", methods=["DELETE"])
 @admin_required
 @json_api()
@@ -625,17 +656,18 @@ def update_participation(data, contest_uuid: str, part_id: int):
 )
 @admin_required
 @json_api()
-def delete_participation(data, contest_uuid: str, part_id: int):
+def delete_participation(contest_uuid: str, part_id: int):
     c: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
     if c is None:
         raise AOINotFound("Contest not found")
-    part = Participation.query.filter_by(part_id=part_id, contest_id=c.id).first()
+    part = Participation.query.filter_by(id=part_id, contest_id=c.id).first()
     if part is None:
         raise AOINotFound("Participation not found")
 
     db.session.delete(part)
     db.session.commit()
-    # TODO: should we remove the participation in CMS as well?
+
+    # TODO: remove the participation in CMS as well
 
     return {"success": True}
 

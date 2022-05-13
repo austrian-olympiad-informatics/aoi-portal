@@ -25,7 +25,9 @@
         </div>
         <div class="level-right">
           <div class="lebel-item buttons">
-            <b-button icon-left="refresh"> Refresh from CMS </b-button>
+            <b-button icon-left="refresh" @click="refreshCMS">
+              Refresh from CMS
+            </b-button>
             <b-button
               icon-left="check"
               @click="provisionSSO"
@@ -40,12 +42,16 @@
             >
               Remove SSO
             </b-button>
+            <b-button icon-left="plus" @click="addFromGroup">
+              Add Users From Group
+            </b-button>
           </div>
         </div>
       </div>
     </div>
 
     <div class="block" v-if="contest !== null">
+      <hr />
       <h3 class="is-size-4">Participants</h3>
 
       <nav class="level">
@@ -61,7 +67,7 @@
           <p class="level-item">
             <b-button
               icon-left="account-plus"
-              @click="isCreateParticipationModalActive = true"
+              @click="createParticipation"
               label="Add Participant"
             />
           </p>
@@ -73,7 +79,7 @@
           <router-link
             :to="{
               name: 'AdminUser',
-              params: { userId: props.row.id },
+              params: { userId: props.row.user.id },
             }"
           >
             {{ props.row.user.first_name }} {{ props.row.user.last_name }}
@@ -87,52 +93,15 @@
         </b-table-column>
 
         <b-table-column label="Actions" width="100" centered v-slot="props">
-          <a @click="updateParticipantModalId = props.row.id">
+          <a @click="updateParticipation(props.row.id)">
             <b-icon icon="pencil" />
+          </a>
+          <a @click="removeParticipation(props.row.id)">
+            <b-icon icon="delete" />
           </a>
         </b-table-column>
       </b-table>
     </div>
-
-    <b-modal
-      v-model="isCreateParticipationModalActive"
-      has-modal-card
-      trap-focus
-      :destroy-on-hide="false"
-      aria-role="dialog"
-      aria-label="Add Participant"
-      close-button-aria-label="Close"
-      aria-modal
-    >
-      <template #default="props">
-        <ParticipationCreateModal
-          :contest-uuid="contestUuid"
-          @close="props.close"
-        >
-        </ParticipationCreateModal>
-      </template>
-    </b-modal>
-
-    <b-modal
-      :active="updateParticipantModalId !== null"
-      @close="updateParticipantModalId = null"
-      has-modal-card
-      trap-focus
-      :destroy-on-hide="false"
-      aria-role="dialog"
-      aria-label="Add Participant"
-      close-button-aria-label="Close"
-      aria-modal
-    >
-      <template #default="props">
-        <ParticipationUpdateModal
-          :contest-uuid="contestUuid"
-          :participation-id="updateParticipantModalId"
-          @close="props.close"
-        >
-        </ParticipationUpdateModal>
-      </template>
-    </b-modal>
   </AdminCard>
 </template>
 
@@ -146,22 +115,19 @@ import ContestForm, {
 } from "@/components/admin/ContestForm.vue";
 import ParticipationCreateModal from "@/components/admin/ParticipationCreateModal.vue";
 import ParticipationUpdateModal from "@/components/admin/ParticipationUpdateModal.vue";
+import ContestAddFromGroupModal from "@/components/admin/ContestAddFromGroupModal.vue";
+import { ParticipationFormData } from "@/components/admin/ParticipationForm.vue";
 
 @Component({
   components: {
     AdminCard,
     ContestForm,
-    ParticipationCreateModal,
-    ParticipationUpdateModal,
   },
 })
 export default class ContestView extends Vue {
   contestUuid!: string;
   contest: AdminContestDetail | null = null;
   data: ContestFormData | null = null;
-
-  isCreateParticipationModalActive = false;
-  updateParticipantModalId: number | null = null;
 
   async mounted() {
     this.contestUuid = this.$route.params.contestUuid;
@@ -213,12 +179,116 @@ export default class ContestView extends Vue {
   }
 
   async provisionSSO() {
+    if (!this.contest?.url) {
+      this.$buefy.toast.open({
+        message: "Contest URL must be set to provision SSO!",
+        type: "is-danger",
+      });
+      return;
+    }
     await admin.contestProvisionSSO(this.contestUuid);
     await this.loadContest();
   }
   async removeSSO() {
     await admin.contestRemoveSSO(this.contestUuid);
     await this.loadContest();
+  }
+  async refreshCMS() {
+    await admin.refreshCMSContests();
+    await this.loadContest();
+    this.$buefy.toast.open({
+      message: "Contest loaded from CMS!",
+      type: "is-success",
+    });
+  }
+  async doCreateParticipation(data: ParticipationFormData) {
+    await admin.createContestParticipation(this.contestUuid, {
+      user_id: data.user_id!,
+      cms_id: data.cms_id ? +data.cms_id : null,
+      manual_password: data.manual_password ? data.manual_password : null,
+    });
+    await this.loadContest();
+    this.$buefy.toast.open({
+      message: "Participant has been added!",
+      type: "is-success",
+    });
+  }
+  async createParticipation() {
+    this.$buefy.modal.open({
+      parent: this,
+      component: ParticipationCreateModal,
+      hasModalCard: true,
+      trapFocus: true,
+      events: {
+        submit: (data: ParticipationFormData) => {
+          this.doCreateParticipation(data);
+        },
+      },
+    });
+  }
+  async doUpdateParticipation(id: number, data: ParticipationFormData) {
+    await admin.updateContestParticipation(this.contestUuid, id, {
+      cms_id: data.cms_id!,
+      manual_password: data.manual_password || null,
+    });
+    await this.loadContest();
+    this.$buefy.toast.open({
+      message: "Participant has been updated!",
+      type: "is-success",
+    });
+  }
+  async updateParticipation(id: number) {
+    this.$buefy.modal.open({
+      parent: this,
+      component: ParticipationUpdateModal,
+      props: {
+        contestUuid: this.contestUuid,
+        participationId: id,
+      },
+      hasModalCard: true,
+      trapFocus: true,
+      events: {
+        submit: (data: ParticipationFormData) => {
+          this.doUpdateParticipation(id, data);
+        },
+      },
+    });
+  }
+  async removeParticipation(id: number) {
+    this.$buefy.dialog.confirm({
+      message: "Remove this participation?",
+      onConfirm: async () => {
+        await admin.deleteContestParticipation(this.contestUuid, id);
+        this.$buefy.toast.open({
+          message: "Participant has been removed!",
+          type: "is-success",
+        });
+        await this.loadContest();
+      },
+    });
+  }
+  async doAddFromGroup(selected: number, randomPasswords: boolean) {
+    await admin.contestImportGroup(this.contestUuid, {
+      group_id: selected,
+      random_manual_passwords: randomPasswords,
+    });
+    await this.loadContest();
+    this.$buefy.toast.open({
+      message: "Group has been added!",
+      type: "is-success",
+    });
+  }
+  async addFromGroup() {
+    this.$buefy.modal.open({
+      parent: this,
+      component: ContestAddFromGroupModal,
+      hasModalCard: true,
+      trapFocus: true,
+      events: {
+        submit: (val: { selected: number; randomPasswords: boolean }) =>
+          this.doAddFromGroup(val.selected, val.randomPasswords),
+      },
+    });
   }
 }
 </script>

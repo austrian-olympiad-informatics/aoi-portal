@@ -65,6 +65,9 @@
           <b-button @click="addFromGroup" icon-left="plus">
             Add From Group
           </b-button>
+          <b-button @click="downloadCSV" icon-left="plus">
+            Download as CSV for Thunderbird
+          </b-button>
         </div>
       </b-field>
 
@@ -170,6 +173,35 @@ export default class UserMailView extends Vue {
         submit: (val: number) => this.doAddFromGroup(val),
       },
     });
+  }
+
+  downloadCSV() {
+    // https://stackoverflow.com/a/20623188
+    const encodeRow = (row: string[]): string => {
+      return row
+        .map((s) => {
+          s = s.replace(/"/g, '""');
+          if (s.search(/("|,|\n)/g) >= 0) s = `"${s}"`;
+          return s;
+        })
+        .join(",");
+    };
+    const rows = [["First Name", "Last Name", "Primary Email"]];
+    rows.push(
+      ...this.selectedRecipients.map((u) => [
+        u.first_name,
+        u.last_name,
+        u.email,
+      ])
+    );
+    const csvContent = rows.map((r) => encodeRow(r)).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const anchor = document.createElement("a");
+    anchor.href = URL.createObjectURL(blob);
+    anchor.download = "mailing-list.csv";
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
   }
 
   async submit() {

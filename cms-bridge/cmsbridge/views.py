@@ -211,7 +211,7 @@ def get_contest_ranking(contest_id: int):
                 {
                     "user_id": p.user.id,
                     "task_scores": task_scores,
-                    total_score: total_score,
+                    "total_score": total_score,
                 }
             )
 

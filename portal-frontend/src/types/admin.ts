@@ -118,6 +118,17 @@ export interface AdminContestDetail
   }[];
 }
 
+export interface AdminContestRanking {
+  tasks: string[];
+  ranking: {
+    user_id: number;
+    task_scores: {
+      [key: string]: number;
+    };
+    total_score: number;
+  }[];
+}
+
 export interface AdminContestUpdateParams {
   open_signup?: boolean;
   auto_add_to_group_id?: number | null;

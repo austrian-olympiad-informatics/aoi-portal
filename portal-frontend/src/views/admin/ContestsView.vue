@@ -31,7 +31,7 @@
         <div class="card">
           <div class="card-content is-clearfix">
             <p class="title is-4 mb-3">
-              {{ contest.cms_name }}
+              {{ contest.name }}
             </p>
             <ul class="mb-2">
               <li>
@@ -62,10 +62,17 @@
                 </span>
               </li>
             </ul>
-            <div class="content mb-1">
-              {{ contest.cms_description }}
-            </div>
+            <div class="content mb-1" v-html="contest.description"></div>
             <div class="buttons is-pulled-right">
+              <b-button
+                tag="router-link"
+                icon-left="medal"
+                :to="{
+                  name: 'AdminContestRanking',
+                  params: { contestUuid: contest.uuid },
+                }"
+                >Ranking</b-button
+              >
               <b-button
                 tag="router-link"
                 icon-left="pencil"
