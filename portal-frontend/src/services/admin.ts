@@ -11,8 +11,11 @@ import {
   AdminGroupDetail,
   AdminGroups,
   AdminGroupUpdateParams,
+  AdminNewsletterEmailParams,
+  AdminNewsletterSubscribers,
   AdminUserCreateParams,
   AdminUserDetail,
+  AdminUserEmailParams,
   AdminUsers,
   AdminUserUpdateParams,
 } from "@/types/admin";
@@ -161,6 +164,21 @@ class AdminService {
     await http.delete(
       `/api/admin/groups/${encodeURIComponent(groupId)}/delete`
     );
+  }
+  async userEmail(params: AdminUserEmailParams): Promise<void> {
+    await http.post("/api/admin/user-email", params);
+  }
+  async getNewsletterSubscribers(): Promise<AdminNewsletterSubscribers> {
+    const resp = await http.get("/api/admin/newsletter/subscribers");
+    return resp.data;
+  }
+  async deleteNewsletterSubscriber(email: string): Promise<void> {
+    await http.delete(
+      `/api/admin/newsletter/${encodeURIComponent(email)}/delete`
+    );
+  }
+  async newsletterEmail(params: AdminNewsletterEmailParams): Promise<void> {
+    await http.post("/api/admin/newsletter-email", params);
   }
 }
 export default new AdminService();

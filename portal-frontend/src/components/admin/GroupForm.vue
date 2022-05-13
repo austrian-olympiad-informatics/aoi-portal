@@ -82,9 +82,7 @@ export default class GroupForm extends Vue {
     return this.data.users.map((i) => idToUser.get(i)!);
   }
   set selectedUsers(selected: AdminUser[]) {
-    console.log(selected);
     this.data.users = selected.map((u) => u.id);
-    console.log(this.data.users);
   }
 }
 </script>

@@ -30,6 +30,23 @@
               <b-icon icon="account-group" size="is-small" />&nbsp; Groups
             </router-link>
           </li>
+          <li>
+            <router-link
+              :to="{ name: 'AdminUserMail' }"
+              active-class="is-active"
+            >
+              <b-icon icon="email" size="is-small" />&nbsp; User Mail
+            </router-link>
+          </li>
+          <li>
+            <router-link
+              :to="{ name: 'AdminNewsletter' }"
+              active-class="is-active"
+            >
+              <b-icon icon="email-newsletter" size="is-small" />&nbsp;
+              Newsletter
+            </router-link>
+          </li>
         </ul>
       </aside>
 

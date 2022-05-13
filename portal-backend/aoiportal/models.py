@@ -204,3 +204,11 @@ class Group(Base):
     description = Column(String, nullable=False)
 
     users = relationship("User", secondary=GroupsUsers, back_populates="groups")
+
+
+class NewsletterSubscription(Base):
+    __tablename__ = "newsletter_subscription"
+    id = Column(Integer, primary_key=True)
+    email = Column(String, nullable=False, unique=True, index=True)
+    unsubscribe_token = Column(String, nullable=False, unique=True, index=True)
+    created_at = Column(DateTime, nullable=False, default=func.now())

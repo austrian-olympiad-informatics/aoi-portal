@@ -187,3 +187,29 @@ export interface AdminGroupCreateParams {
   description: string;
   users?: number[];
 }
+
+export interface AdminNewsletterSubscriber {
+  email: string;
+  created_at: string;
+}
+
+export type AdminNewsletterSubscribers = AdminNewsletterSubscriber[];
+
+export interface AdminUserEmailParams {
+  recipients: number[];
+  subject: string;
+  content: string;
+  reply_to?: {
+    email: string;
+    name?: string;
+  }[];
+}
+
+export interface AdminNewsletterEmailParams {
+  subject: string;
+  content: string;
+  reply_to?: {
+    email: string;
+    name?: string;
+  }[];
+}

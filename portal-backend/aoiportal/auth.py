@@ -42,7 +42,7 @@ from aoiportal.error import (
     AOITooManyRequests,
     AOIUnauthorized,
 )
-from aoiportal.mail import send_email
+from aoiportal.mail import Address, send_email
 from aoiportal.models import (  # type: ignore
     User,
     UserEmailChangeRequest,
@@ -111,9 +111,9 @@ def send_email_verification_code(user: UserRegisterRequest) -> None:
     kwargs = {"first_name": user.first_name, "verification_code": code}
     content_html = render_template("email_verification.html", **kwargs)
     send_email(
-        user.email,
-        f"{code} ist dein Informatikolympiade Verifizierungscode",
-        content_html,
+        to=Address(user.email, f"{user.first_name} {user.last_name}"),
+        subject=f"{code} ist dein Informatikolympiade Verifizierungscode",
+        content_html=content_html,
     )
 
 
@@ -122,9 +122,9 @@ def send_email_change_verification_code(req: UserEmailChangeRequest) -> None:
     kwargs = {"first_name": req.user.first_name, "verification_code": code}
     content_html = render_template("email_change.html", **kwargs)
     send_email(
-        req.new_email,
-        "Informatikolympiade Änderung E-Mail-Adresse",
-        content_html,
+        to=Address(req.new_email, f"{req.user.first_name} {req.user.last_name}"),
+        subject="Informatikolympiade Änderung E-Mail-Adresse",
+        content_html=content_html,
     )
 
 
@@ -133,9 +133,9 @@ def send_password_reset_verification_code(req: UserPasswordResetRequest) -> None
     kwargs = {"first_name": req.user.first_name, "verification_code": code}
     content_html = render_template("password_reset.html", **kwargs)
     send_email(
-        req.user.email,
-        "Informatikolympiade Passwort Zurücksetzen",
-        content_html,
+        to=Address(req.user.email, f"{req.user.first_name} {req.user.last_name}"),
+        subject="Informatikolympiade Passwort Zurücksetzen",
+        content_html=content_html,
     )
 
 

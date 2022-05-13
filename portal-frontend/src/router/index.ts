@@ -17,6 +17,8 @@ import GoogleOAuthView from "../views/auth/GoogleOAuthView.vue";
 import GoogleOAuthCallbackView from "../views/auth/GoogleOAuthCallbackView.vue";
 import ErrorView from "../views/ErrorView.vue";
 import ContestView from "../views/ContestView.vue";
+import NewsletterSignUpView from "../views/NewsletterSignUpView.vue";
+import NewsletterUnsubscribeView from "../views/NewsletterUnsubscribeView.vue";
 import store from "@/store";
 
 Vue.use(VueRouter);
@@ -137,6 +139,22 @@ const routes: Array<RouteConfig> = [
     },
   },
   {
+    path: "/newsletter/sign-up",
+    name: "NewsletterSignUp",
+    component: NewsletterSignUpView,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: "/newsletter/unsubscribe",
+    name: "NewsletterUnsubscribe",
+    component: NewsletterUnsubscribeView,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
     path: "/admin",
     name: "AdminIndex",
     component: () =>
@@ -213,6 +231,30 @@ const routes: Array<RouteConfig> = [
         component: () =>
           import(
             /* webpackChunkName: "admin" */ "../views/admin/SettingsView.vue"
+          ),
+      },
+      {
+        path: "user-mail",
+        name: "AdminUserMail",
+        component: () =>
+          import(
+            /* webpackChunkName: "admin" */ "../views/admin/UserMailView.vue"
+          ),
+      },
+      {
+        path: "newsletter",
+        name: "AdminNewsletter",
+        component: () =>
+          import(
+            /* webpackChunkName: "admin" */ "../views/admin/NewsletterView.vue"
+          ),
+      },
+      {
+        path: "newsletter/mail",
+        name: "AdminNewsletterMail",
+        component: () =>
+          import(
+            /* webpackChunkName: "admin" */ "../views/admin/NewsletterMailView.vue"
           ),
       },
     ],

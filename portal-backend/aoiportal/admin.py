@@ -21,6 +21,7 @@ from aoiportal.const import (
     KEY_BIRTHDAY,
     KEY_CMS_ID,
     KEY_CMS_USERNAME,
+    KEY_CONTENT,
     KEY_DESCRIPTION,
     KEY_EMAIL,
     KEY_FIRST_NAME,
@@ -36,15 +37,27 @@ from aoiportal.const import (
     KEY_PHONE_NR,
     KEY_QUALI_ROUND,
     KEY_RANDOM_MANUAL_PASSWORDS,
+    KEY_RECIPIENTS,
+    KEY_REPLY_TO,
     KEY_SCHOOL_ADDRESS,
     KEY_SCHOOL_NAME,
+    KEY_SUBJECT,
     KEY_TEASER,
     KEY_URL,
     KEY_USER_ID,
     KEY_USERS,
 )
 from aoiportal.error import ERROR_ADMIN_REQUIRED, AOIForbidden, AOINotFound
-from aoiportal.models import Contest, Group, Participation, User, db  # type: ignore
+from aoiportal.mail import Address, encode_email, send_mass
+from aoiportal.models import (  # type: ignore
+    Contest,
+    Group,
+    NewsletterSubscription,
+    Participation,
+    User,
+    db,
+)
+from aoiportal.newsletter import gen_unsubscribe_link
 from aoiportal.web_utils import json_api
 
 admin_bp = Blueprint("admin", __name__)
@@ -760,3 +773,111 @@ def delete_group(group_id: int):
     db.session.delete(g)
     db.session.commit()
     return {"success": True}
+
+
+@admin_bp.route("/api/admin/user-email", methods=["POST"])
+@admin_required
+@json_api(
+    {
+        vol.Required(KEY_RECIPIENTS): [int],
+        vol.Required(KEY_SUBJECT): str,
+        vol.Required(KEY_CONTENT): str,
+        vol.Optional(KEY_REPLY_TO): [
+            {
+                vol.Required(KEY_EMAIL): vol.Email(),
+                vol.Optional(KEY_NAME): str,
+            }
+        ],
+    }
+)
+def send_user_email(data):
+    reply_to = None
+    if KEY_REPLY_TO in data:
+        reply_to = [
+            Address(v[KEY_EMAIL], v.get(KEY_NAME) or None) for v in data[KEY_REPLY_TO]
+        ]
+    mails = []
+    for uid in set(data[KEY_RECIPIENTS]):
+        u: Optional[User] = User.query.filter_by(id=uid).first()
+        if u is None:
+            raise AOINotFound(f"User {uid} not found")
+        content = (
+            data[KEY_CONTENT]
+            .replace("%VORNAME%", u.first_name)
+            .replace("%NACHNAME%", u.last_name)
+        )
+        mails.append(
+            encode_email(
+                to=Address(u.email, f"{u.first_name} {u.last_name}"),
+                subject=data[KEY_SUBJECT],
+                content_html=content,
+                reply_to=reply_to or None,
+            )
+        )
+
+    failed = send_mass(mails)
+    return {"success": True, "failed_addresses": [f.recipients for f in failed]}
+
+
+@admin_bp.route("/api/admin/newsletter/subscribers")
+@admin_required
+@json_api()
+def get_newsletter_subscribers():
+    return [
+        {
+            "email": sub.email,
+            "created_at": sub.created_at,
+        }
+        for sub in db.session.query(NewsletterSubscription)
+    ]
+
+
+@admin_bp.route("/api/admin/newsletter/<email>/delete", methods=["DELETE"])
+@admin_required
+@json_api()
+def delete_newsletter_subscriber(email: str):
+    sub: Optional[NewsletterSubscription] = NewsletterSubscription.query.filter_by(
+        email=email
+    ).first()
+    if sub is None:
+        raise AOINotFound("Subscription not found")
+    db.session.delete(sub)
+    db.session.commit()
+    return {"success": True}
+
+
+@admin_bp.route("/api/admin/newsletter-email", methods=["POST"])
+@admin_required
+@json_api(
+    {
+        vol.Required(KEY_SUBJECT): str,
+        vol.Required(KEY_CONTENT): str,
+        vol.Optional(KEY_REPLY_TO): [
+            {
+                vol.Required(KEY_EMAIL): vol.Email(),
+                vol.Optional(KEY_NAME): str,
+            }
+        ],
+    }
+)
+def send_newsletter_email(data):
+    reply_to = None
+    if KEY_REPLY_TO in data:
+        reply_to = [
+            Address(v[KEY_EMAIL], v.get(KEY_NAME) or None) for v in data[KEY_REPLY_TO]
+        ]
+    mails = []
+    for sub in db.session.query(NewsletterSubscription):
+        unsubscribe_link = gen_unsubscribe_link(sub)
+        mails.append(
+            encode_email(
+                to=Address(sub.email),
+                subject=data[KEY_SUBJECT],
+                content_html=data[KEY_CONTENT],
+                reply_to=reply_to or None,
+                unsubscribe_link=unsubscribe_link,
+            )
+        )
+
+    failed = send_mass(mails)
+    return {"success": True, "failed_addresses": [f.recipients for f in failed]}

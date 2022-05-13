@@ -10,6 +10,7 @@ from aoiportal.auth import auth_bp
 from aoiportal.contests import contests_bp
 from aoiportal.mail import mail
 from aoiportal.models import db  # type: ignore
+from aoiportal.newsletter import newsletter_bp
 from aoiportal.oauth import oauth_bp
 from aoiportal.profile import profile_bp
 
@@ -29,6 +30,7 @@ def create_app(base_config_obj, config_file):
     app.register_blueprint(admin_bp)
     app.register_blueprint(contests_bp)
     app.register_blueprint(oauth_bp)
+    app.register_blueprint(newsletter_bp)
     error.init_app(app)
 
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
