@@ -1,7 +1,7 @@
 <template>
   <div>
     <HomeHero v-if="!isAuthenticated" />
-    <HomeContests v-if="isAuthenticated" />>
+    <HomeContests v-if="isAuthenticated" />
   </div>
 </template>
 
