@@ -5,3 +5,5 @@ voluptuous==0.13.1
 Flask-Mail==0.9.1
 requests
 pynacl
+psycopg2
+python-dateutil

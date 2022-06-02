@@ -38,7 +38,7 @@
 
       <hr />
 
-      <h3 class="is-size-3">Preview</h3>
+      <h3 class="title is-4">Preview</h3>
       <div class="preview">
         <div class="preview-inside">
           <div class="preview-wrapper">

@@ -1,7 +1,7 @@
 <template>
   <center-box-layout>
     <form @submit.prevent="submit">
-      <h1 class="is-size-2 mb-3">Profil</h1>
+      <h1 class="title is-3 mb-3">Profil</h1>
 
       <b-message
         type="is-warning"

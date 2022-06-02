@@ -1,7 +1,7 @@
 <template>
   <center-box-layout>
     <form @submit.prevent="submit">
-      <h1 class="is-size-2 mb-3">E-Mail-Adresse ändern</h1>
+      <h1 class="title is-3 mb-3">E-Mail-Adresse ändern</h1>
       <b-field label="Neue E-Mail-Adresse">
         <b-input
           v-model="newEmail"

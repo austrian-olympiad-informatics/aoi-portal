@@ -7,7 +7,7 @@
       </span>
     </template>
     <div class="block">
-      <h3 class="is-size-4">Edit Contest</h3>
+      <h3 class="title is-4">Edit Contest</h3>
       <form @submit.prevent="updateContest(data)" v-if="data !== null">
         <ContestForm v-model="data" />
         <b-button type="is-primary" native-type="submit">Save</b-button>
@@ -52,7 +52,7 @@
 
     <div class="block" v-if="contest !== null">
       <hr />
-      <h3 class="is-size-4">Participants</h3>
+      <h3 class="title is-4">Participants</h3>
 
       <nav class="level">
         <!-- Left side -->
@@ -143,6 +143,7 @@ export default class ContestView extends Vue {
       cms_allow_sso_authentication: this.contest.cms_allow_sso_authentication,
       cms_sso_secret_key: this.contest.cms_sso_secret_key,
       cms_sso_redirect_url: this.contest.cms_sso_redirect_url,
+      cms_allow_frontendv2: this.contest.cms_allow_frontendv2,
       url: this.contest.url,
       open_signup: this.contest.open_signup,
       quali_round: this.contest.quali_round,

@@ -1,7 +1,7 @@
 <template>
   <center-box-layout>
     <form @submit.prevent="submit">
-      <h1 class="is-size-2 mb-3">Passwort vergessen</h1>
+      <h1 class="title is-2 mb-3">Passwort vergessen</h1>
       <b-field label="E-Mail-Adresse">
         <b-input
           v-model="email"

@@ -6,7 +6,7 @@
       <router-view />
     </section>
 
-    <footer class="footer">
+    <footer class="footer" v-if="!isFooterHidden">
       <div class="content container is-max-desktop has-text-centered">
         <p>&copy; Österreichische Informatikolympiade 2022</p>
       </div>
@@ -14,7 +14,7 @@
 
     <b-button
       class="admin-button"
-      v-if="isAdmin"
+      v-if="isAdmin && !isAdminButtonHidden"
       type="is-danger"
       tag="router-link"
       :to="{ name: 'AdminIndex' }"
@@ -38,6 +38,12 @@ export default class AppComponent extends Vue {
   get isAdmin(): boolean {
     return this.$store.getters.isAdmin;
   }
+  get isFooterHidden(): boolean {
+    return this.$route.meta?.footerHidden || false;
+  }
+  get isAdminButtonHidden(): boolean {
+    return this.$route.meta?.adminButtonHidden || false;
+  }
   async mounted(): Promise<void> {
     await this.$store.dispatch("checkStatus");
   }
@@ -52,7 +58,9 @@ export default class AppComponent extends Vue {
   /*background-color: #fbfbfb;*/
 }
 section {
-  flex: 1;
+  flex-grow: 1;
+  flex-basis: 0;
+  height: 100%;
 }
 footer {
   padding: 2rem 1.5rem 2rem;

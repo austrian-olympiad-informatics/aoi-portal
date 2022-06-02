@@ -8,6 +8,7 @@
           class="aoi-logo"
           width="300"
           height="300"
+          loading="lazy"
         />
         <h1 class="title">Österreichische Informatikolympiade</h1>
         <h2 class="subtitle">

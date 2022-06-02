@@ -82,6 +82,7 @@ export interface AdminContest {
   cms_description: string;
   cms_allow_sso_authentication: boolean;
   cms_sso_redirect_url: string;
+  cms_allow_frontendv2: boolean;
   url: string;
   open_signup: boolean;
   quali_round: boolean;

@@ -277,6 +277,50 @@ const routes: Array<RouteConfig> = [
     name: "Contest",
     component: ContestView,
   },
+  {
+    path: "/cms/:contestName",
+    name: "CMSContest",
+    component: () =>
+      import(/* webpackChunkName: "cms" */ "../views/cms/ContestView.vue"),
+    meta: {
+      navbarSmall: true,
+      footerHidden: true,
+    },
+  },
+  {
+    path: "/cms/:contestName/task/:taskName",
+    component: () =>
+      import(/* webpackChunkName: "cms" */ "../views/cms/TaskView.vue"),
+    meta: {
+      navbarSmall: true,
+      footerHidden: true,
+      adminButtonHidden: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "CMSTask",
+        component: () =>
+          import(/* webpackChunkName: "cms" */ "../views/cms/CodePanel.vue"),
+        meta: {
+          navbarSmall: true,
+          footerHidden: true,
+          adminButtonHidden: true,
+        },
+      },
+      {
+        path: "submission/:submissionUuid",
+        name: "CMSSubmissionDetails",
+        component: () =>
+          import(/* webpackChunkName: "cms" */ "../views/cms/SubmissionDetailsPanel.vue"),
+        meta: {
+          navbarSmall: true,
+          footerHidden: true,
+          adminButtonHidden: true,
+        },
+      },
+    ],
+  },
 ];
 
 const router = new VueRouter({

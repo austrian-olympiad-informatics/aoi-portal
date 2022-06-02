@@ -6,9 +6,11 @@ $primary: #8a151b;
 $primary-light: findLightColor($primary);
 $primary-dark: findDarkColor($primary);
 $primary-invert: findColorInvert($primary);
-$danger: #c04942;
 $twitter: #4099ff;
 $twitter-invert: findColorInvert($twitter);
+$success: #208b11;
+$danger: #b82e2e;
+$warning: #ead654;
 
 // Lists and maps
 $custom-colors: null !default;

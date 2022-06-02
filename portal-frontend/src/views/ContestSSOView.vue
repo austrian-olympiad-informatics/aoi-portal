@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="section">
-      <h2 class="is-size-2">Redirecting...</h2>
+      <h2 class="title is-3">Redirecting...</h2>
     </div>
   </div>
 </template>

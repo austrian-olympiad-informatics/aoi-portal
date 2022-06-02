@@ -159,6 +159,7 @@ class Contest(Base):
     cms_allow_sso_authentication = Column(Boolean, nullable=False, default=False)
     cms_sso_secret_key = Column(String, nullable=False, default="")
     cms_sso_redirect_url = Column(String, nullable=False, default="")
+    cms_allow_frontendv2 = Column(Boolean, nullable=False, default=False)
 
     url = Column(String, nullable=False, default="")
 

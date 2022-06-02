@@ -33,6 +33,11 @@ def create_app(base_config_obj, config_file):
     app.register_blueprint(newsletter_bp)
     error.init_app(app)
 
+    from aoiportal.cmsmirror.db import init_app as cmsmirror_init_app
+    from aoiportal.cmsmirror.views import cmsmirror_bp
+    cmsmirror_init_app(app)
+    app.register_blueprint(cmsmirror_bp)
+
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
     return app

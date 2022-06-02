@@ -39,27 +39,41 @@
           }"
           >Details</b-button
         >
-        <b-button
-          v-if="contest.joined && contest.sso_enabled"
-          tag="router-link"
-          icon-right="chevron-right"
-          class="is-pulled-right"
-          :to="{
-            name: 'ContestSSO',
-            params: { contestUuid: contest.uuid },
-          }"
-          type="is-success is-light"
-          >Zum Server</b-button
-        >
-        <b-button
-          v-if="contest.joined && !contest.sso_enabled"
-          tag="a"
-          icon-right="chevron-right"
-          class="is-pulled-right"
-          :href="contest.url"
-          type="is-success is-light"
-          >Zum Server</b-button
-        >
+        <template v-if="contest.joined">
+          <b-button
+            v-if="contest.allow_frontendv2"
+            tag="router-link"
+            icon-right="chevron-right"
+            class="is-pulled-right"
+            :to="{
+              name: 'CMSContest',
+              params: { contestName: contest.cms_name },
+            }"
+            type="is-success is-light"
+            >Zum Server</b-button
+          >
+          <b-button
+            v-else-if="contest.sso_enabled"
+            tag="router-link"
+            icon-right="chevron-right"
+            class="is-pulled-right"
+            :to="{
+              name: 'ContestSSO',
+              params: { contestUuid: contest.uuid },
+            }"
+            type="is-success is-light"
+            >Zum Server</b-button
+          >
+          <b-button
+            v-else
+            tag="a"
+            icon-right="chevron-right"
+            class="is-pulled-right"
+            :href="contest.url"
+            type="is-success is-light"
+            >Zum Server</b-button
+          >
+        </template>
       </div>
     </div>
   </div>

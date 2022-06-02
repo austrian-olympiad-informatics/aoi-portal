@@ -4,7 +4,7 @@
       <div class="columns is-centered">
         <div class="column is-5">
           <form class="box" @submit.prevent="registerVerify">
-            <h1 class="is-size-3 mb-3">Wir haben dir einen Code gesendet</h1>
+            <h1 class="title is-3 mb-3">Wir haben dir einen Code gesendet</h1>
             <p>Gib ihn unten zur Verifizierung von {{ registerEmail }} ein.</p>
             <b-field
               class="mt-4 mb-4"

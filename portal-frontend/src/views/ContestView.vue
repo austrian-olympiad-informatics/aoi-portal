@@ -37,12 +37,24 @@
           Alle Daten für qualifizieren vorhanden.
         </b-message>
 
-        <h1 class="is-size-2">{{ contest.name }}</h1>
+        <h1 class="title is-3">{{ contest.name }}</h1>
         <div class="content" v-html="contest.description"></div>
         <hr />
         <template v-if="contest.joined">
           <b-button
-            v-if="contest.sso_enabled"
+            v-if="contest.allow_frontendv2"
+            tag="router-link"
+            icon-right="chevron-right"
+            expanded
+            type="is-primary"
+            :to="{
+              name: 'CMSContest',
+              params: { contestName: contest.cms_name },
+            }"
+            >Zum Server</b-button
+          >
+          <b-button
+            v-else-if="contest.sso_enabled"
             tag="router-link"
             icon-right="chevron-right"
             expanded
@@ -54,7 +66,7 @@
             >Zum Server</b-button
           >
           <b-button
-            v-if="!contest.sso_enabled"
+            v-else
             tag="a"
             icon-right="chevron-right"
             expanded

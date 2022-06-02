@@ -5,7 +5,7 @@
         <div class="column is-5">
           <div class="box">
             <form @submit.prevent="register">
-              <h1 class="is-size-2 mb-3">Registrieren</h1>
+              <h1 class="title is-3 mb-3">Registrieren</h1>
               <RegisterInput v-model="data" />
               <b-button
                 type="is-primary"
@@ -26,7 +26,7 @@
               :to="{ name: 'GitHubOAuth' }"
             >
               <span class="icon">
-                <img src="../../assets/github-icon.svg" />
+                <img src="../../assets/github-icon.svg" loading="lazy" />
               </span>
               Mit GitHub registrieren
             </router-link>
@@ -36,7 +36,7 @@
               :to="{ name: 'GoogleOAuth' }"
             >
               <span class="icon">
-                <img src="../../assets/google-icon.svg" />
+                <img src="../../assets/google-icon.svg" loading="lazy" />
               </span>
               Mit Google registrieren
             </router-link>

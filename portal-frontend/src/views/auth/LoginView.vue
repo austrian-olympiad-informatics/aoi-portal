@@ -5,7 +5,7 @@
         <div class="column is-5">
           <div class="box">
             <form @submit.prevent="submit">
-              <h1 class="is-size-2 mb-3">Anmelden</h1>
+              <h1 class="title is-3 mb-3">Anmelden</h1>
               <LoginInput v-model="data" />
               <b-button type="is-primary" native-type="submit" expanded
                 >Anmelden</b-button
@@ -31,7 +31,7 @@
               :to="{ name: 'GitHubOAuth' }"
             >
               <span class="icon">
-                <img src="../../assets/github-icon.svg" />
+                <img src="../../assets/github-icon.svg" loading="lazy" />
               </span>
               Mit GitHub anmelden
             </router-link>
@@ -41,7 +41,7 @@
               :to="{ name: 'GoogleOAuth' }"
             >
               <span class="icon">
-                <img src="../../assets/google-icon.svg" />
+                <img src="../../assets/google-icon.svg" loading="lazy" />
               </span>
               Mit Google anmelden
             </router-link>

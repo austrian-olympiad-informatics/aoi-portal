@@ -63,6 +63,8 @@ def list_contests():
                 and contest.url
             )
             value["sso_enabled"] = sso_enabled
+            value["cms_name"] = contest.cms_name
+            value["allow_frontendv2"] = contest.cms_allow_frontendv2
 
         ret.append(value)
 
@@ -110,6 +112,8 @@ def get_contest(contest_uuid: str):
             and contest.url
         )
         value["sso_enabled"] = sso_enabled
+        value["cms_name"] = contest.cms_name
+        value["allow_frontendv2"] = contest.cms_allow_frontendv2
 
     return value
 

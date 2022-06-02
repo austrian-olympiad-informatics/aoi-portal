@@ -10,6 +10,7 @@ from slugify import slugify
 from sqlalchemy.orm import joinedload  # type: ignore
 
 from cmsbridge.const import (
+    KEY_ALLOW_FRONTENDV2,
     KEY_ALLOW_SSO_AUTHENTICATION,
     KEY_CONTEST_ID,
     KEY_DESCRIPTION,
@@ -42,6 +43,7 @@ def list_contests():
                 KEY_ALLOW_SSO_AUTHENTICATION: c.allow_sso_authentication,
                 KEY_SSO_SECRET_KEY: c.sso_secret_key,
                 KEY_SSO_REDIRECT_URL: c.sso_redirect_url,
+                KEY_ALLOW_FRONTENDV2: c.allow_frontendv2,
             }
             for c in session.query(Contest)
         ]
@@ -59,6 +61,7 @@ def get_contest(contest_id: int):
             KEY_ALLOW_SSO_AUTHENTICATION: c.allow_sso_authentication,
             KEY_SSO_SECRET_KEY: c.sso_secret_key,
             KEY_SSO_REDIRECT_URL: c.sso_redirect_url,
+            KEY_ALLOW_FRONTENDV2: c.allow_frontendv2,
         }
 
 

@@ -8,7 +8,7 @@
             @submit.prevent="passwordResetVerify"
             v-if="stageVerifyMail"
           >
-            <h1 class="is-size-3 mb-3">Wir haben dir einen Code gesendet</h1>
+            <h1 class="title is-3 mb-3">Wir haben dir einen Code gesendet</h1>
             <p>
               Gib ihn unten zum Zurücksetzen des Passworts von {{ email }} ein.
             </p>
@@ -37,7 +37,7 @@
             @submit.prevent="passwordResetComplete"
             v-if="!stageVerifyMail"
           >
-            <h1 class="is-size-3 mb-3">Neues Passwort setzen</h1>
+            <h1 class="title is-3 mb-3">Neues Passwort setzen</h1>
             <b-field label="Neues Passwort festlegen">
               <b-input
                 v-model="newPassword"

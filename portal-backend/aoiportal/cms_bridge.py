@@ -14,6 +14,7 @@ class Contest:
     allow_sso_authentication: bool
     sso_secret_key: str
     sso_redirect_url: str
+    allow_frontendv2: bool
     # start_time: datetime.datetime
     # end_time: datetime.datetime
     # analysis_enabled: bool
@@ -96,6 +97,7 @@ class FakeCMSBridge(CMSBridge):
                 allow_sso_authentication=True,
                 sso_secret_key="xzt43HsCkhXBC+nRW7J3sRj9vNpa7Q7pu2VEBLey9Uw=",
                 sso_redirect_url="http://localhost:8888/sso/authorized",
+                allow_frontendv2=True,
             )
         ]
 
@@ -108,6 +110,7 @@ class FakeCMSBridge(CMSBridge):
             allow_sso_authentication=True,
             sso_secret_key="xzt43HsCkhXBC+nRW7J3sRj9vNpa7Q7pu2VEBLey9Uw=",
             sso_redirect_url="http://localhost:8888/sso/authorized",
+            allow_frontendv2=True,
         )
 
     def update_contest(self, *, contest_id: int, params: ContestUpdateParams) -> None:
@@ -162,6 +165,7 @@ class RealCMSBridge(CMSBridge):
                 allow_sso_authentication=v["allow_sso_authentication"],
                 sso_secret_key=v["sso_secret_key"],
                 sso_redirect_url=v["sso_redirect_url"],
+                allow_frontendv2=v["allow_frontendv2"],
             )
             for v in resp.json()
         ]
@@ -177,6 +181,7 @@ class RealCMSBridge(CMSBridge):
             allow_sso_authentication=v["allow_sso_authentication"],
             sso_secret_key=v["sso_secret_key"],
             sso_redirect_url=v["sso_redirect_url"],
+            allow_frontendv2=v["allow_frontendv2"],
         )
 
     def update_contest(self, *, contest_id: int, params: ContestUpdateParams) -> None:

@@ -32,6 +32,12 @@
       <b-field label="CMS SSO Redirect URL">
         <b-input v-model="data.cms_sso_redirect_url" disabled />
       </b-field>
+      <b-field label="CMS Allow Frontend V2">
+        <b-switch
+          v-model="data.cms_allow_frontendv2"
+          disabled
+        ></b-switch>
+      </b-field>
     </b-field>
 
     <b-field label="URL (CMS Contest URL)">
@@ -102,6 +108,7 @@ export interface ContestFormData {
   cms_allow_sso_authentication: boolean;
   cms_sso_secret_key: string;
   cms_sso_redirect_url: string;
+  cms_allow_frontendv2: boolean;
   url: string;
   open_signup: boolean;
   quali_round: boolean;

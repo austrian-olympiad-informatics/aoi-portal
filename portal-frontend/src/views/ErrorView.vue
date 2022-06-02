@@ -7,6 +7,7 @@
             alt="Informatikolympiade Logo"
             src="@/assets/logo-big.png"
             class="aoi-logo"
+            loading="lazy"
           />
           <h1 class="title">Oooops. Da ist was schiefgelaufen.</h1>
           <h2 class="subtitle">

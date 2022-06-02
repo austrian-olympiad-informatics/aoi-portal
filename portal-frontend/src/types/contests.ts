@@ -10,6 +10,8 @@ export interface Contest {
   archived: boolean;
   url?: string;
   sso_enabled?: boolean;
+  cms_name?: string;
+  allow_frontendv2?: boolean;
 }
 
 export type Contests = Contest[];

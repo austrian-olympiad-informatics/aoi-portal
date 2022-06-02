@@ -1,5 +1,7 @@
 <template>
-  <b-navbar shadow>
+  <b-navbar shadow :class="{
+    'navbar-big': !isNavbarSmall,
+  }">
     <template #brand>
       <b-navbar-item tag="router-link" :to="{ path: '/' }">
         <img
@@ -8,6 +10,7 @@
           class="aoi-logo"
           width="48"
           height="48"
+          loading="lazy"
         />
         <span class="aoi-logo-text">Informatikolympiade</span>
       </b-navbar-item>
@@ -56,6 +59,9 @@ export default class Navbar extends Vue {
   get isAuthenticated(): boolean {
     return this.$store.getters.isAuthenticated;
   }
+  get isNavbarSmall(): boolean {
+    return this.$route.meta?.navbarSmall || false;
+  }
 
   get name(): string {
     return `${this.$store.getters.firstName} ${this.$store.getters.lastName}`;
@@ -75,18 +81,28 @@ export default class Navbar extends Vue {
   padding-bottom: 0 !important;
 }
 .aoi-logo {
+  max-height: 36px !important;
+  width: 36px;
+  height: 36px;
+}
+.aoi-logo-text {
+  padding-left: 0.5rem;
+  font-size: 1.35rem !important;
+  font-weight: 420;
+}
+.navbar.navbar-big {
+  padding: 1.5rem 1rem;
+  font-size: 1.125rem;
+}
+.navbar-big .aoi-logo {
   max-height: 48px !important;
   width: 48px;
   height: 48px;
 }
-.aoi-logo-text {
+.navbar-big .aoi-logo-text {
   padding-left: 0.5rem;
   font-size: 1.5rem !important;
   font-weight: 420;
-}
-.navbar {
-  padding: 1.5rem 1rem;
-  font-size: 1.125rem;
 }
 .navbar-container {
   border-bottom: 2px solid #f5f5f5;

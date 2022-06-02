@@ -32,7 +32,8 @@
             <div
               :class="{
                 'dropdown-item': true,
-                'is-size-3': true,
+                'title': true,
+                'is-3': true,
                 'is-active': editor.isActive('heading', { level: 1 }),
               }"
               @click="
@@ -45,7 +46,8 @@
             <div
               :class="{
                 'dropdown-item': true,
-                'is-size-4': true,
+                'title': true,
+                'is-4': true,
                 'is-active': editor.isActive('heading', { level: 2 }),
               }"
               @click="
@@ -58,7 +60,8 @@
             <div
               :class="{
                 'dropdown-item': true,
-                'is-size-5': true,
+                'title': true,
+                'is-5': true,
                 'is-active': editor.isActive('heading', { level: 3 }),
               }"
               @click="
@@ -71,7 +74,8 @@
             <div
               :class="{
                 'dropdown-item': true,
-                'is-size-6': true,
+                'title': true,
+                'is-6': true,
                 'is-active': editor.isActive('heading', { level: 4 }),
               }"
               @click="

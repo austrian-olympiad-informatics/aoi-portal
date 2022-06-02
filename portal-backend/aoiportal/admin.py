@@ -302,6 +302,7 @@ def refresh_cms_contests():
         cmsc.cms_allow_sso_authentication = c.allow_sso_authentication
         cmsc.cms_sso_secret_key = c.sso_secret_key
         cmsc.cms_sso_redirect_url = c.sso_redirect_url
+        cmsc.cms_allow_frontendv2 = c.allow_frontendv2
         cmsc.deleted = False
 
         if c.id not in ourids:
@@ -345,6 +346,7 @@ def list_contests():
             if c.auto_add_to_group is not None
             else None,
             "participant_count": len(c.participations),
+            "cms_allow_frontendv2": c.cms_allow_frontendv2,
         }
         for c in db.session.query(Contest)
     ]
@@ -395,6 +397,7 @@ def get_contest(contest_uuid: str):
             }
             for p in c.participations
         ],
+        "cms_allow_frontendv2": c.cms_allow_frontendv2,
     }
 
 
