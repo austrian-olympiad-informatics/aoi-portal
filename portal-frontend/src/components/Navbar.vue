@@ -110,4 +110,7 @@ export default class Navbar extends Vue {
 .navbar-container {
   border-bottom: 2px solid #f5f5f5;
 }
+.navbar {
+  min-height: initial !important;
+}
 </style>

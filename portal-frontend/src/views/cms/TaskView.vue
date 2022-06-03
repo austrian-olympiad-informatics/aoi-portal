@@ -7,10 +7,11 @@
             :task="task"
             @submission-scored="onSubmissionScored()"
             @reload-task="loadTask"
+            @show-submission="scrollSubIntoView"
           />
         </div>
       </div>
-      <div class="code-column">
+      <div class="code-column" ref="codeCol">
         <router-view
           class="code-container"
           :task="task"
@@ -115,17 +116,27 @@ export default class TaskView extends Vue {
       startVelocity: 45,
     });
   }
+  scrollSubIntoView() {
+    (this.$refs.codeCol as Element).scrollIntoView();
+  }
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@import "~bulma/sass/utilities/mixins";
+
 .task-wrap {
   height: 100%;
 }
 .task-container {
-  flex: 1;
   display: flex;
+  flex-direction: row;
   height: 100%;
+}
+@include touch {
+  .task-container {
+    flex-direction: column;
+  }
 }
 .descr-column {
   flex: none;
@@ -136,11 +147,23 @@ export default class TaskView extends Vue {
   flex-direction: column;
   border-right: 2px solid rgb(207, 207, 207);
 }
+@include touch {
+  .descr-column {
+    width: 100%;
+    max-width: initial;
+    min-width: initial;
+  }
+}
 .descr-wrap {
   flex-basis: 0;
   flex-grow: 1;
   overflow-y: auto;
   padding: 16px;
+}
+@include touch {
+  .descr-wrap {
+    overflow-y: initial;
+  }
 }
 .code-column {
   flex-grow: 1;
@@ -149,6 +172,13 @@ export default class TaskView extends Vue {
   width: 66.67%;
   display: flex;
   flex-direction: column;
+}
+@include touch {
+  .code-column {
+    width: 100%;
+    height: auto;
+    flex: initial;
+  }
 }
 .code-container {
   flex: 1;

@@ -46,10 +46,4 @@ export default class ErrorView extends Vue {}
   font-size: 1.5rem;
   margin-bottom: 2rem;
 }
-.welcome .buttons {
-  justify-content: center;
-}
-.welcome .buttons .button:not(:last-child) {
-  margin-right: 1.5rem;
-}
 </style>

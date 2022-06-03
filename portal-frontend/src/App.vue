@@ -50,21 +50,25 @@ export default class AppComponent extends Vue {
 }
 </script>
 
+<style>
+html, body {
+  height: 100%;
+}
+</style>
+
 <style scoped>
 #app {
   display: flex;
-  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  height: 100%;
   flex-direction: column;
-  /*background-color: #fbfbfb;*/
 }
 section {
-  flex-grow: 1;
-  flex-basis: 0;
-  height: 100%;
+  flex: 1 0 auto;
 }
 footer {
   padding: 2rem 1.5rem 2rem;
-  /*background-color: #f3f3f3;*/
+  flex-shrink: 0;
 }
 .admin-button {
   position: fixed;

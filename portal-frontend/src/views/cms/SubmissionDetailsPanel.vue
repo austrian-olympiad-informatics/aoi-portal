@@ -349,7 +349,9 @@ export default class SubmissionDetailsPanel extends Vue {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@import "~bulma/sass/utilities/mixins";
+
 .wrapper {
   flex-basis: 0;
   flex-grow: 1;
@@ -368,6 +370,11 @@ export default class SubmissionDetailsPanel extends Vue {
   flex-basis: 0;
   flex-grow: 1;
   overflow-y: auto;
+}
+@include touch {
+  .sub-details {
+    overflow-y: initial;
+  }
 }
 .sub-head {
   background-color: #606060;
@@ -397,12 +404,16 @@ export default class SubmissionDetailsPanel extends Vue {
   z-index: 10;
 }
 .meme-img {
-  min-width: 500px;
+  width: 500px;
   max-height: 500px;
-  max-width: 500px;
   object-fit: contain;
   margin-left: auto;
   margin-right: auto;
   display: block;
+}
+@include mobile {
+  .meme-img {
+    width: 300px;
+  }
 }
 </style>

@@ -50,7 +50,7 @@
             {{ q.text }}
           </p>
           <div v-if="q.reply" class="question-reply">
-            <span class="is-pulled-right">{{ formatDate(q.timestamp) }}</span>
+            <span class="is-pulled-right">{{ formatDate(q.reply.timestamp) }}</span>
             <p class="notification-text content">
               {{ q.reply.text }}
             </p>
@@ -114,14 +114,15 @@ export default class NotificationsSection extends Vue {
         subject: this.questionSubject,
         text: this.questionText,
       });
-      this.$emit("new-question");
     } else {
       await cms.askQuestionTask(this.contestName, this.taskName, {
         subject: this.questionSubject,
         text: this.questionText,
       });
-      this.$emit("new-question");
     }
+    this.questionSubject = "";
+    this.questionText = "";
+    this.$emit("new-question");
   }
 }
 </script>

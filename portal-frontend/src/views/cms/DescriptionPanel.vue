@@ -63,9 +63,7 @@
                   'is-clickable': true,
                   'is-active': isActive,
                 }"
-                @click="
-                  (event) => (isActive ? showCodePanel() : navigate(event))
-                "
+                @click="(event) => isActive ? showCodePanel() : navgiateSubmission(event, navigate)"
               >
                 <td class="date-td">
                   {{ formatSubDate(new Date(sub.timestamp)) }}
@@ -256,15 +254,10 @@ export default class DescriptionPanel extends Vue {
   formatSubDate(date: Date) {
     return formatDateShort(this.now!, date);
   }
-  clickSubmission(uuid: string) {
-    this.$router.push({
-      name: "CMSSubmissionDetails",
-      params: {
-        contestName: this.contestName!,
-        taskName: this.taskName!,
-        submissionUuid: uuid,
-      },
-    });
+
+  navgiateSubmission(event: any, navigate: any) {
+    navigate(event);
+    this.$emit("show-submission");
   }
 
   get pendingSubmissions(): SubmissionShort[] {

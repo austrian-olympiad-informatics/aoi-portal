@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="wrapper">
     <div
       :class="{
         'code-wrap': true,
@@ -298,7 +298,15 @@ export default class CodePanel extends Vue {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@import "~bulma/sass/utilities/mixins";
+
+@include touch {
+  .wrapper {
+    min-height: 100vh;
+  }
+}
+
 .code-wrap {
   flex-basis: 0;
   flex-grow: 1;
@@ -345,6 +353,19 @@ export default class CodePanel extends Vue {
   background: rgba(255, 255, 255, 0.15) !important;
 }
 
+@include touch {
+  .code-test {
+    flex-direction: column !important;
+  }
+  .code-test-input, .code-test-output {
+    width: 100%;
+    min-height: 300px;
+  }
+  .code-main {
+    min-height: 500px;
+  }
+}
+
 .code-bar {
   padding: 16px;
   background-color: #13181d;
@@ -352,6 +373,7 @@ export default class CodePanel extends Vue {
   flex-direction: row;
   justify-content: space-between;
   z-index: 10;
+  flex-wrap: wrap;
 }
 .code-bar-test {
   margin-bottom: 0;

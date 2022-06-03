@@ -35,7 +35,9 @@
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@import "~bulma/sass/utilities/mixins";
+
 .hero {
   /*min-height: calc(100vh - 6.5rem) !important;*/
   min-height: calc(100vh - 12.5rem) !important;
@@ -55,8 +57,22 @@
 }
 .welcome .buttons {
   justify-content: center;
+  column-gap: 1rem;
 }
-.welcome .buttons .button:not(:last-child) {
-  margin-right: 1.5rem;
+
+@include mobile {
+  .aoi-logo {
+    width: 175px;
+    margin-bottom: 15px;
+  }
+  .welcome h1 {
+    font-size: 2rem;
+  }
+  .weclome h2 {
+    font-size: 1.25rem;
+  }
+  .welcome .button {
+    font-size: 1.25rem !important;
+  }
 }
 </style>
