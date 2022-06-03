@@ -35,7 +35,9 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.schema import CheckConstraint, Column, ForeignKey
 from sqlalchemy.types import Boolean, DateTime, Enum, Integer, Interval, String, Unicode
 
-from . import Admin, Base, Codename
+from .admin import Admin
+from .base import Base
+from .types import Codename
 
 TOKEN_MODE_DISABLED = "disabled"
 TOKEN_MODE_FINITE = "finite"

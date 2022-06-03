@@ -25,7 +25,9 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Boolean, DateTime, Integer, String
 
-from . import Base, Digest, Filename, Participation
+from .base import Base
+from .types import Digest, Filename
+from .user import Participation
 
 
 class PrintJob(Base):

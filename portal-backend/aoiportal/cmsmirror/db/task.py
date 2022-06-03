@@ -47,7 +47,9 @@ from sqlalchemy.types import (
     Unicode,
 )
 
-from . import Base, Codename, Contest, Digest, Filename, FilenameSchemaArray
+from .base import Base
+from .contest import Contest
+from .types import Codename, Digest, Filename, FilenameSchemaArray
 
 TOKEN_MODE_DISABLED = "disabled"
 TOKEN_MODE_FINITE = "finite"

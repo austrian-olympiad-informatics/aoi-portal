@@ -28,7 +28,10 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint, UniqueConstraint
 from sqlalchemy.types import BigInteger, DateTime, Float, Integer, String, Unicode
 
-from . import Base, Dataset, Digest, Filename, FilenameSchema, Participation, Task
+from .base import Base
+from .task import Dataset, Task
+from .types import Digest, Filename, FilenameSchema
+from .user import Participation
 
 
 class UserEval(Base):

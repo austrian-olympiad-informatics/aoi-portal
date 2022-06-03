@@ -34,16 +34,10 @@ from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint, UniqueCo
 from sqlalchemy.sql import func
 from sqlalchemy.types import BigInteger, DateTime, Enum, Float, Integer, String, Unicode
 
-from . import (
-    Base,
-    Dataset,
-    Digest,
-    Filename,
-    FilenameSchema,
-    Participation,
-    Task,
-    Testcase,
-)
+from .base import Base
+from .task import Dataset, Task, Testcase
+from .types import Digest, Filename, FilenameSchema
+from .user import Participation
 
 
 class Submission(Base):

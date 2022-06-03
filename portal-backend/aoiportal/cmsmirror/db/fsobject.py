@@ -31,7 +31,8 @@ from sqlalchemy.dialects.postgresql import OID
 from sqlalchemy.schema import Column
 from sqlalchemy.types import String, Unicode
 
-from . import Base, custom_psycopg2_connection
+from .base import Base
+from .session import custom_psycopg2_connection
 
 
 class LargeObject(io.RawIOBase):

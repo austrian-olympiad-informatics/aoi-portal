@@ -32,7 +32,10 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.schema import CheckConstraint, Column, ForeignKey, UniqueConstraint
 from sqlalchemy.types import Boolean, DateTime, Enum, Integer, Interval, String, Unicode
 
-from . import Admin, Base, CastingArray, Codename, Contest
+from .admin import Admin
+from .base import Base
+from .contest import Contest
+from .types import CastingArray, Codename
 
 
 class User(Base):
