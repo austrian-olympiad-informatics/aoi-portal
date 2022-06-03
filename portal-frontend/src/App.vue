@@ -51,7 +51,8 @@ export default class AppComponent extends Vue {
 </script>
 
 <style>
-html, body {
+html,
+body {
   height: 100%;
 }
 </style>

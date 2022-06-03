@@ -5,7 +5,7 @@
         <div class="descr-wrap">
           <DescriptionPanel
             :task="task"
-            @submission-scored="onSubmissionScored()"
+            @submission-scored="onSubmissionScored"
             @reload-task="loadTask"
             @show-submission="scrollSubIntoView"
           />
@@ -29,13 +29,13 @@
 </template>
 
 <script lang="ts">
-import { SubmissionShort, Task } from "@/types/cms";
+import { ScoringGroup, SubmissionShort, Task } from "@/types/cms";
 import cms from "@/services/cms";
 import { Component, Vue } from "vue-property-decorator";
 import DescriptionPanel from "./DescriptionPanel.vue";
 import CodePanel from "./CodePanel.vue";
-import confetti from "canvas-confetti";
 import CheckNotifications from "./CheckNotifications.vue";
+import SuccessModal from "./SuccessModal.vue";
 
 @Component({
   components: {
@@ -62,59 +62,59 @@ export default class TaskView extends Vue {
   onNewSubmission(sub: SubmissionShort) {
     this.task?.submissions.push(sub);
   }
-  async onSubmissionScored() {
+  async onSubmissionScored(sub: SubmissionShort) {
     if (this.task === null) return;
-    const scoreBefore = this.task.score;
-    await this.loadTask();
-    const scoreAfter = this.task.score;
-    if (scoreBefore != scoreAfter && scoreAfter >= this.task.max_score) {
-      this.showConfetti();
-    }
-  }
-  showConfetti() {
-    const count = 200;
-    const defaults = {
-      origin: { y: 0.7 },
-    };
 
-    const fire = (
-      particleRatio: number,
-      opts: {
-        spread: number;
-        startVelocity?: number;
-        decay?: number;
-        scalar?: number;
+    let successModalText: string | null = null;
+
+    if (this.task.scoring.type === "sum") {
+      const scoreBefore = this.task.score;
+      await this.loadTask();
+      const scoreAfter = this.task.score;
+
+      if (scoreBefore !== scoreAfter && scoreAfter >= this.task.max_score) {
+        successModalText = "Aufgabe gelöst! 🎉";
       }
-    ) => {
-      confetti(
-        Object.assign({}, defaults, opts, {
-          particleCount: Math.floor(count * particleRatio),
-        })
-      );
-    };
+    } else {
+      const calcScoreFractions = () => {
+        const ourSt = this.task!.score_subtasks!;
+        const maxSt = (this.task!.scoring as ScoringGroup).subtasks;
+        return maxSt.map((x, i) => ourSt[i] / x);
+      };
+      const stBefore = calcScoreFractions();
+      await this.loadTask();
+      const stAfter = calcScoreFractions();
+      const stSolved = stBefore
+        .filter((x, i) => x < 1 && stAfter[i] >= 1)
+        .map((_, i) => i + 1);
+      if (stSolved.length > 0) {
+        successModalText = `Subtask ${stSolved.join(", ")} gelöst! 🎉`;
+      }
+    }
 
-    fire(0.25, {
-      spread: 26,
-      startVelocity: 55,
-    });
-    fire(0.2, {
-      spread: 60,
-    });
-    fire(0.35, {
-      spread: 100,
-      decay: 0.91,
-      scalar: 0.8,
-    });
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 25,
-      decay: 0.92,
-      scalar: 1.2,
-    });
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 45,
-    });
+    if (successModalText !== null) {
+      let memeUrl = null;
+      if (sub.result.meme_digest !== null) {
+        const blob = await cms.getSubmissionMeme(
+          this.contestName,
+          this.taskName,
+          sub.uuid,
+          sub.result.meme_digest
+        );
+        memeUrl = URL.createObjectURL(blob);
+      }
+
+      this.$buefy.modal.open({
+        parent: this,
+        component: SuccessModal,
+        trapFocus: true,
+        props: {
+          headerText: successModalText,
+          memeUrl: memeUrl,
+        },
+        animation: "success-modal",
+      });
+    }
   }
   scrollSubIntoView() {
     this.$nextTick(() => {
@@ -186,5 +186,25 @@ export default class TaskView extends Vue {
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+</style>
+
+<style>
+/* have to have some transition on transition element for it to know when it ends */
+.success-modal-enter-active,
+.success-modal-leave-active {
+  transition: opacity 0.75s ease-in;
+}
+.success-modal-enter,
+.success-modal-leave-to {
+  opacity: 1;
+}
+.success-modal-enter-active .modal-background,
+.success-modal-leave-active .modal-background {
+  transition: opacity 0.75s ease-in;
+}
+.success-modal-enter .modal-background,
+.success-modal-leave-to .modal-background {
+  opacity: 0;
 }
 </style>

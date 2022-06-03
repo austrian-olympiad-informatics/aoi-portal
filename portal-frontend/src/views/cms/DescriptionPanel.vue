@@ -63,7 +63,12 @@
                   'is-clickable': true,
                   'is-active': isActive,
                 }"
-                @click="(event) => isActive ? showCodePanel() : navgiateSubmission(event, navigate)"
+                @click="
+                  (event) =>
+                    isActive
+                      ? showCodePanel()
+                      : navgiateSubmission(event, navigate)
+                "
               >
                 <td class="date-td">
                   {{ formatSubDate(new Date(sub.timestamp)) }}

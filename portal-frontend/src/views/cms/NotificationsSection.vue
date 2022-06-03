@@ -50,7 +50,9 @@
             {{ q.text }}
           </p>
           <div v-if="q.reply" class="question-reply">
-            <span class="is-pulled-right">{{ formatDate(q.reply.timestamp) }}</span>
+            <span class="is-pulled-right">{{
+              formatDate(q.reply.timestamp)
+            }}</span>
             <p class="notification-text content">
               {{ q.reply.text }}
             </p>

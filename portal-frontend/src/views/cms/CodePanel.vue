@@ -357,7 +357,8 @@ export default class CodePanel extends Vue {
   .code-test {
     flex-direction: column !important;
   }
-  .code-test-input, .code-test-output {
+  .code-test-input,
+  .code-test-output {
     width: 100%;
     min-height: 300px;
   }
