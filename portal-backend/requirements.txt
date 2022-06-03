@@ -3,7 +3,6 @@ Flask-SQLAlchemy==2.5.1
 bcrypt==3.2.0
 voluptuous==0.13.1
 Flask-Mail==0.9.1
-requests
 pynacl
 psycopg2
 python-dateutil

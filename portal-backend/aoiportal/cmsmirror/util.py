@@ -1,13 +1,12 @@
-from dataclasses import dataclass, field
 import hashlib
 import io
 import json
-from socket import socket
+import socket
+from dataclasses import dataclass, field
 from typing import Dict, Optional
 from uuid import uuid4
 
-from aoiportal.cmsmirror.db import session
-from aoiportal.cmsmirror.db.fsobject import FSObject, LargeObject
+from aoiportal.cmsmirror.db import FSObject, LargeObject, session  # type: ignore
 
 
 @dataclass
@@ -30,7 +29,7 @@ def get_digest_cache(cache: Cache, digest: str) -> Optional[bytes]:
     return val
 
 
-def put_digest_cache(cache: Cache, digest: str, data: bytes) -> bytes:
+def put_digest_cache(cache: Cache, digest: str, data: bytes) -> None:
     while len(cache.data) >= cache.max_size:
         key = next(iter(cache.data.keys()))
         cache.data.pop(key, None)
@@ -82,7 +81,6 @@ def create_file(content: bytes, description: str) -> str:
     fso.loid = lo.loid
     session.add(fso)
     return digest
-
 
 
 def _send_rpc_evaluation_service(method: str, data):

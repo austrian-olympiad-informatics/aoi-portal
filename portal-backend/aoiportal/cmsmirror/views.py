@@ -1,27 +1,47 @@
 import base64
-from dataclasses import dataclass, field
 import datetime
-from pathlib import Path
 import functools
-import hashlib
-import io
-import json
 import logging
-import socket
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from uuid import uuid4
-from flask import Blueprint, request, g, send_file
+
+import dateutil.parser
+import voluptuous as vol  # type: ignore
+from flask import Blueprint, g, request, send_file
 from sqlalchemy.orm import joinedload
 from werkzeug.local import LocalProxy
-import voluptuous as vol
-import dateutil.parser
 
 from aoiportal.auth_util import get_current_user, login_required
-from aoiportal.cmsmirror.db.fsobject import FSObject, LargeObject
-from aoiportal.cmsmirror.db.submission import Meme
-from aoiportal.cmsmirror.db.task import LanguageTemplate
-from aoiportal.cmsmirror.db.usereval import UserEval, UserEvalFile, UserEvalResult
-from aoiportal.cmsmirror.util import STATIC_FILES_CACHE, USER_CACHE, create_file, open_digest, send_sub_to_evaluation_service, send_user_eval_to_evaluation_service
+from aoiportal.cmsmirror.db import (  # type: ignore
+    Announcement,
+    Attachment,
+    Contest,
+    Dataset,
+    File,
+    LanguageTemplate,
+    Meme,
+    Message,
+    Participation,
+    Question,
+    Statement,
+    Submission,
+    SubmissionResult,
+    Task,
+    User,
+    UserEval,
+    UserEvalFile,
+    UserEvalResult,
+    session,
+)
+from aoiportal.cmsmirror.util import (  # type: ignore
+    STATIC_FILES_CACHE,
+    USER_CACHE,
+    create_file,
+    open_digest,
+    send_sub_to_evaluation_service,
+    send_user_eval_to_evaluation_service,
+)
 from aoiportal.const import (
     KEY_CONTENT,
     KEY_FILENAME,
@@ -32,26 +52,9 @@ from aoiportal.const import (
     KEY_SUBJECT,
     KEY_TEXT,
 )
-from aoiportal.web_utils import json_api
-from aoiportal.cmsmirror.db import (
-    session,
-    Contest,
-    Participation,
-    User,
-    Task,
-    Submission,
-    SubmissionResult,
-    File,
-    Announcement,
-    Message,
-    Question,
-    Attachment,
-    Dataset,
-    Statement,
-)
 from aoiportal.error import AOIBadRequest, AOIForbidden, AOINotFound
-from aoiportal.utils import as_utc, utcnow
-
+from aoiportal.utils import as_utc
+from aoiportal.web_utils import json_api
 
 _LOGGER = logging.getLogger(__name__)
 cmsmirror_bp = Blueprint("cmsmirror", __name__)
@@ -61,8 +64,10 @@ def _get_participation() -> Participation:
     key = "cms_participation"
     if hasattr(g, key):
         return getattr(g, key)
+    assert request.view_args is not None
     contest_name = request.view_args["contest_name"]
     cu = get_current_user()
+    assert cu is not None
     part = (
         session.query(Participation)
         .join(Participation.contest)
@@ -85,6 +90,7 @@ def _get_task() -> Task:
     key = "cms_task"
     if hasattr(g, key):
         return getattr(g, key)
+    assert request.view_args is not None
     task_name = request.view_args["task_name"]
     task: Optional[Task] = (
         session.query(Task)
@@ -225,6 +231,7 @@ def dump_submission(
     }
 
     if status == SubmissionResult.SCORED:
+        assert res is not None
         res_dct["score"] = res.score
         if res.score_details and "max_score" in res.score_details[0]:
             res_dct["subtasks"] = [
@@ -354,7 +361,7 @@ def get_task(contest_name: str, task_name: str):
             default=0.0,
         )
     elif task.score_mode == "max_subtask":
-        sub_scores = {}
+        sub_scores: Dict[int, float] = {}
         for sub, res in submissions:
             if not sub.official or res is None or not res.scored():
                 continue
@@ -421,8 +428,12 @@ def get_task(contest_name: str, task_name: str):
         "submission_format": task.submission_format,
         "language_templates": language_templates,
         "announcements": [_conv_announcement(ann) for ann in task.announcements],
-        "messages": [_conv_message(msg) for msg in part.messages if msg.task_id == task.id],
-        "questions": [_conv_question(q) for q in part.questions if q.task_id == task.id],
+        "messages": [
+            _conv_message(msg) for msg in part.messages if msg.task_id == task.id
+        ],
+        "questions": [
+            _conv_question(q) for q in part.questions if q.task_id == task.id
+        ],
     }
 
 

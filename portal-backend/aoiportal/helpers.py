@@ -1,7 +1,7 @@
 import secrets
 from typing import Optional, cast
-from aoiportal import cms_bridge
 
+from aoiportal import cms_bridge
 from aoiportal.models import Contest, Participation, User, db  # type: ignore
 
 

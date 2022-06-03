@@ -10,8 +10,10 @@ import voluptuous as vol  # type: ignore
 from flask import Blueprint, current_app
 from sqlalchemy.orm import joinedload
 
-from aoiportal.auth_util import get_current_user, hash_password, login_required
 from aoiportal import cms_bridge
+from aoiportal.auth_util import get_current_user, hash_password, login_required
+from aoiportal.cmsmirror.db import Contest as CMSContest  # type: ignore
+from aoiportal.cmsmirror.db import session as cms_session  # type: ignore
 from aoiportal.const import (
     KEY_ADDRESS_STREET,
     KEY_ADDRESS_TOWN,
@@ -59,7 +61,6 @@ from aoiportal.models import (  # type: ignore
 )
 from aoiportal.newsletter import gen_unsubscribe_link
 from aoiportal.web_utils import json_api
-from aoiportal.cmsmirror.db import session as cms_session, Contest as CMSContest
 
 admin_bp = Blueprint("admin", __name__)
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# type: ignore
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2014 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -24,19 +24,30 @@
 
 """
 
-import copy
 from datetime import timedelta
 
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.schema import Column, ForeignKey, CheckConstraint, \
-    UniqueConstraint, ForeignKeyConstraint
-from sqlalchemy.types import Boolean, Integer, Float, String, Unicode, \
-    Interval, Enum, BigInteger
+from sqlalchemy.schema import (
+    CheckConstraint,
+    Column,
+    ForeignKey,
+    ForeignKeyConstraint,
+    UniqueConstraint,
+)
+from sqlalchemy.types import (
+    BigInteger,
+    Boolean,
+    Enum,
+    Float,
+    Integer,
+    Interval,
+    String,
+    Unicode,
+)
 
-from . import Codename, Filename, FilenameSchemaArray, Digest, Base, Contest
-
+from . import Base, Codename, Contest, Digest, Filename, FilenameSchemaArray
 
 TOKEN_MODE_DISABLED = "disabled"
 TOKEN_MODE_FINITE = "finite"
@@ -62,22 +73,22 @@ SCORE_MODE_MAX_TOKENED_LAST = "max_tokened_last"
 
 
 class Task(Base):
-    """Class to store a task.
+    """Class to store a task."""
 
-    """
-    __tablename__ = 'tasks'
+    __tablename__ = "tasks"
     __table_args__ = (
-        UniqueConstraint('contest_id', 'num'),
-        UniqueConstraint('contest_id', 'name'),
+        UniqueConstraint("contest_id", "num"),
+        UniqueConstraint("contest_id", "name"),
         ForeignKeyConstraint(
             ("id", "active_dataset_id"),
             ("datasets.task_id", "datasets.id"),
-            onupdate="SET NULL", ondelete="SET NULL",
+            onupdate="SET NULL",
+            ondelete="SET NULL",
             # Use an ALTER query to set this foreign key after
             # both tables have been CREATEd, to avoid circular
             # dependencies.
             use_alter=True,
-            name="fk_active_dataset_id"
+            name="fk_active_dataset_id",
         ),
         CheckConstraint("token_gen_initial <= token_gen_max"),
     )
@@ -88,45 +99,32 @@ class Task(Base):
         primary_key=True,
         # Needed to enable autoincrement on integer primary keys that
         # are referenced by a foreign key defined on this table.
-        autoincrement='ignore_fk')
+        autoincrement="ignore_fk",
+    )
 
     # Number of the task for sorting.
-    num = Column(
-        Integer,
-        nullable=True)
+    num = Column(Integer, nullable=True)
 
     # Contest (id and object) owning the task.
     contest_id = Column(
         Integer,
-        ForeignKey(Contest.id,
-                   onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Contest.id, onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
-        index=True)
-    contest = relationship(
-        Contest,
-        back_populates="tasks")
+        index=True,
+    )
+    contest = relationship(Contest, back_populates="tasks")
 
     # Short name and long human readable title of the task.
-    name = Column(
-        Codename,
-        nullable=False)
-    title = Column(
-        Unicode,
-        nullable=False)
+    name = Column(Codename, nullable=False)
+    title = Column(Unicode, nullable=False)
 
     # The names of the files that the contestant needs to submit (with
     # language-specific extensions replaced by "%l").
-    submission_format = Column(
-        FilenameSchemaArray,
-        nullable=False,
-        default=[])
+    submission_format = Column(FilenameSchemaArray, nullable=False, default=[])
 
     # The language codes of the statements that will be highlighted to
     # all users for this task.
-    primary_statements = Column(
-        ARRAY(String),
-        nullable=False,
-        default=[])
+    primary_statements = Column(ARRAY(String), nullable=False, default=[])
 
     # The parameters that control task-tokens follow. Note that their
     # effect during the contest depends on the interaction with the
@@ -140,17 +138,21 @@ class Task(Base):
     #   contest instead.
     # - infinite: The user will always be able to use a token.
     token_mode = Column(
-        Enum(TOKEN_MODE_DISABLED, TOKEN_MODE_FINITE, TOKEN_MODE_INFINITE,
-             name="token_mode"),
+        Enum(
+            TOKEN_MODE_DISABLED,
+            TOKEN_MODE_FINITE,
+            TOKEN_MODE_INFINITE,
+            name="token_mode",
+        ),
         nullable=False,
-        default=TOKEN_MODE_DISABLED)
+        default=TOKEN_MODE_DISABLED,
+    )
 
     # The maximum number of tokens a contestant is allowed to use
     # during the whole contest (on this tasks).
     token_max_number = Column(
-        Integer,
-        CheckConstraint("token_max_number > 0"),
-        nullable=True)
+        Integer, CheckConstraint("token_max_number > 0"), nullable=True
+    )
 
     # The minimum interval between two successive uses of tokens for
     # the same user (on this task).
@@ -158,92 +160,85 @@ class Task(Base):
         Interval,
         CheckConstraint("token_min_interval >= '0 seconds'"),
         nullable=False,
-        default=timedelta())
+        default=timedelta(),
+    )
 
     # The parameters that control generation (if mode is "finite"):
     # the user starts with "initial" tokens and receives "number" more
     # every "interval", but their total number is capped to "max".
     token_gen_initial = Column(
-        Integer,
-        CheckConstraint("token_gen_initial >= 0"),
-        nullable=False,
-        default=2)
+        Integer, CheckConstraint("token_gen_initial >= 0"), nullable=False, default=2
+    )
     token_gen_number = Column(
-        Integer,
-        CheckConstraint("token_gen_number >= 0"),
-        nullable=False,
-        default=2)
+        Integer, CheckConstraint("token_gen_number >= 0"), nullable=False, default=2
+    )
     token_gen_interval = Column(
         Interval,
         CheckConstraint("token_gen_interval > '0 seconds'"),
         nullable=False,
-        default=timedelta(minutes=30))
-    token_gen_max = Column(
-        Integer,
-        CheckConstraint("token_gen_max > 0"),
-        nullable=True)
+        default=timedelta(minutes=30),
+    )
+    token_gen_max = Column(Integer, CheckConstraint("token_gen_max > 0"), nullable=True)
 
     # Maximum number of submissions or user_tests allowed for each user
     # on this task during the whole contest or None to not enforce
     # this limitation.
     max_submission_number = Column(
-        Integer,
-        CheckConstraint("max_submission_number > 0"),
-        nullable=True)
+        Integer, CheckConstraint("max_submission_number > 0"), nullable=True
+    )
     max_user_test_number = Column(
-        Integer,
-        CheckConstraint("max_user_test_number > 0"),
-        nullable=True)
+        Integer, CheckConstraint("max_user_test_number > 0"), nullable=True
+    )
 
     # Minimum interval between two submissions or user_tests for this
     # task, or None to not enforce this limitation.
     min_submission_interval = Column(
         Interval,
         CheckConstraint("min_submission_interval > '0 seconds'"),
-        nullable=True)
+        nullable=True,
+    )
     min_user_test_interval = Column(
-        Interval,
-        CheckConstraint("min_user_test_interval > '0 seconds'"),
-        nullable=True)
+        Interval, CheckConstraint("min_user_test_interval > '0 seconds'"), nullable=True
+    )
 
     # What information users can see about the evaluations of their
     # submissions. Offering full information might help some users to
     # reverse engineer task data.
     feedback_level = Column(
-        Enum(FEEDBACK_LEVEL_FULL, FEEDBACK_LEVEL_RESTRICTED,
-             name="feedback_level"),
+        Enum(FEEDBACK_LEVEL_FULL, FEEDBACK_LEVEL_RESTRICTED, name="feedback_level"),
         nullable=False,
-        default=FEEDBACK_LEVEL_RESTRICTED)
+        default=FEEDBACK_LEVEL_RESTRICTED,
+    )
 
     # The scores for this task will be rounded to this number of
     # decimal places.
     score_precision = Column(
-        Integer,
-        CheckConstraint("score_precision >= 0"),
-        nullable=False,
-        default=0)
+        Integer, CheckConstraint("score_precision >= 0"), nullable=False, default=0
+    )
 
     # Score mode for the task.
     score_mode = Column(
-        Enum(SCORE_MODE_MAX_TOKENED_LAST,
-             SCORE_MODE_MAX,
-             SCORE_MODE_MAX_SUBTASK,
-             name="score_mode"),
+        Enum(
+            SCORE_MODE_MAX_TOKENED_LAST,
+            SCORE_MODE_MAX,
+            SCORE_MODE_MAX_SUBTASK,
+            name="score_mode",
+        ),
         nullable=False,
-        default=SCORE_MODE_MAX_TOKENED_LAST)
+        default=SCORE_MODE_MAX_TOKENED_LAST,
+    )
 
     # Active Dataset (id and object) currently being used for scoring.
     # The ForeignKeyConstraint for this column is set at table-level.
-    active_dataset_id = Column(
-        Integer,
-        nullable=True)
+    active_dataset_id = Column(Integer, nullable=True)
     active_dataset = relationship(
-        'Dataset',
+        "Dataset",
         foreign_keys=[active_dataset_id],
         # Use an UPDATE query *after* an INSERT query (and *before* a
         # DELETE query) to set (and unset) the column associated to
         # this relationship.
-        post_update=True)
+        post_update=True,
+    )
 
     # These one-to-many relationships are the reversed directions of
     # the ones defined in the "child" classes using foreign keys.
@@ -253,14 +248,16 @@ class Task(Base):
         collection_class=attribute_mapped_collection("language"),
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="task")
+        back_populates="task",
+    )
 
     attachments = relationship(
         "Attachment",
         collection_class=attribute_mapped_collection("filename"),
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="task")
+        back_populates="task",
+    )
 
     datasets = relationship(
         "Dataset",
@@ -269,25 +266,29 @@ class Task(Base):
         foreign_keys="[Dataset.task_id]",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="task")
+        back_populates="task",
+    )
 
     submissions = relationship(
         "Submission",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="task")
+        back_populates="task",
+    )
 
     user_tests = relationship(
         "UserTest",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="task")
+        back_populates="task",
+    )
 
     user_evals = relationship(
         "UserEval",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="task")
+        back_populates="task",
+    )
 
     announcements = relationship("Announcement", back_populates="task")
     questions = relationship("Question", back_populates="task")
@@ -296,43 +297,32 @@ class Task(Base):
 
 
 class Statement(Base):
-    """Class to store a translation of the task statement.
+    """Class to store a translation of the task statement."""
 
-    """
-    __tablename__ = 'statements'
-    __table_args__ = (
-        UniqueConstraint('task_id', 'language'),
-    )
+    __tablename__ = "statements"
+    __table_args__ = (UniqueConstraint("task_id", "language"),)
 
     # Auto increment primary key.
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     # Task (id and object) the statement is for.
     task_id = Column(
         Integer,
-        ForeignKey(Task.id,
-                   onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Task.id, onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True)
-    task = relationship(
-        Task,
-        back_populates="statements")
+        index=True,
+    )
+    task = relationship(Task, back_populates="statements")
 
     # Code for the language the statement is written in.
     # It can be an arbitrary string, but if it's in the form "en" or "en_US"
     # it will be rendered appropriately on the interface (i.e. "English" and
     # "English (United States of America)"). These codes need to be taken from
     # ISO 639-1 and ISO 3166-1 respectively.
-    language = Column(
-        Unicode,
-        nullable=False)
+    language = Column(Unicode, nullable=False)
 
     # Digest of the file.
-    digest = Column(
-        Digest,
-        nullable=False)
+    digest = Column(Digest, nullable=False)
 
 
 class Attachment(Base):
@@ -340,106 +330,76 @@ class Attachment(Base):
     with the statement of the task.
 
     """
-    __tablename__ = 'attachments'
-    __table_args__ = (
-        UniqueConstraint('task_id', 'filename'),
-    )
+
+    __tablename__ = "attachments"
+    __table_args__ = (UniqueConstraint("task_id", "filename"),)
 
     # Auto increment primary key.
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     # Task (id and object) owning the attachment.
     task_id = Column(
         Integer,
-        ForeignKey(Task.id,
-                   onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Task.id, onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True)
-    task = relationship(
-        Task,
-        back_populates="attachments")
+        index=True,
+    )
+    task = relationship(Task, back_populates="attachments")
 
     # Filename and digest of the provided attachment.
-    filename = Column(
-        Filename,
-        nullable=False)
-    digest = Column(
-        Digest,
-        nullable=False)
+    filename = Column(Filename, nullable=False)
+    digest = Column(Digest, nullable=False)
 
 
 class Dataset(Base):
-    """Class to store the information about a data set.
+    """Class to store the information about a data set."""
 
-    """
-    __tablename__ = 'datasets'
+    __tablename__ = "datasets"
     __table_args__ = (
-        UniqueConstraint('task_id', 'description'),
+        UniqueConstraint("task_id", "description"),
         # Useless, in theory, because 'id' is already unique. Yet, we
         # need this because it's a target of a foreign key.
-        UniqueConstraint('id', 'task_id'),
+        UniqueConstraint("id", "task_id"),
     )
 
     # Auto increment primary key.
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     # Task (id and object) owning the dataset.
     task_id = Column(
         Integer,
-        ForeignKey(Task.id,
-                   onupdate="CASCADE", ondelete="CASCADE"),
-        nullable=False)
-    task = relationship(
-        Task,
-        foreign_keys=[task_id],
-        back_populates="datasets")
+        ForeignKey(Task.id, onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+    )
+    task = relationship(Task, foreign_keys=[task_id], back_populates="datasets")
 
     # A human-readable text describing the dataset.
-    description = Column(
-        Unicode,
-        nullable=False)
+    description = Column(Unicode, nullable=False)
 
     # Whether this dataset will be automatically judged by ES and SS
     # "in background", together with the active dataset of each task.
-    autojudge = Column(
-        Boolean,
-        nullable=False,
-        default=False)
+    autojudge = Column(Boolean, nullable=False, default=False)
 
     # Time and memory limits (in seconds and bytes) for every testcase.
-    time_limit = Column(
-        Float,
-        CheckConstraint("time_limit > 0"),
-        nullable=True)
+    time_limit = Column(Float, CheckConstraint("time_limit > 0"), nullable=True)
     memory_limit = Column(
         BigInteger,
         CheckConstraint("memory_limit > 0"),
         CheckConstraint("MOD(memory_limit, 1048576) = 0"),
-        nullable=True)
+        nullable=True,
+    )
 
     # Name of the TaskType child class suited for the task.
-    task_type = Column(
-        String,
-        nullable=False)
+    task_type = Column(String, nullable=False)
 
     # Parameters for the task type class.
-    task_type_parameters = Column(
-        JSONB,
-        nullable=False)
+    task_type_parameters = Column(JSONB, nullable=False)
 
     # Name of the ScoreType child class suited for the task.
-    score_type = Column(
-        String,
-        nullable=False)
+    score_type = Column(String, nullable=False)
 
     # Parameters for the score type class.
-    score_type_parameters = Column(
-        JSONB,
-        nullable=False)
+    score_type_parameters = Column(JSONB, nullable=False)
 
     # These one-to-many relationships are the reversed directions of
     # the ones defined in the "child" classes using foreign keys.
@@ -449,28 +409,32 @@ class Dataset(Base):
         collection_class=attribute_mapped_collection("filename"),
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="dataset")
+        back_populates="dataset",
+    )
 
     testcases = relationship(
         "Testcase",
         collection_class=attribute_mapped_collection("codename"),
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="dataset")
+        back_populates="dataset",
+    )
 
     language_templates = relationship(
         "LanguageTemplate",
         collection_class=attribute_mapped_collection("filename"),
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="dataset")
+        back_populates="dataset",
+    )
 
     test_managers = relationship(
         "TestManager",
         collection_class=attribute_mapped_collection("filename"),
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="dataset")
+        back_populates="dataset",
+    )
 
     @property
     def active(self):
@@ -488,139 +452,94 @@ class Manager(Base):
     submission (e.g., graders).
 
     """
-    __tablename__ = 'managers'
-    __table_args__ = (
-        UniqueConstraint('dataset_id', 'filename'),
-    )
+
+    __tablename__ = "managers"
+    __table_args__ = (UniqueConstraint("dataset_id", "filename"),)
 
     # Auto increment primary key.
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     # Dataset (id and object) owning the manager.
     dataset_id = Column(
         Integer,
-        ForeignKey(Dataset.id,
-                   onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Dataset.id, onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True)
-    dataset = relationship(
-        Dataset,
-        back_populates="managers")
+        index=True,
+    )
+    dataset = relationship(Dataset, back_populates="managers")
 
     # Filename and digest of the provided manager.
-    filename = Column(
-        Filename,
-        nullable=False)
-    digest = Column(
-        Digest,
-        nullable=False)
+    filename = Column(Filename, nullable=False)
+    digest = Column(Digest, nullable=False)
 
 
 class LanguageTemplate(Base):
-    __tablename__ = 'language_templates'
-    __table_args__ = (
-        UniqueConstraint('dataset_id', 'filename'),
-    )
+    __tablename__ = "language_templates"
+    __table_args__ = (UniqueConstraint("dataset_id", "filename"),)
 
     # Auto increment primary key.
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     # Dataset (id and object) owning the manager.
     dataset_id = Column(
         Integer,
-        ForeignKey(Dataset.id,
-                   onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Dataset.id, onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True)
-    dataset = relationship(
-        Dataset,
-        back_populates="language_templates")
+        index=True,
+    )
+    dataset = relationship(Dataset, back_populates="language_templates")
 
     # Filename and digest of the provided manager.
-    filename = Column(
-        Filename,
-        nullable=False)
-    digest = Column(
-        Digest,
-        nullable=False)
+    filename = Column(Filename, nullable=False)
+    digest = Column(Digest, nullable=False)
 
 
 class TestManager(Base):
-    __tablename__ = 'test_managers'
-    __table_args__ = (
-        UniqueConstraint('dataset_id', 'filename'),
-    )
+    __tablename__ = "test_managers"
+    __table_args__ = (UniqueConstraint("dataset_id", "filename"),)
 
     # Auto increment primary key.
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     # Dataset (id and object) owning the manager.
     dataset_id = Column(
         Integer,
-        ForeignKey(Dataset.id,
-                   onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Dataset.id, onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True)
-    dataset = relationship(
-        Dataset,
-        back_populates="test_managers")
+        index=True,
+    )
+    dataset = relationship(Dataset, back_populates="test_managers")
 
     # Filename and digest of the provided manager.
-    filename = Column(
-        Filename,
-        nullable=False)
-    digest = Column(
-        Digest,
-        nullable=False)
+    filename = Column(Filename, nullable=False)
+    digest = Column(Digest, nullable=False)
 
 
 class Testcase(Base):
-    """Class to store the information about a testcase.
+    """Class to store the information about a testcase."""
 
-    """
-    __tablename__ = 'testcases'
-    __table_args__ = (
-        UniqueConstraint('dataset_id', 'codename'),
-    )
+    __tablename__ = "testcases"
+    __table_args__ = (UniqueConstraint("dataset_id", "codename"),)
 
     # Auto increment primary key.
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     # Dataset (id and object) owning the testcase.
     dataset_id = Column(
         Integer,
-        ForeignKey(Dataset.id,
-                   onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Dataset.id, onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True)
-    dataset = relationship(
-        Dataset,
-        back_populates="testcases")
+        index=True,
+    )
+    dataset = relationship(Dataset, back_populates="testcases")
 
     # Codename identifying the testcase.
-    codename = Column(
-        Codename,
-        nullable=False)
+    codename = Column(Codename, nullable=False)
 
     # If the testcase outcome is going to be showed to the user (even
     # without playing a token).
-    public = Column(
-        Boolean,
-        nullable=False,
-        default=False)
+    public = Column(Boolean, nullable=False, default=False)
 
     # Digests of the input and output files.
-    input = Column(
-        Digest,
-        nullable=False)
-    output = Column(
-        Digest,
-        nullable=False)
+    input = Column(Digest, nullable=False)
+    output = Column(Digest, nullable=False)

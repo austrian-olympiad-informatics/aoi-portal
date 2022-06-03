@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# type: ignore
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -30,6 +30,48 @@
 
 import logging
 
+from .admin import Admin
+from .base import Base
+from .contest import Announcement, Contest
+from .fsobject import FSObject, LargeObject
+from .printjob import PrintJob
+from .session import custom_psycopg2_connection, init_app, session
+from .submission import (
+    Evaluation,
+    Executable,
+    File,
+    Meme,
+    Submission,
+    SubmissionResult,
+    Token,
+)
+from .task import (
+    Attachment,
+    Dataset,
+    LanguageTemplate,
+    Manager,
+    Statement,
+    Task,
+    Testcase,
+    TestManager,
+)
+from .types import (
+    CastingArray,
+    Codename,
+    Digest,
+    Filename,
+    FilenameSchema,
+    FilenameSchemaArray,
+)
+from .user import Message, Participation, Question, Team, User
+from .usereval import UserEval, UserEvalExecutable, UserEvalFile, UserEvalResult
+from .usertest import (
+    UserTest,
+    UserTestExecutable,
+    UserTestFile,
+    UserTestManager,
+    UserTestResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,44 +80,60 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     # session
-    "session", "init_app", "custom_psycopg2_connection",
+    "session",
+    "init_app",
+    "custom_psycopg2_connection",
     # types
-    "CastingArray", "Codename", "Filename", "FilenameSchema",
-    "FilenameSchemaArray", "Digest",
+    "CastingArray",
+    "Codename",
+    "Filename",
+    "FilenameSchema",
+    "FilenameSchemaArray",
+    "Digest",
     # base
     "Base",
     # fsobject
-    "FSObject", "LargeObject",
+    "FSObject",
+    "LargeObject",
     # contest
-    "Contest", "Announcement",
+    "Contest",
+    "Announcement",
     # user
-    "User", "Team", "Participation", "Message", "Question",
+    "User",
+    "Team",
+    "Participation",
+    "Message",
+    "Question",
     # admin
     "Admin",
     # task
-    "Task", "Statement", "Attachment", "Dataset", "Manager", "Testcase",
+    "Task",
+    "Statement",
+    "Attachment",
+    "Dataset",
+    "Manager",
+    "Testcase",
+    "LanguageTemplate",
+    "TestManager",
     # submission
-    "Submission", "File", "Token", "SubmissionResult", "Executable",
+    "Submission",
+    "File",
+    "Token",
+    "SubmissionResult",
+    "Executable",
     "Evaluation",
+    "Meme",
     # usertest
-    "UserTest", "UserTestFile", "UserTestManager", "UserTestResult",
+    "UserTest",
+    "UserTestFile",
+    "UserTestManager",
+    "UserTestResult",
     "UserTestExecutable",
     # printjob
     "PrintJob",
+    # usereval
+    "UserEval",
+    "UserEvalFile",
+    "UserEvalResult",
+    "UserEvalExecutable",
 ]
-
-from .session import custom_psycopg2_connection, init_app, session
-
-from .types import CastingArray, Codename, Filename, FilenameSchema, \
-    FilenameSchemaArray, Digest
-from .base import Base
-from .fsobject import FSObject, LargeObject
-from .admin import Admin
-from .contest import Contest, Announcement
-from .user import User, Team, Participation, Message, Question
-from .task import Task, Statement, Attachment, Dataset, Manager, Testcase
-from .submission import Submission, File, Token, SubmissionResult, \
-    Executable, Evaluation
-from .usertest import UserTest, UserTestFile, UserTestManager, \
-    UserTestResult, UserTestExecutable
-from .printjob import PrintJob

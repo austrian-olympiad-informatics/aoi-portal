@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# type: ignore
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -26,16 +26,15 @@ interact with SQLAlchemy objects.
 
 """
 
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 
 import psycopg2
-from flask import Flask, g, current_app
+from flask import Flask, current_app, g
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine, make_url
-from sqlalchemy.orm import sessionmaker, scoped_session, Session
+from sqlalchemy.orm import Session, scoped_session, sessionmaker
 from werkzeug.local import LocalProxy
-
 
 logger = logging.getLogger(__name__)
 KEY_CMS_SESSION = "_cmsmirror_db_session"
@@ -50,7 +49,7 @@ class CMSExtData:
 
 def init_app(app: Flask) -> None:
     database_uri = app.config["CMS_DATABASE_URI"]
-    engine = create_engine(database_uri)  #, echo=True)
+    engine = create_engine(database_uri)  # , echo=True)
     session_factory = sessionmaker(bind=engine)
     scoped_session_factory = scoped_session(session_factory)
     app.extensions["cms"] = CMSExtData(
@@ -68,7 +67,9 @@ def init_app(app: Flask) -> None:
 
 def _get_session():
     if not hasattr(g, KEY_CMS_SESSION):
-        setattr(g, KEY_CMS_SESSION, current_app.extensions["cms"].scoped_session_factory())
+        setattr(
+            g, KEY_CMS_SESSION, current_app.extensions["cms"].scoped_session_factory()
+        )
     return getattr(g, KEY_CMS_SESSION)
 
 

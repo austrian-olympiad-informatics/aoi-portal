@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# type: ignore
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
@@ -23,52 +23,35 @@
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, String, DateTime, Boolean
+from sqlalchemy.types import Boolean, DateTime, Integer, String
 
-from . import Filename, Digest, Base, Participation
+from . import Base, Digest, Filename, Participation
 
 
 class PrintJob(Base):
-    """Class to store a print job.
+    """Class to store a print job."""
 
-    """
-    __tablename__ = 'printjobs'
+    __tablename__ = "printjobs"
 
     # Auto increment primary key.
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     # Participation (id and object) that did the submission.
     participation_id = Column(
         Integer,
-        ForeignKey(Participation.id,
-                   onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Participation.id, onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True)
-    participation = relationship(
-        Participation,
-        back_populates="printjobs")
+        index=True,
+    )
+    participation = relationship(Participation, back_populates="printjobs")
 
     # Submission time of the print job.
-    timestamp = Column(
-        DateTime,
-        nullable=False)
+    timestamp = Column(DateTime, nullable=False)
 
     # Filename and digest of the submitted file.
-    filename = Column(
-        Filename,
-        nullable=False)
-    digest = Column(
-        Digest,
-        nullable=False)
+    filename = Column(Filename, nullable=False)
+    digest = Column(Digest, nullable=False)
 
-    done = Column(
-        Boolean,
-        nullable=False,
-        default=False)
+    done = Column(Boolean, nullable=False, default=False)
 
-    status = Column(
-        ARRAY(String),
-        nullable=False,
-        default=[])
+    status = Column(ARRAY(String), nullable=False, default=[])

@@ -1,21 +1,16 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 import datetime
 import secrets
+from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-import requests
-from flask import current_app
-from sqlalchemy.orm import joinedload
 from slugify import slugify
+from sqlalchemy.orm import joinedload
 
-from aoiportal.cmsmirror.db import (
-    session as cms_session,
-    Contest as CMSContest,
-    Participation as CMSParticipation,
-    Task as CMSTask,
-    User as CMSUser,
-)
+from aoiportal.cmsmirror.db import Contest as CMSContest  # type: ignore
+from aoiportal.cmsmirror.db import Participation as CMSParticipation  # type: ignore
+from aoiportal.cmsmirror.db import Task as CMSTask  # type: ignore
+from aoiportal.cmsmirror.db import User as CMSUser  # type: ignore
+from aoiportal.cmsmirror.db import session as cms_session  # type: ignore
 
 
 @dataclass
@@ -86,7 +81,7 @@ def _task_score_max_subtask(score_details_tokened):
                 (subtask["idx"], subtask["score_fraction"] * subtask["max_score"])
                 for subtask in details
             )
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             subtask_scores = None
 
         if subtask_scores is None or len(subtask_scores) == 0:
@@ -124,7 +119,7 @@ def _task_score(part: CMSParticipation, task: CMSTask):
     elif task.score_mode == "max_subtask":
         score = _task_score_max_subtask(score_details_tokened)
     else:
-        raise ValueError("Unknown score mode '%s'" % task.score_mode)
+        raise ValueError(f"Unknown score mode '{task.score_mode}'")
     score = round(score, task.score_precision)
     return score, partial
 
@@ -146,19 +141,22 @@ def get_contest_ranking(contest_id: int) -> RankingResult:
         total_score = 0.0
         task_scores = {}
         for task in contest.tasks:
-            t_score, _ = _task_score(p, task, rounded=True)
+            t_score, _ = _task_score(p, task)
             task_scores[task.name] = t_score
             total_score += t_score
         total_score = round(total_score, contest.score_precision)
         ranking.append(
-            {
-                "user_id": p.user.id,
-                "task_scores": task_scores,
-                "total_score": total_score,
-            }
+            RankingUser(
+                user_id=p.user.id,
+                task_scores=task_scores,
+                total_score=total_score,
+            )
         )
 
-    return {"tasks": tasks, "ranking": ranking}
+    return RankingResult(
+        tasks=tasks,
+        ranking=ranking,
+    )
 
 
 def update_contest(
@@ -199,7 +197,9 @@ def _gen_username(first_name: str, last_name: str) -> str:
     )
 
     def exists(u):
-        return cms_session.query(CMSUser).filter(CMSUser.username == u).first() is not None
+        return (
+            cms_session.query(CMSUser).filter(CMSUser.username == u).first() is not None
+        )
 
     if not exists(username):
         return username
@@ -212,9 +212,7 @@ def _gen_username(first_name: str, last_name: str) -> str:
         i += 1
 
 
-def create_user(
-    email: str, first_name: str, last_name: str
-) -> CreateUserResult:
+def create_user(email: str, first_name: str, last_name: str) -> CreateUserResult:
     username = _gen_username(first_name, last_name)
     # We use SSO login, so just make password something unguessable
     password = secrets.token_urlsafe(32)
@@ -235,6 +233,7 @@ def create_user(
         cms_username=user.username,
     )
 
+
 def create_participation(
     user_id: int, contest_id: int, manual_password: Optional[str] = None
 ) -> int:
@@ -242,9 +241,7 @@ def create_participation(
     if manual_password is not None:
         stored_password = f"plaintext:{manual_password}"
     user = cms_session.query(CMSUser).filter(CMSUser.id == user_id).first()
-    contest = (
-        cms_session.query(Contest).filter(Contest.id == contest_id).first()
-    )
+    contest = cms_session.query(Contest).filter(Contest.id == contest_id).first()
     part = CMSParticipation(
         user=user,
         contest=contest,
