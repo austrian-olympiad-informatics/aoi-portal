@@ -117,7 +117,9 @@ export default class TaskView extends Vue {
     });
   }
   scrollSubIntoView() {
-    (this.$refs.codeCol as Element).scrollIntoView();
+    this.$nextTick(() => {
+      (this.$refs.codeCol as Element).scrollIntoView(false);
+    });
   }
 }
 </script>
