@@ -2,7 +2,7 @@ import base64
 import datetime
 import functools
 import uuid
-from typing import Optional
+from typing import List, Optional
 
 import nacl.secret
 import nacl.utils
@@ -11,7 +11,7 @@ from flask import Blueprint, current_app
 from sqlalchemy.orm import joinedload
 
 from aoiportal.auth_util import get_current_user, hash_password, login_required
-from aoiportal.cms_bridge import ContestUpdateParams, cms
+from aoiportal import cms_bridge
 from aoiportal.const import (
     KEY_ADDRESS_STREET,
     KEY_ADDRESS_TOWN,
@@ -59,6 +59,7 @@ from aoiportal.models import (  # type: ignore
 )
 from aoiportal.newsletter import gen_unsubscribe_link
 from aoiportal.web_utils import json_api
+from aoiportal.cmsmirror.db import session as cms_session, Contest as CMSContest
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -279,9 +280,9 @@ def create_user(data):
 @admin_required
 @json_api()
 def refresh_cms_contests():
-    ourcontests = Contest.query.all()
+    ourcontests: List[Contest] = Contest.query.all()
     ourids = {c.cms_id: c for c in ourcontests}
-    cmscontests = cms.list_contests()
+    cmscontests: List[CMSContest] = cms_session.query(CMSContest).all()
     cmsids = {c.id: c for c in cmscontests}
 
     for c in cmscontests:
@@ -408,7 +409,7 @@ def get_contest_ranking(contest_uuid: str):
     c: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
     if c is None:
         raise AOINotFound("Contest not found")
-    res = cms.get_contest_ranking(contest_id=c.cms_id)
+    res = cms_bridge.get_contest_ranking(c.cms_id)
 
     cmsid_to_uid = {
         part.user.cms_id: part.user_id
@@ -506,15 +507,13 @@ def contest_provision_sso(contest_uuid: str):
     base_url = current_app.config["BASE_URL"]
     redirect_url = f"{base_url}/contests/{c.uuid}/sso"
 
-    cms.update_contest(
-        contest_id=c.cms_id,
-        params=ContestUpdateParams(
-            name=c.cms_name,
-            description=c.cms_description,
-            allow_sso_authentication=True,
-            sso_secret_key=secret_key,
-            sso_redirect_url=redirect_url,
-        ),
+    cms_bridge.update_contest(
+        c.cms_id,
+        name=c.cms_name,
+        description=c.cms_description,
+        allow_sso_authentication=True,
+        sso_secret_key=secret_key,
+        sso_redirect_url=redirect_url,
     )
     c.cms_allow_sso_authentication = True
     c.cms_sso_secret_key = secret_key
@@ -531,15 +530,13 @@ def contest_remove_sso(contest_uuid: str):
     if c is None:
         raise AOINotFound("Contest not found")
 
-    cms.update_contest(
-        contest_id=c.cms_id,
-        params=ContestUpdateParams(
-            name=c.cms_name,
-            description=c.cms_description,
-            allow_sso_authentication=False,
-            sso_secret_key="",
-            sso_redirect_url="",
-        ),
+    cms_bridge.update_contest(
+        c.cms_id,
+        name=c.cms_name,
+        description=c.cms_description,
+        allow_sso_authentication=False,
+        sso_secret_key="",
+        sso_redirect_url="",
     )
     c.cms_allow_sso_authentication = False
     c.cms_sso_secret_key = ""
@@ -581,8 +578,8 @@ def create_participation(data, contest_uuid: str):
         db.session.commit()
 
         if data[KEY_MANUAL_PASSWORD] is not None:
-            cms.set_participation_password(
-                contest_id=c.cms_id,
+            cms_bridge.set_participation_password(
+                c.cms_id,
                 participation_id=part.cms_id,
                 manual_password=data[KEY_MANUAL_PASSWORD],
             )
@@ -641,7 +638,7 @@ def update_participation(data, contest_uuid: str, part_id: int):
         part.cms_id = data[KEY_CMS_ID]
         db.session.commit()
     if KEY_MANUAL_PASSWORD in data:
-        cms.set_participation_password(
+        cms_bridge.set_participation_password(
             contest_id=part.contest.cms_id,
             participation_id=part.cms_id,
             manual_password=data[KEY_MANUAL_PASSWORD],

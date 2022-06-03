@@ -1,3 +1,0 @@
-FROM cms-base:latest
-
-

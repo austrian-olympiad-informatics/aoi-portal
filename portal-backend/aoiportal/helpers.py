@@ -1,12 +1,12 @@
 import secrets
 from typing import Optional, cast
+from aoiportal import cms_bridge
 
-from aoiportal.cms_bridge import cms
 from aoiportal.models import Contest, Participation, User, db  # type: ignore
 
 
 def create_cms_user(user: User) -> int:
-    res = cms.create_user(
+    res = cms_bridge.create_user(
         email=user.email,
         first_name=user.first_name,
         last_name=user.last_name,
@@ -23,7 +23,7 @@ def create_participation(
     if user.cms_id is None:
         create_cms_user(user)
 
-    res = cms.create_participation(
+    res = cms_bridge.create_participation(
         user_id=cast(int, user.cms_id),
         contest_id=contest.cms_id,
         manual_password=manual_password,

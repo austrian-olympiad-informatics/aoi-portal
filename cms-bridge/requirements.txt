@@ -1,3 +1,0 @@
-Flask==2.1.2
-voluptuous>=0.12,<1
-python-slugify==6.1.2
