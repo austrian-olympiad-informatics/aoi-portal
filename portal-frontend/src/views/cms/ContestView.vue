@@ -25,15 +25,18 @@
         </div>
       </div>
 
-      <NotificationsSection 
+      <NotificationsSection
         :announcements="contest.announcements"
         :messages="contest.messages"
         :questions="contest.questions"
         :contest-name="contestName"
-        @new-question="loadContest" />
-
+        @new-question="loadContest"
+      />
     </section>
-    <CheckNotifications :contest-name="contestName" @new-notification="loadContest" />
+    <CheckNotifications
+      :contest-name="contestName"
+      @new-notification="loadContest"
+    />
   </div>
 </template>
 

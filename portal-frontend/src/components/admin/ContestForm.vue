@@ -33,10 +33,7 @@
         <b-input v-model="data.cms_sso_redirect_url" disabled />
       </b-field>
       <b-field label="CMS Allow Frontend V2">
-        <b-switch
-          v-model="data.cms_allow_frontendv2"
-          disabled
-        ></b-switch>
+        <b-switch v-model="data.cms_allow_frontendv2" disabled></b-switch>
       </b-field>
     </b-field>
 

@@ -60,18 +60,10 @@
         </div>
       </div>
       <div class="code-bar-submit">
-        <b-button
-          type="is-primary"
-          @click="submitCode"
-          v-if="!isTestMode"
-        >
+        <b-button type="is-primary" @click="submitCode" v-if="!isTestMode">
           Abschicken
         </b-button>
-        <b-button
-          type="is-primary"
-          @click="testCode"
-          v-if="isTestMode"
-        >
+        <b-button type="is-primary" @click="testCode" v-if="isTestMode">
           Testen
         </b-button>
       </div>
@@ -115,16 +107,15 @@ export default class CodePanel extends Vue {
     return this.$route.params.taskName;
   }
 
-  code: string = "";
-  lang: string = "";
-  testInput: string = "";
+  code = "";
+  lang = "";
+  testInput = "";
   testEvalUuid: string | null = null;
   testEvalTimeoutHandle: number | null = null;
   testEval: UserEval | null = null;
-  testEvalLoading: boolean = false;
+  testEvalLoading = false;
   get testOutput(): string | null {
-    if (this.testEval === null)
-      return "Noch nicht ausgeführt";
+    if (this.testEval === null) return "Noch nicht ausgeführt";
     if (this.testEval.result.status === "compilation_failed")
       return this.testEval.result.compilation_stderr;
     if (this.testEval.result.status !== "evaluated")
@@ -134,17 +125,13 @@ export default class CodePanel extends Vue {
     return b64DecodeUnicode(this.testEval.result.output);
   }
   get testOutputItalic(): boolean {
-    if (this.testEval === null)
-      return true;
-    if (this.testEval.result.status === "compilation_failed")
-      return false;
-    if (this.testEval.result.status !== "evaluated")
-      return true;
-    if (this.testEval.result.output === undefined)
-      return true;
+    if (this.testEval === null) return true;
+    if (this.testEval.result.status === "compilation_failed") return false;
+    if (this.testEval.result.status !== "evaluated") return true;
+    if (this.testEval.result.output === undefined) return true;
     return false;
   }
-  isTestMode: boolean = false;
+  isTestMode = false;
 
   async setDefaults() {
     if (!this.lang.length || !this.task.languages.includes(this.lang)) {

@@ -1,7 +1,10 @@
 <template>
-  <b-navbar shadow :class="{
-    'navbar-big': !isNavbarSmall,
-  }">
+  <b-navbar
+    shadow
+    :class="{
+      'navbar-big': !isNavbarSmall,
+    }"
+  >
     <template #brand>
       <b-navbar-item tag="router-link" :to="{ path: '/' }">
         <img

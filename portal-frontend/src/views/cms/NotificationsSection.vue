@@ -33,20 +33,14 @@
       <h2 class="title is-3">Fragen</h2>
       <form @submit.prevent="askQuestion" class="question-form">
         <b-field label="Betreff">
-          <b-input 
-            v-model="questionSubject"
-            placeholder="Betreff"
-            required
-            />
+          <b-input v-model="questionSubject" placeholder="Betreff" required />
         </b-field>
         <b-field label="Text">
-          <b-input 
-            v-model="questionText"
-            type="textarea"
-            required
-            />
+          <b-input v-model="questionText" type="textarea" required />
         </b-field>
-        <b-button native-type="submit" type="is-primary" expanded>Frage stellen</b-button>
+        <b-button native-type="submit" type="is-primary" expanded
+          >Frage stellen</b-button
+        >
       </form>
       <div v-for="(q, index) in questions" :key="index">
         <b-message type="is-info" class="mb-3 is-relative">
@@ -80,19 +74,19 @@ import cms from "@/services/cms";
 export default class NotificationsSection extends Vue {
   @Prop({
     type: Array,
-    default: () => []
+    default: () => [],
   })
   announcements!: Announcement[];
 
   @Prop({
     type: Array,
-    default: () => []
+    default: () => [],
   })
   messages!: Message[];
 
   @Prop({
     type: Array,
-    default: () => []
+    default: () => [],
   })
   questions!: Question[];
 
@@ -109,7 +103,7 @@ export default class NotificationsSection extends Vue {
 
   questionSubject = "";
   questionText = "";
-  
+
   formatDate(date: string) {
     return formatDateShort(new Date(), new Date(date));
   }

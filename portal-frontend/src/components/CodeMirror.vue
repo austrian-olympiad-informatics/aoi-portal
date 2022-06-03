@@ -10,8 +10,19 @@
 
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import { Decoration, DecorationSet, EditorView, keymap } from "@codemirror/view";
-import { EditorState, Transaction, Extension, StateEffect, StateField } from "@codemirror/state";
+import {
+  Decoration,
+  DecorationSet,
+  EditorView,
+  keymap,
+} from "@codemirror/view";
+import {
+  EditorState,
+  Transaction,
+  Extension,
+  StateEffect,
+  StateField,
+} from "@codemirror/state";
 import { indentWithTab } from "@codemirror/commands";
 import {
   syntaxHighlighting,
@@ -54,39 +65,40 @@ import { haskell } from "@codemirror/legacy-modes/mode/haskell";
 import { c, csharp, kotlin } from "@codemirror/legacy-modes/mode/clike";
 import { Language } from "@/util/lang-table";
 
-const addItalic = StateEffect.define<{from: number, to: number}>()
+const addItalic = StateEffect.define<{ from: number; to: number }>();
 
 const italicField = StateField.define<DecorationSet>({
   create() {
-    return Decoration.none
+    return Decoration.none;
   },
   update(underlines, tr) {
-    underlines = underlines.map(tr.changes)
-    for (let e of tr.effects) if (e.is(addItalic)) {
-      underlines = underlines.update({
-        add: [italicMark.range(e.value.from, e.value.to)]
-      })
-    }
-    return underlines
+    underlines = underlines.map(tr.changes);
+    for (let e of tr.effects)
+      if (e.is(addItalic)) {
+        underlines = underlines.update({
+          add: [italicMark.range(e.value.from, e.value.to)],
+        });
+      }
+    return underlines;
   },
-  provide: f => EditorView.decorations.from(f)
+  provide: (f) => EditorView.decorations.from(f),
 });
 
-const italicMark = Decoration.mark({class: "cm-italic"})
+const italicMark = Decoration.mark({ class: "cm-italic" });
 
 const italicTheme = EditorView.baseTheme({
-  ".cm-italic": { fontStyle: "italic" }
-})
+  ".cm-italic": { fontStyle: "italic" },
+});
 
 function italicAll(view: EditorView) {
-  addItalic.of
-  let effects: StateEffect<unknown>[] = [addItalic.of({ from: 0, to: view.state.doc.length })];
+  addItalic.of;
+  let effects: StateEffect<unknown>[] = [
+    addItalic.of({ from: 0, to: view.state.doc.length }),
+  ];
   if (!view.state.field(italicField, false))
-    effects.push(StateEffect.appendConfig.of([italicField,
-                                              italicTheme]));
-  view.dispatch({effects});
+    effects.push(StateEffect.appendConfig.of([italicField, italicTheme]));
+  view.dispatch({ effects });
 }
-
 
 @Component
 export default class CodeMirror extends Vue {
@@ -162,13 +174,17 @@ export default class CodeMirror extends Vue {
       this.lang === Language.C ? StreamLanguage.define(c) : undefined,
       this.lang === Language.Cpp ? cpp() : undefined,
       this.lang === Language.Go ? StreamLanguage.define(go) : undefined,
-      this.lang === Language.Haskell ? StreamLanguage.define(haskell) : undefined,
+      this.lang === Language.Haskell
+        ? StreamLanguage.define(haskell)
+        : undefined,
       this.lang === Language.Java ? java() : undefined,
       this.lang === Language.Javascript ? javascript() : undefined,
       this.lang === Language.Kotlin ? StreamLanguage.define(kotlin) : undefined,
       this.lang === Language.Python ? python() : undefined,
       this.lang === Language.Rust ? rust() : undefined,
-      this.lang === Language.Typescript ? javascript({ typescript: true }) : undefined,
+      this.lang === Language.Typescript
+        ? javascript({ typescript: true })
+        : undefined,
     ].filter((x): x is Extension => x !== undefined);
   }
 
@@ -219,8 +235,8 @@ export default class CodeMirror extends Vue {
       changes: {
         from: 0,
         to: this.view.state.doc.length,
-        insert: this.doc
-      }
+        insert: this.doc,
+      },
     });
   }
 

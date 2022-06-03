@@ -157,9 +157,7 @@
                 <span><b>Zeitlimit</b></span>
               </span>
             </td>
-            <td>
-              {{ task.time_limit}} s
-            </td>
+            <td>{{ task.time_limit }} s</td>
           </tr>
           <tr v-if="task.memory_limit !== null">
             <td class="pr-5">
@@ -168,9 +166,7 @@
                 <span><b>Speicherlimit</b></span>
               </span>
             </td>
-            <td>
-              {{ task.memory_limit / (1024 * 1024) }} MiB
-            </td>
+            <td>{{ task.memory_limit / (1024 * 1024) }} MiB</td>
           </tr>
         </tbody>
       </table>

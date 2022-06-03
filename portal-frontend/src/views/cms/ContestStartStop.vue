@@ -13,12 +13,12 @@
       <span v-else> und endet {{ formatToDate(contestStop) }}. </span>
     </template>
     <template v-else-if="hasAnalysis && isBeforeAnalysis">
-      Der Wettbewerb hat {{ formatFromDate(contestStop) }} geendet. Die
-      Analyse beginnt {{ formatToDate(analysisStart) }}.
+      Der Wettbewerb hat {{ formatFromDate(contestStop) }} geendet. Die Analyse
+      beginnt {{ formatToDate(analysisStart) }}.
     </template>
     <template v-else-if="hasAnalysis && isDuringAnalysis">
-      Der Wettbewerb hat {{ formatFromDate(contestStop) }} geendet. Die
-      Analyse hat {{ formatFromDate(analysisStart) }} begonnen<span
+      Der Wettbewerb hat {{ formatFromDate(contestStop) }} geendet. Die Analyse
+      hat {{ formatFromDate(analysisStart) }} begonnen<span
         v-if="isAnalysisStopDefault"
         >.</span
       >
@@ -48,7 +48,7 @@ import { PropType } from "vue";
 @Component
 export default class ContestStartStop extends Vue {
   @Prop({
-    type: Object as PropType<Contest>
+    type: Object as PropType<Contest>,
   })
   contest!: Contest;
   now: Date = new Date();
@@ -141,8 +141,7 @@ export default class ContestStartStop extends Vue {
   }
 
   destroyed() {
-    if (this.nowHandle !== null)
-      clearInterval(this.nowHandle);
+    if (this.nowHandle !== null) clearInterval(this.nowHandle);
   }
 }
 </script>

@@ -312,7 +312,9 @@ const routes: Array<RouteConfig> = [
         path: "submission/:submissionUuid",
         name: "CMSSubmissionDetails",
         component: () =>
-          import(/* webpackChunkName: "cms" */ "../views/cms/SubmissionDetailsPanel.vue"),
+          import(
+            /* webpackChunkName: "cms" */ "../views/cms/SubmissionDetailsPanel.vue"
+          ),
         meta: {
           navbarSmall: true,
           footerHidden: true,

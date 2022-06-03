@@ -5,7 +5,7 @@
         <div class="descr-wrap">
           <DescriptionPanel
             :task="task"
-            @submission-scored="onSubmissionScored"
+            @submission-scored="onSubmissionScored()"
             @reload-task="loadTask"
           />
         </div>
@@ -20,7 +20,10 @@
       </div>
     </div>
 
-    <CheckNotifications :contest-name="contestName" @new-notification="loadTask" />
+    <CheckNotifications
+      :contest-name="contestName"
+      @new-notification="loadTask"
+    />
   </div>
 </template>
 
@@ -58,7 +61,7 @@ export default class TaskView extends Vue {
   onNewSubmission(sub: SubmissionShort) {
     this.task?.submissions.push(sub);
   }
-  async onSubmissionScored(sub: SubmissionShort) {
+  async onSubmissionScored() {
     if (this.task === null) return;
     const scoreBefore = this.task.score;
     await this.loadTask();

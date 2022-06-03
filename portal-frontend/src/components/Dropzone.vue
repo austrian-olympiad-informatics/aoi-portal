@@ -16,13 +16,12 @@
   </div>
 </template>
 
-
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 
 @Component
 export default class Dropzone extends Vue {
-  dropzoneActive: boolean = false;
+  dropzoneActive = false;
 
   dropzoneDragenter(e: DragEvent) {
     this.dropzoneActive = true;

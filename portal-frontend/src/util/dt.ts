@@ -11,10 +11,14 @@ export function formatToDate(now: Date | string, date: Date | string) {
   return dayjs(now).to(date);
 }
 export function formatDateLong(date: Date | string) {
-  return dayjs(date).format("YYYY-MM-DD HH:mm:ss [UTC]Z")
+  return dayjs(date).format("YYYY-MM-DD HH:mm:ss [UTC]Z");
 }
 export function formatDateShort(now: Date, date: Date) {
-  if (now.getFullYear() === date.getFullYear() && now.getMonth() === date.getMonth() && now.getDate() === date.getDate()) {
+  if (
+    now.getFullYear() === date.getFullYear() &&
+    now.getMonth() === date.getMonth() &&
+    now.getDate() === date.getDate()
+  ) {
     return dayjs(date).format("HH:mm:ss");
   }
   if (now.getFullYear() === date.getFullYear()) {

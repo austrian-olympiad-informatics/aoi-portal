@@ -135,7 +135,12 @@
         </div>
 
         <div class="block" v-if="memeUrl !== null">
-          <img :src="memeUrl" @load="memeUrlLoaded" loading="lazy" class="meme-img" />
+          <img
+            :src="memeUrl"
+            @load="memeUrlLoaded"
+            loading="lazy"
+            class="meme-img"
+          />
         </div>
 
         <div class="block" v-if="submission.result.compilation_text">
@@ -242,8 +247,7 @@ export default class SubmissionDetailsPanel extends Vue {
     }
   }
   memeUrlLoaded() {
-    if (this.memeUrl !== null)
-      URL.revokeObjectURL(this.memeUrl);
+    if (this.memeUrl !== null) URL.revokeObjectURL(this.memeUrl);
   }
   async loadFiles() {
     this.files = Object.fromEntries(
@@ -253,7 +257,8 @@ export default class SubmissionDetailsPanel extends Vue {
             this.contestName,
             this.taskName,
             this.submissionUuid,
-            file.filename, file.digest
+            file.filename,
+            file.digest
           );
           return [file.filename, await resp.text()];
         })

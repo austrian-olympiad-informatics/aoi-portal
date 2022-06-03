@@ -61,7 +61,7 @@ const langExtenionsLookup: Map<Language, string> = new Map([
   [Language.Python, ".py"],
   [Language.Rust, ".rs"],
   [Language.Typescript, ".ts"],
-])
+]);
 
 export function lookupCMSLang(cmsLang: string): Language {
   return cmsLang in cmsLangLookup ? cmsLangLookup[cmsLang] : Language.None;
@@ -69,15 +69,22 @@ export function lookupCMSLang(cmsLang: string): Language {
 
 export function langToCMSLang(lang: Language, cmsLangs: string[]): string {
   if (lang === Language.Cpp) {
-    for (const ord of ["C++20 / g++", "C++17 / g++", "C++14 / g++", "C++11 / g++"]) {
-      if (cmsLangs.includes(ord))
-        return ord;
+    for (const ord of [
+      "C++20 / g++",
+      "C++17 / g++",
+      "C++14 / g++",
+      "C++11 / g++",
+    ]) {
+      if (cmsLangs.includes(ord)) return ord;
     }
   }
   if (lang === Language.Python) {
-    for (const ord of ["Python 3 / CPython", "Python 3 / PyPy", "Python 2 / CPython"])
-      if (cmsLangs.includes(ord))
-        return ord;
+    for (const ord of [
+      "Python 3 / CPython",
+      "Python 3 / PyPy",
+      "Python 2 / CPython",
+    ])
+      if (cmsLangs.includes(ord)) return ord;
   }
   for (const cmsLang in cmsLangLookup) {
     if (cmsLangs.includes(cmsLang)) {
@@ -88,7 +95,9 @@ export function langToCMSLang(lang: Language, cmsLangs: string[]): string {
 }
 
 export function extToLang(extension: string): Language {
-  return extension in extensionLangLookup ? extensionLangLookup[extension] : Language.None;
+  return extension in extensionLangLookup
+    ? extensionLangLookup[extension]
+    : Language.None;
 }
 export function langToExt(lang: Language): string {
   return langExtenionsLookup.get(lang) || "";

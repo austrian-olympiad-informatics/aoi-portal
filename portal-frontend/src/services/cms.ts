@@ -60,9 +60,9 @@ class CMSService {
     const resp = await http.get(
       `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
-      )}/statements/${encodeURIComponent(language)}?${
-        new URLSearchParams({ digest }).toString()
-      }`,
+      )}/statements/${encodeURIComponent(language)}?${new URLSearchParams({
+        digest,
+      }).toString()}`,
       {
         responseType: "blob",
       }
@@ -78,9 +78,9 @@ class CMSService {
     const resp = await http.get(
       `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
-      )}/attachments/${encodeURIComponent(filename)}?${
-        new URLSearchParams({ digest }).toString()
-      }`,
+      )}/attachments/${encodeURIComponent(filename)}?${new URLSearchParams({
+        digest,
+      }).toString()}`,
       {
         responseType: "blob",
       }
@@ -96,9 +96,9 @@ class CMSService {
     const resp = await http.get(
       `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
-      )}/language-template/${encodeURIComponent(filename)}?${
-        new URLSearchParams({ digest }).toString()
-      }`,
+      )}/language-template/${encodeURIComponent(
+        filename
+      )}?${new URLSearchParams({ digest }).toString()}`,
       {
         responseType: "blob",
       }
@@ -117,9 +117,9 @@ class CMSService {
         taskName
       )}/submission/${encodeURIComponent(
         submissionUuid
-      )}/files/${encodeURIComponent(filename)}?${
-        new URLSearchParams({ digest }).toString()
-      }`,
+      )}/files/${encodeURIComponent(filename)}?${new URLSearchParams({
+        digest,
+      }).toString()}`,
       {
         responseType: "blob",
       }
@@ -135,9 +135,9 @@ class CMSService {
     const resp = await http.get(
       `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
-      )}/submission/${encodeURIComponent(submissionUuid)}/meme?${
-        new URLSearchParams({ digest }).toString()
-      }`,
+      )}/submission/${encodeURIComponent(
+        submissionUuid
+      )}/meme?${new URLSearchParams({ digest }).toString()}`,
       {
         responseType: "blob",
       }
