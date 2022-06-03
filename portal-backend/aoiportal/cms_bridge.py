@@ -8,6 +8,7 @@ from sqlalchemy.orm import joinedload
 
 from aoiportal.cmsmirror.db import Contest as CMSContest  # type: ignore
 from aoiportal.cmsmirror.db import Participation as CMSParticipation  # type: ignore
+from aoiportal.cmsmirror.db import Submission as CMSSubmission  # type: ignore
 from aoiportal.cmsmirror.db import Task as CMSTask  # type: ignore
 from aoiportal.cmsmirror.db import User as CMSUser  # type: ignore
 from aoiportal.cmsmirror.db import session as cms_session  # type: ignore
@@ -95,14 +96,18 @@ def _task_score_max_subtask(score_details_tokened):
 
 
 def _task_score(part: CMSParticipation, task: CMSTask):
-    submissions = [s for s in part.submissions if s.task is task and s.official]
+    submissions: List[CMSSubmission] = [
+        s for s in part.submissions if s.task is task and s.official
+    ]
     if not submissions:
         return 0.0, False
 
-    submissions_and_results = [
-        (s, s.get_result(task.active_dataset))
-        for s in sorted(submissions, key=lambda s: s.timestamp)
-    ]
+    submissions_and_results = []
+    for sub in sorted(submissions, key=lambda s: s.timestamp):
+        res = next(
+            (r for r in sub.results if r.dataset_id == task.active_dataset_id), None
+        )
+        submissions_and_results.append((sub, res))
 
     score_details_tokened = []
     partial = False
@@ -112,7 +117,7 @@ def _task_score(part: CMSParticipation, task: CMSTask):
             score, score_details = None, None
         else:
             score, score_details = sr.score, sr.score_details
-        score_details_tokened.append((score, score_details, s.tokened()))
+        score_details_tokened.append((score, score_details, True))
 
     if task.score_mode == "max":
         score = _task_score_max(score_details_tokened)

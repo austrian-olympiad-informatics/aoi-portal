@@ -93,47 +93,6 @@ class UserEval(Base):
         back_populates="user_eval",
     )
 
-    def get_result(self, dataset=None):
-        """Return the result associated to a dataset.
-
-        dataset (Dataset|None): the dataset for which the caller wants
-            the user eval result; if None, the active one is used.
-
-        return (UserEvalResult|None): the user eval result associated
-            to this user eval and the given dataset, if it exists in
-            the database, otherwise None.
-
-        """
-        if dataset is not None:
-            # Use IDs to avoid triggering a lazy-load query.
-            assert self.task_id == dataset.task_id
-            dataset_id = dataset.id
-        else:
-            dataset_id = self.task.active_dataset_id
-
-        return UserEvalResult.get_from_id((self.id, dataset_id), self.sa_session)
-
-    def get_result_or_create(self, dataset=None):
-        """Return and, if necessary, create the result for a dataset.
-
-        dataset (Dataset|None): the dataset for which the caller wants
-            the user eval result; if None, the active one is used.
-
-        return (UserEvalResult): the user eval result associated to
-            the this user eval and the given dataset; if it does not
-            exists, a new one is created.
-
-        """
-        if dataset is None:
-            dataset = self.task.active_dataset
-
-        user_eval_result = self.get_result(dataset)
-
-        if user_eval_result is None:
-            user_eval_result = UserEvalResult(user_eval=self, dataset=dataset)
-
-        return user_eval_result
-
 
 class UserEvalFile(Base):
     __tablename__ = "user_eval_files"

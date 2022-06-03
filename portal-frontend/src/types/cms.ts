@@ -114,6 +114,10 @@ export interface SubmissionShort {
 export interface Task {
   name: string;
   title: string;
+  contest: {
+    name: string;
+    description: string;
+  };
   feedback_level: string;
   statements: {
     language: string;

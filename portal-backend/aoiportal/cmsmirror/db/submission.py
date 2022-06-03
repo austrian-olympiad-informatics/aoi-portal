@@ -121,55 +121,6 @@ class Submission(Base):
         back_populates="submission",
     )
 
-    def get_result(self, dataset=None):
-        """Return the result associated to a dataset.
-
-        dataset (Dataset|None): the dataset for which the caller wants
-            the submission result; if None, the active one is used.
-
-        return (SubmissionResult|None): the submission result
-            associated to this submission and the given dataset, if it
-            exists in the database, otherwise None.
-
-        """
-        if dataset is not None:
-            # Use IDs to avoid triggering a lazy-load query.
-            assert self.task_id == dataset.task_id
-            dataset_id = dataset.id
-        else:
-            dataset_id = self.task.active_dataset_id
-
-        return SubmissionResult.get_from_id((self.id, dataset_id), self.sa_session)
-
-    def get_result_or_create(self, dataset=None):
-        """Return and, if necessary, create the result for a dataset.
-
-        dataset (Dataset|None): the dataset for which the caller wants
-            the submission result; if None, the active one is used.
-
-        return (SubmissionResult): the submission result associated to
-            the this submission and the given dataset; if it
-            does not exists, a new one is created.
-
-        """
-        if dataset is None:
-            dataset = self.task.active_dataset
-
-        submission_result = self.get_result(dataset)
-
-        if submission_result is None:
-            submission_result = SubmissionResult(submission=self, dataset=dataset)
-
-        return submission_result
-
-    def tokened(self):
-        """Return if the user played a token against the submission.
-
-        return (bool): True if tokened, False otherwise.
-
-        """
-        return self.token is not None
-
 
 class File(Base):
     """Class to store information about one file submitted within a

@@ -96,47 +96,6 @@ class UserTest(Base):
         back_populates="user_test",
     )
 
-    def get_result(self, dataset=None):
-        """Return the result associated to a dataset.
-
-        dataset (Dataset|None): the dataset for which the caller wants
-            the user test result; if None, the active one is used.
-
-        return (UserTestResult|None): the user test result associated
-            to this user test and the given dataset, if it exists in
-            the database, otherwise None.
-
-        """
-        if dataset is not None:
-            # Use IDs to avoid triggering a lazy-load query.
-            assert self.task_id == dataset.task_id
-            dataset_id = dataset.id
-        else:
-            dataset_id = self.task.active_dataset_id
-
-        return UserTestResult.get_from_id((self.id, dataset_id), self.sa_session)
-
-    def get_result_or_create(self, dataset=None):
-        """Return and, if necessary, create the result for a dataset.
-
-        dataset (Dataset|None): the dataset for which the caller wants
-            the user test result; if None, the active one is used.
-
-        return (UserTestResult): the user test result associated to
-            the this user test and the given dataset; if it does not
-            exists, a new one is created.
-
-        """
-        if dataset is None:
-            dataset = self.task.active_dataset
-
-        user_test_result = self.get_result(dataset)
-
-        if user_test_result is None:
-            user_test_result = UserTestResult(user_test=self, dataset=dataset)
-
-        return user_test_result
-
 
 class UserTestFile(Base):
     """Class to store information about one file submitted within a

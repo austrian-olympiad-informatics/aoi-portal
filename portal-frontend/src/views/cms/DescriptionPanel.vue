@@ -7,7 +7,7 @@
         </li>
         <li>
           <router-link :to="{ name: 'CMSContest', params: { contestName } }">
-            {{ contestName }}
+            {{ task.contest.description }}
           </router-link>
         </li>
         <li class="is-active">

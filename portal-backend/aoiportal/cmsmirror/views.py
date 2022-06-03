@@ -391,6 +391,10 @@ def get_task(contest_name: str, task_name: str):
     return {
         "name": task.name,
         "title": task.title,
+        "contest": {
+            "name": task.contest.name,
+            "description": task.contest.description,
+        },
         "languages": task.contest.languages,
         "feedback_level": task.feedback_level,
         "statements": [
