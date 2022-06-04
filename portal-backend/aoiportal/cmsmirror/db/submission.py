@@ -414,21 +414,7 @@ class SubmissionResult(Base):
         return (self.compilation_failed() or self.evaluated()) and not self.scored()
 
     def scored(self):
-        """Return whether the submission result has been scored.
-
-        return (bool): True if scored, False otherwise.
-
-        """
-        return all(
-            getattr(self, k) is not None
-            for k in [
-                "score",
-                "score_details",
-                "public_score",
-                "public_score_details",
-                "ranking_score_details",
-            ]
-        )
+        return self.score is not None
 
     @staticmethod
     def filter_scored():

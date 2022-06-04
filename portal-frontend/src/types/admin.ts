@@ -124,7 +124,7 @@ export interface AdminContestRanking {
   ranking: {
     user_id: number;
     task_scores: {
-      [key: string]: number;
+      [key: string]: number | null;
     };
     total_score: number;
   }[];

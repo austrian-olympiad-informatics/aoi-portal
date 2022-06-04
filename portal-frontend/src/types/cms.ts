@@ -135,7 +135,7 @@ export interface Task {
   score: number;
   max_score: number;
   score_precision: number;
-  score_mode: string;
+  score_mode: "max" | "max_subtask" | "max_tokened_last";
   score_subtasks: null | number[];
   submission_format: string[];
   languages: string[];

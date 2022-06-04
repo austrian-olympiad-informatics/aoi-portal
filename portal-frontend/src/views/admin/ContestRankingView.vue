@@ -69,7 +69,7 @@ interface TableRow {
   part_id: number;
   part_cmsid: number;
   task_scores: {
-    [key: string]: number;
+    [key: string]: number | null;
   } | null;
   total_score: number | null;
 }

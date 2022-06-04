@@ -4,14 +4,17 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 from slugify import slugify
-from sqlalchemy.orm import joinedload
 
 from aoiportal.cmsmirror.db import Contest as CMSContest  # type: ignore
 from aoiportal.cmsmirror.db import Participation as CMSParticipation  # type: ignore
 from aoiportal.cmsmirror.db import Submission as CMSSubmission  # type: ignore
+from aoiportal.cmsmirror.db import (
+    SubmissionResult as CMSSubmissionResult,  # type: ignore
+)
 from aoiportal.cmsmirror.db import Task as CMSTask  # type: ignore
 from aoiportal.cmsmirror.db import User as CMSUser  # type: ignore
-from aoiportal.cmsmirror.db import session as cms_session  # type: ignore
+from aoiportal.cmsmirror.db import session as cms_session
+from aoiportal.cmsmirror.util import ScoreInput, score_calculation  # type: ignore
 
 
 @dataclass
@@ -42,7 +45,7 @@ class ContestUpdateParams:
 @dataclass
 class RankingUser:
     user_id: int
-    task_scores: Dict[str, float]
+    task_scores: Dict[str, Optional[float]]
     total_score: float
 
 
@@ -130,36 +133,72 @@ def _task_score(part: CMSParticipation, task: CMSTask):
 
 
 def get_contest_ranking(contest_id: int) -> RankingResult:
-    contest = (
-        cms_session.query(CMSContest)
-        .filter(CMSContest.id == contest_id)
-        .options(joinedload("participations"))
-        .options(joinedload("participations.submissions"))
-        .options(joinedload("participations.submissions.results"))
-        .first()
+    task_id_name = (
+        cms_session.query(CMSTask.id, CMSTask.name)
+        .filter(CMSTask.contest_id == contest_id)
+        .all()
+    )
+    part_id_uid = (
+        cms_session.query(CMSParticipation.id, CMSParticipation.user_id)
+        .filter(CMSParticipation.contest_id == contest_id)
+        .all()
     )
 
-    tasks = [task.name for task in contest.tasks]
-    ranking = []
+    q = (
+        cms_session.query(
+            CMSTask.id,
+            CMSParticipation.id,
+            CMSTask.score_mode,
+            CMSSubmissionResult.score,
+            CMSSubmissionResult.score_details,
+        )
+        .join(CMSSubmission.task)
+        .join(CMSSubmission.results)
+        .join(CMSSubmission.participation)
+        .join(CMSParticipation.user)
+        .filter(CMSTask.contest_id == contest_id)
+        .filter(CMSSubmissionResult.dataset_id == CMSTask.active_dataset_id)
+        .filter(CMSSubmission.official)
+        .all()
+    )
 
-    for p in contest.participations:
-        total_score = 0.0
-        task_scores = {}
-        for task in contest.tasks:
-            t_score, _ = _task_score(p, task)
-            task_scores[task.name] = t_score
-            total_score += t_score
-        total_score = round(total_score, contest.score_precision)
+    rows = [
+        ScoreInput(
+            task_id=task_id,
+            part_id=part_id,
+            score_mode=score_mode,
+            score=score,
+            score_details=score_details,
+        )
+        for task_id, part_id, score_mode, score, score_details in q
+    ]
+    res = score_calculation(rows)
+
+    task_id_to_name = dict(task_id_name)
+    task_names = [row[1] for row in task_id_name]
+    part_id_to_uid = dict(part_id_uid)
+
+    uid_task_scores: Dict[int, Dict[int, float]] = {}
+    for (task_id, part_id), v in res.items():
+        uid = part_id_to_uid[part_id]
+        x = uid_task_scores.setdefault(uid, {})
+        x[task_id] = v.score
+
+    ranking = []
+    for uid, x in uid_task_scores.items():
         ranking.append(
             RankingUser(
-                user_id=p.user.id,
-                task_scores=task_scores,
-                total_score=total_score,
+                user_id=uid,
+                task_scores={
+                    name: x.get(task_id, None)
+                    for task_id, name in task_id_to_name.items()
+                },
+                total_score=sum(x.values()),
             )
         )
 
     return RankingResult(
-        tasks=tasks,
+        tasks=task_names,
         ranking=ranking,
     )
 

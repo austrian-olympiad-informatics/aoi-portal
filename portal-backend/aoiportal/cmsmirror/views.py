@@ -3,13 +3,13 @@ import datetime
 import functools
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 from uuid import uuid4
 
 import dateutil.parser
 import voluptuous as vol  # type: ignore
 from flask import Blueprint, g, request, send_file
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import Load, joinedload
 from werkzeug.local import LocalProxy
 
 from aoiportal.auth_util import get_current_user, login_required
@@ -37,8 +37,11 @@ from aoiportal.cmsmirror.db import (  # type: ignore
 from aoiportal.cmsmirror.util import (  # type: ignore
     STATIC_FILES_CACHE,
     USER_CACHE,
+    ScoreInput,
+    ScoreTaskPart,
     create_file,
     open_digest,
+    score_calculation,
     send_sub_to_evaluation_service,
     send_user_eval_to_evaluation_service,
 )
@@ -96,9 +99,6 @@ def _get_task() -> Task:
         session.query(Task)
         .filter(Task.contest_id == current_contest.id)
         .filter(Task.name == task_name)
-        .options(joinedload(Task.statements))
-        .options(joinedload(Task.attachments))
-        .options(joinedload(Task.active_dataset))
         .first()
     )
     if task is None:
@@ -204,13 +204,6 @@ def dump_submission(
         "uuid": sub.uuid,
         "timestamp": as_utc(sub.timestamp).isoformat(),
         "language": sub.language,
-        "files": [
-            {
-                "filename": f.filename,
-                "digest": f.digest,
-            }
-            for f in sub.files.values()
-        ],
         "official": sub.official,
     }
     if res is None:
@@ -243,6 +236,14 @@ def dump_submission(
             ]
 
     if detailed:
+        base["files"] = [
+            {
+                "filename": f.filename,
+                "digest": f.digest,
+            }
+            for f in sub.files.values()
+        ]
+
         if status in [
             SubmissionResult.COMPILATION_FAILED,
             SubmissionResult.EVALUATING,
@@ -293,25 +294,6 @@ def dump_submission(
     return base
 
 
-EXT_TO_LANGUAGES: Dict[str, List[str]] = {
-    ".c": ["C11 / gcc"],
-    ".cpp": ["C++20 / g++", "C++17 / g++", "C++14 / g++", "C++11 / g++"],
-    ".cc": ["C++20 / g++", "C++17 / g++", "C++14 / g++", "C++11 / g++"],
-    ".cxx": ["C++20 / g++", "C++17 / g++", "C++14 / g++", "C++11 / g++"],
-    ".c++": ["C++20 / g++", "C++17 / g++", "C++14 / g++", "C++11 / g++"],
-    ".C": ["C++20 / g++", "C++17 / g++", "C++14 / g++", "C++11 / g++"],
-    ".cs": ["C# / Mono"],
-    ".hs": ["Haskell / ghc"],
-    ".java": ["Java / JDK"],
-    ".py": ["Python 3 / CPython", "Python 3 / PyPy", "Python 2 / CPython"],
-    ".rs": ["Rust"],
-    ".kt": ["Kotlin"],
-    ".js": ["Javascript"],
-    ".ts": ["Typescript"],
-    ".go": ["Go"],
-}
-
-
 @cmsmirror_bp.route("/api/cms/<contest_name>/task/<task_name>")
 @login_required
 @active_contest_required
@@ -329,8 +311,25 @@ def get_task(contest_name: str, task_name: str):
                 SubmissionResult.dataset_id == current_task.active_dataset_id
             )
         )
-        .options(joinedload(Submission.files))
-        .options(joinedload(SubmissionResult.meme))
+        .options(
+            joinedload(SubmissionResult.meme),
+            Load(Submission).load_only(
+                Submission.id,
+                Submission.uuid,
+                Submission.timestamp,
+                Submission.language,
+                Submission.official,
+            ),
+            Load(SubmissionResult).load_only(
+                SubmissionResult.submission_id,
+                SubmissionResult.dataset_id,
+                SubmissionResult.compilation_outcome,
+                SubmissionResult.score,
+                SubmissionResult.score_details,
+                SubmissionResult.compilation_outcome,
+                SubmissionResult.evaluation_outcome,
+            ),
+        )
         .all()
     )
 
@@ -355,38 +354,30 @@ def get_task(contest_name: str, task_name: str):
     score = 0.0
     score_subtasks = None
 
-    if task.score_mode == "max":
-        score = max(
-            [res.score for _, res in submissions if res is not None and res.scored()],
-            default=0.0,
-        )
-    elif task.score_mode == "max_subtask":
-        sub_scores: Dict[int, float] = {}
-        for sub, res in submissions:
-            if not sub.official or res is None or not res.scored():
-                continue
-            if not res.score_details or "max_score" not in res.score_details[0]:
-                temp = {1: res.score}
-            else:
-                temp = {
-                    st["idx"]: st["score_fraction"] * st["max_score"]
-                    for st in res.score_details
-                }
-            for k, v in temp.items():
-                sub_scores[k] = max(sub_scores.get(k, 0.0), v)
-
-        score = sum(sub_scores.values())
-        score_subtasks = [sub_scores[idx] for idx in sorted(sub_scores)]
-
-    language_templates = {}
-    for lt in ds.language_templates.values():
-        langs = EXT_TO_LANGUAGES.get(Path(lt.filename).suffix, [])
-        for lang in langs:
-            if lang in task.contest.languages:
-                language_templates[lang] = {
-                    "filename": lt.filename,
-                    "digest": lt.digest,
-                }
+    score_res = score_calculation(
+        [
+            ScoreInput(
+                task_id=task.id,
+                part_id=part.id,
+                score_mode=task.score_mode,
+                score=res.score,
+                score_details=res.score_details,
+            )
+            for sub, res in submissions
+            if res is not None and sub.official and res.score > 0
+        ]
+    ).get((task.id, part.id), ScoreTaskPart(score=0.0))
+    score = score_res.score
+    score_subtasks = None
+    if score_res.subtasks is not None:
+        score_subtasks = [
+            {
+                "fraction": st.fraction,
+                "score": st.score,
+                "max_score": st.max_score,
+            }
+            for st in score_res.subtasks
+        ]
 
     return {
         "name": task.name,
@@ -430,7 +421,13 @@ def get_task(contest_name: str, task_name: str):
         "score_mode": task.score_mode,
         "score_subtasks": score_subtasks,
         "submission_format": task.submission_format,
-        "language_templates": language_templates,
+        "language_templates": [
+            {
+                "filename": lt.filename,
+                "digest": lt.digest,
+            }
+            for lt in ds.language_templates.values()
+        ],
         "announcements": [_conv_announcement(ann) for ann in task.announcements],
         "messages": [
             _conv_message(msg) for msg in part.messages if msg.task_id == task.id
@@ -861,28 +858,30 @@ def check_notifications(data, contest_name: str):
         )
     else:
         last_notification = as_utc(datetime.datetime.utcfromtimestamp(0))
-    new_announcements = (
-        session.query(Announcement)
-        .filter(Announcement.contest_id == current_contest.id)
-        .filter(Announcement.timestamp > last_notification.isoformat())
+    q = (
+        session.query(Contest.id, Announcement, Message, Question)
+        .join(Contest.participations)
+        .filter(Participation.id == current_participation.id)
+        .outerjoin(
+            Contest.announcements.and_(
+                Announcement.timestamp > last_notification.isoformat()
+            )
+        )
+        .outerjoin(
+            Participation.messages.and_(
+                Message.timestamp > last_notification.isoformat()
+            )
+        )
+        .outerjoin(
+            Participation.questions.and_(
+                Question.reply_timestamp > last_notification.isoformat()
+            )
+        )
         .all()
     )
-    new_messages = (
-        session.query(Message)
-        .join(Message.participation)
-        .filter(Message.participation_id == current_participation.id)
-        .filter(Participation.contest_id == current_contest.id)
-        .filter(Message.timestamp > last_notification.isoformat())
-        .all()
-    )
-    new_replies = (
-        session.query(Question)
-        .join(Question.participation)
-        .filter(Question.participation_id == current_participation.id)
-        .filter(Participation.contest_id == current_contest.id)
-        .filter(Question.reply_timestamp > last_notification.isoformat())
-        .all()
-    )
+    new_announcements: List[Announcement] = [row[1] for row in q if row[1] is not None]
+    new_messages: List[Message] = [row[2] for row in q if row[2] is not None]
+    new_replies: List[Question] = [row[3] for row in q if row[3] is not None]
     return {
         "new_announcements": [_conv_announcement(ann) for ann in new_announcements],
         "new_messages": [_conv_message(msg) for msg in new_messages],

@@ -1,9 +1,10 @@
+import collections
 import hashlib
 import io
 import json
 import socket
 from dataclasses import dataclass, field
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Tuple
 from uuid import uuid4
 
 from aoiportal.cmsmirror.db import FSObject, LargeObject, session  # type: ignore
@@ -103,3 +104,66 @@ def send_sub_to_evaluation_service(subid: int):
 
 def send_user_eval_to_evaluation_service(uevalid: int):
     _send_rpc_evaluation_service("new_user_eval", {"user_eval_id": uevalid})
+
+
+@dataclass(frozen=True)
+class ScoreInput:
+    task_id: int
+    part_id: int
+    score_mode: str
+    score: float
+    score_details: dict
+
+
+@dataclass(frozen=True)
+class SubtaskResult:
+    fraction: float
+    max_score: float
+    score: float
+
+
+NULL_SUBTASK_RESULT = SubtaskResult(fraction=0.0, max_score=0.0, score=0.0)
+
+
+@dataclass(frozen=True)
+class ScoreTaskPart:
+    score: float
+    subtasks: Optional[List[SubtaskResult]] = None
+
+
+def score_calculation(rows: List[ScoreInput]) -> Dict[Tuple[int, int], ScoreTaskPart]:
+    task_score_mode = {}
+    by_task_part = collections.defaultdict(list)
+
+    for row in rows:
+        task_score_mode[row.task_id] = row.score_mode
+        by_task_part[(row.task_id, row.part_id)].append((row.score, row.score_details))
+
+    result = {}
+
+    for k, v in by_task_part.items():
+        task_id, _ = k
+        score_mode = task_score_mode[task_id]
+        if score_mode == "max":
+            result[k] = ScoreTaskPart(score=max(s for s, _ in v))
+        elif score_mode == "max_subtask":
+            subtasks: Dict[int, SubtaskResult] = {}
+            for _, details in v:
+                if not details or "max_score" not in details[0]:
+                    continue
+                for st in details:
+                    sti = st["idx"]
+                    prev = subtasks.get(sti, NULL_SUBTASK_RESULT)
+                    subtasks[sti] = SubtaskResult(
+                        fraction=max(prev.fraction, st["score_fraction"]),
+                        max_score=max(prev.max_score, st["max_score"]),
+                        score=max(prev.score, st["score_fraction"] * st["max_score"]),
+                    )
+            result[k] = ScoreTaskPart(
+                score=sum(v.score for v in subtasks.values()),
+                subtasks=[subtasks[k] for k in sorted(subtasks.keys())],
+            )
+        else:
+            raise ValueError(f"Unsupported score mode {score_mode}")
+
+    return result
