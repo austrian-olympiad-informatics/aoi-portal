@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="wrapper">
     <nav class="breadcrumb" aria-label="breadcrumbs">
       <ul>
         <li>
@@ -33,7 +33,7 @@
       />
     </div>
 
-    <div class="block">
+    <div class="block submissions-block">
       <h2 class="title is-4">Deine Einsendungen</h2>
       <div v-if="task.submissions.length">
         <table class="table is-fullwidth">
@@ -43,7 +43,7 @@
               <th>Punktzahl</th>
             </tr>
           </thead>
-          <tbody>
+          <TransitionGroup tag="tbody" name="submission-list">
             <router-link
               v-for="sub in sortedSubmissions"
               :key="sub.uuid"
@@ -100,7 +100,7 @@
                 </td>
               </tr>
             </router-link>
-          </tbody>
+          </TransitionGroup>
         </table>
       </div>
       <div v-else>Noch keine Einsendungen.</div>
@@ -334,7 +334,8 @@ export default class DescriptionPanel extends Vue {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@import "~bulma/sass/utilities/mixins";
 .date-td {
   width: 0.1%;
   white-space: nowrap;
@@ -363,5 +364,34 @@ export default class DescriptionPanel extends Vue {
 tr.is-active {
   background-color: #fcedee;
   color: #df2f38;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+@include touch {
+  /* move submissions table to bottom when in touch layout */
+  .submissions-block {
+    order: 10;
+  }
+}
+
+.submission-list-move,
+.submission-list-enter-active,
+.submission-list-leave-active {
+  transition: all 0.5s ease;
+}
+
+.submission-list-enter-from,
+.submission-list-leave-to {
+  opacity: 0;
+}
+
+/* ensure leaving items are taken out of layout flow so that moving
+   animations can be calculated correctly. */
+.submission-list-leave-active {
+  position: absolute;
 }
 </style>

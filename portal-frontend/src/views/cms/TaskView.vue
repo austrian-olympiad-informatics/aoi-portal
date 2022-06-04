@@ -7,7 +7,6 @@
             :task="task"
             @submission-scored="onSubmissionScored"
             @reload-task="loadTask"
-            @show-submission="scrollSubIntoView"
           />
         </div>
       </div>
@@ -116,11 +115,6 @@ export default class TaskView extends Vue {
       });
     }
   }
-  scrollSubIntoView() {
-    this.$nextTick(() => {
-      (this.$refs.codeCol as Element).scrollIntoView(false);
-    });
-  }
 }
 </script>
 
@@ -180,6 +174,8 @@ export default class TaskView extends Vue {
     width: 100%;
     height: auto;
     flex: initial;
+    /* prevent layout jumping around when selecting a submission */
+    min-height: 80vh;
   }
 }
 .code-container {
