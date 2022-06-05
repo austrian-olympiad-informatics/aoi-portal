@@ -16,12 +16,12 @@ import {
 
 class CMSService {
   async getContest(contestName: string): Promise<Contest> {
-    const resp = await http.get(`/api/cms/${encodeURIComponent(contestName)}`);
+    const resp = await http.get(`/api/cms/contest/${encodeURIComponent(contestName)}`);
     return resp.data;
   }
   async getTask(contestName: string, taskName: string): Promise<Task> {
     const resp = await http.get(
-      `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
+      `/api/cms/contest/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
       )}`
     );
@@ -33,7 +33,7 @@ class CMSService {
     submissionUuid: string
   ): Promise<Submission> {
     const resp = await http.get(
-      `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
+      `/api/cms/contest/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
       )}/submission/${encodeURIComponent(submissionUuid)}`
     );
@@ -45,7 +45,7 @@ class CMSService {
     submissionUuid: string
   ): Promise<SubmissionShort> {
     const resp = await http.get(
-      `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
+      `/api/cms/contest/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
       )}/submission/${encodeURIComponent(submissionUuid)}/short`
     );
@@ -58,7 +58,7 @@ class CMSService {
     digest: string
   ): Promise<Blob> {
     const resp = await http.get(
-      `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
+      `/api/cms/contest/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
       )}/statements/${encodeURIComponent(language)}?${new URLSearchParams({
         digest,
@@ -76,7 +76,7 @@ class CMSService {
     digest: string
   ): Promise<Blob> {
     const resp = await http.get(
-      `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
+      `/api/cms/contest/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
       )}/attachments/${encodeURIComponent(filename)}?${new URLSearchParams({
         digest,
@@ -94,7 +94,7 @@ class CMSService {
     digest: string
   ): Promise<Blob> {
     const resp = await http.get(
-      `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
+      `/api/cms/contest/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
       )}/language-template/${encodeURIComponent(
         filename
@@ -113,7 +113,7 @@ class CMSService {
     digest: string
   ): Promise<Blob> {
     const resp = await http.get(
-      `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
+      `/api/cms/contest/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
       )}/submission/${encodeURIComponent(
         submissionUuid
@@ -133,7 +133,7 @@ class CMSService {
     digest: string
   ): Promise<Blob> {
     const resp = await http.get(
-      `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
+      `/api/cms/contest/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
       )}/submission/${encodeURIComponent(
         submissionUuid
@@ -146,7 +146,7 @@ class CMSService {
   }
   async askQuestion(contestName: string, data: QuestionParams): Promise<void> {
     await http.post(
-      `/api/cms/${encodeURIComponent(contestName)}/question`,
+      `/api/cms/contest/${encodeURIComponent(contestName)}/question`,
       data
     );
   }
@@ -156,7 +156,7 @@ class CMSService {
     data: QuestionParams
   ): Promise<void> {
     await http.post(
-      `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
+      `/api/cms/contest/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
       )}/question`,
       data
@@ -168,7 +168,7 @@ class CMSService {
     data: SubmitParams
   ): Promise<SubmitResult> {
     const resp = await http.post(
-      `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
+      `/api/cms/contest/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
       )}/submit`,
       data
@@ -181,7 +181,7 @@ class CMSService {
     data: UserEvalSubmitParams
   ): Promise<UserEvalSubmitResult> {
     const resp = await http.post(
-      `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
+      `/api/cms/contest/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
       )}/eval`,
       data
@@ -194,7 +194,7 @@ class CMSService {
     userEvalUuid: string
   ): Promise<UserEval> {
     const resp = await http.get(
-      `/api/cms/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
+      `/api/cms/contest/${encodeURIComponent(contestName)}/task/${encodeURIComponent(
         taskName
       )}/user-eval/${encodeURIComponent(userEvalUuid)}`
     );
@@ -205,7 +205,7 @@ class CMSService {
     data: CheckNotificationsParams
   ): Promise<CheckNotificationsResult> {
     const resp = await http.post(
-      `/api/cms/${encodeURIComponent(contestName)}/check-notifications`,
+      `/api/cms/contest/${encodeURIComponent(contestName)}/check-notifications`,
       data
     );
     return resp.data;

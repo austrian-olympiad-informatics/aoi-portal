@@ -133,6 +133,13 @@ export default class CodePanel extends Vue {
   }
   isTestMode = false;
 
+  get languageTemplatesByCMSLang(): Map<string, { filename: string; digest: string; }> {
+    return new Map(this.task.language_templates.map((x) => {
+      const ext = x.filename.substr(x.filename.lastIndexOf("."));
+      return [langToCMSLang(extToLang(ext), this.task.languages), x];
+    }));
+  }
+
   async setDefaults() {
     if (!this.lang.length || !this.task.languages.includes(this.lang)) {
       const order = [
@@ -150,7 +157,7 @@ export default class CodePanel extends Vue {
       }
     }
     if (!this.code.length) {
-      const lt = this.task.language_templates[this.lang];
+      const lt = this.languageTemplatesByCMSLang.get(this.lang);
       if (lt !== undefined) {
         const resp = await cms.getLanguageTemplate(
           this.contestName,
@@ -236,11 +243,11 @@ export default class CodePanel extends Vue {
   }
 
   newLangSelected() {
-    if (!(this.lang in this.task.language_templates)) return;
+    const lt = this.languageTemplatesByCMSLang.get(this.lang);
+    if (lt === undefined) return;
     this.$buefy.dialog.confirm({
       message: "Möchtest du die Vorlage für diese Sprache laden?",
       onConfirm: async () => {
-        const lt = this.task.language_templates[this.lang];
         const resp = await cms.getLanguageTemplate(
           this.contestName,
           this.taskName,

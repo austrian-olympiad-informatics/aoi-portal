@@ -140,11 +140,9 @@ export interface Task {
   submission_format: string[];
   languages: string[];
   language_templates: {
-    [lang: string]: {
-      filename: string;
-      digest: string;
-    };
-  };
+    filename: string;
+    digest: string;
+  }[];
 }
 
 export interface SubmissionResultCompiling {

@@ -157,7 +157,7 @@ def _conv_question(q: Question):
     }
 
 
-@cmsmirror_bp.route("/api/cms/<contest_name>")
+@cmsmirror_bp.route("/api/cms/contest/<contest_name>")
 @login_required
 @json_api()
 def get_contest(contest_name: str):
@@ -294,7 +294,7 @@ def dump_submission(
     return base
 
 
-@cmsmirror_bp.route("/api/cms/<contest_name>/task/<task_name>")
+@cmsmirror_bp.route("/api/cms/contest/<contest_name>/task/<task_name>")
 @login_required
 @active_contest_required
 @json_api()
@@ -439,7 +439,7 @@ def get_task(contest_name: str, task_name: str):
 
 
 @cmsmirror_bp.route(
-    "/api/cms/<contest_name>/task/<task_name>/submission/<submission_uuid>"
+    "/api/cms/contest/<contest_name>/task/<task_name>/submission/<submission_uuid>"
 )
 @login_required
 @active_contest_required
@@ -466,7 +466,7 @@ def get_submission(contest_name: str, task_name: str, submission_uuid: str):
 
 
 @cmsmirror_bp.route(
-    "/api/cms/<contest_name>/task/<task_name>/submission/<submission_uuid>/short"
+    "/api/cms/contest/<contest_name>/task/<task_name>/submission/<submission_uuid>/short"
 )
 @login_required
 @active_contest_required
@@ -492,7 +492,7 @@ def get_submission_short(contest_name: str, task_name: str, submission_uuid: str
 
 
 @cmsmirror_bp.route(
-    "/api/cms/<contest_name>/task/<task_name>/submission/<submission_uuid>/meme"
+    "/api/cms/contest/<contest_name>/task/<task_name>/submission/<submission_uuid>/meme"
 )
 @login_required
 @active_contest_required
@@ -516,7 +516,7 @@ def get_submission_meme(contest_name: str, task_name: str, submission_uuid: str)
     return resp
 
 
-@cmsmirror_bp.route("/api/cms/<contest_name>/task/<task_name>/statements/<language>")
+@cmsmirror_bp.route("/api/cms/contest/<contest_name>/task/<task_name>/statements/<language>")
 @login_required
 @active_contest_required
 def get_statement(contest_name: str, task_name: str, language: str):
@@ -534,7 +534,7 @@ def get_statement(contest_name: str, task_name: str, language: str):
     return resp
 
 
-@cmsmirror_bp.route("/api/cms/<contest_name>/task/<task_name>/attachments/<filename>")
+@cmsmirror_bp.route("/api/cms/contest/<contest_name>/task/<task_name>/attachments/<filename>")
 @login_required
 @active_contest_required
 def get_attachment(contest_name: str, task_name: str, filename: str):
@@ -553,7 +553,7 @@ def get_attachment(contest_name: str, task_name: str, filename: str):
 
 
 @cmsmirror_bp.route(
-    "/api/cms/<contest_name>/task/<task_name>/language-template/<filename>"
+    "/api/cms/contest/<contest_name>/task/<task_name>/language-template/<filename>"
 )
 @login_required
 @active_contest_required
@@ -573,7 +573,7 @@ def get_language_template(contest_name: str, task_name: str, filename: str):
 
 
 @cmsmirror_bp.route(
-    "/api/cms/<contest_name>/task/<task_name>/submission/<submission_uuid>/files/<filename>"
+    "/api/cms/contest/<contest_name>/task/<task_name>/submission/<submission_uuid>/files/<filename>"
 )
 @login_required
 @active_contest_required
@@ -603,7 +603,7 @@ def get_submission_file(
     return resp
 
 
-@cmsmirror_bp.route("/api/cms/<contest_name>/question", methods=["POST"])
+@cmsmirror_bp.route("/api/cms/contest/<contest_name>/question", methods=["POST"])
 @login_required
 @active_contest_required
 @json_api(
@@ -626,7 +626,7 @@ def post_question(data, contest_name: str):
 
 
 @cmsmirror_bp.route(
-    "/api/cms/<contest_name>/task/<task_name>/question", methods=["POST"]
+    "/api/cms/contest/<contest_name>/task/<task_name>/question", methods=["POST"]
 )
 @login_required
 @active_contest_required
@@ -658,7 +658,7 @@ def _base64_content(value: str):
         raise vol.Invalid("Not valid base64")
 
 
-@cmsmirror_bp.route("/api/cms/<contest_name>/task/<task_name>/submit", methods=["POST"])
+@cmsmirror_bp.route("/api/cms/contest/<contest_name>/task/<task_name>/submit", methods=["POST"])
 @login_required
 @active_contest_required
 @json_api(
@@ -716,7 +716,7 @@ def submit(data, contest_name: str, task_name: str):
     }
 
 
-@cmsmirror_bp.route("/api/cms/<contest_name>/task/<task_name>/eval", methods=["POST"])
+@cmsmirror_bp.route("/api/cms/contest/<contest_name>/task/<task_name>/eval", methods=["POST"])
 @login_required
 @active_contest_required
 @json_api(
@@ -769,7 +769,7 @@ def user_eval(data, contest_name: str, task_name: str):
 
 
 @cmsmirror_bp.route(
-    "/api/cms/<contest_name>/task/<task_name>/user-eval/<user_eval_uuid>"
+    "/api/cms/contest/<contest_name>/task/<task_name>/user-eval/<user_eval_uuid>"
 )
 @login_required
 @active_contest_required
@@ -848,7 +848,7 @@ def _check_dt_isoformat(value):
     return value
 
 
-@cmsmirror_bp.route("/api/cms/<contest_name>/check-notifications", methods=["POST"])
+@cmsmirror_bp.route("/api/cms/contest/<contest_name>/check-notifications", methods=["POST"])
 @login_required
 @json_api({vol.Optional(KEY_LAST_NOTIFICAITON): _check_dt_isoformat})
 def check_notifications(data, contest_name: str):

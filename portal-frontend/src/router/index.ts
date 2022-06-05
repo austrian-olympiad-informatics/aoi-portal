@@ -288,7 +288,7 @@ const routes: Array<RouteConfig> = [
     },
   },
   {
-    path: "/cms/:contestName/task/:taskName",
+    path: "/cms/contest/:contestName/task/:taskName",
     component: () =>
       import(/* webpackChunkName: "cms" */ "../views/cms/TaskView.vue"),
     meta: {
