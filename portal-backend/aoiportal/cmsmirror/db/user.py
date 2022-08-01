@@ -289,7 +289,7 @@ class Message(Base):
     id = Column(Integer, primary_key=True)
 
     # Time the message was sent.
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime, nullable=False, index=True)
 
     # Subject and body of the message.
     subject = Column(Unicode, nullable=False)
@@ -337,7 +337,7 @@ class Question(Base):
     id = Column(Integer, primary_key=True)
 
     # Time the question was made.
-    question_timestamp = Column(DateTime, nullable=False)
+    question_timestamp = Column(DateTime, nullable=False, index=True)
 
     # Subject and body of the question.
     subject = Column(Unicode, nullable=False)

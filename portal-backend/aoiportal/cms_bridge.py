@@ -285,7 +285,7 @@ def create_participation(
     if manual_password is not None:
         stored_password = f"plaintext:{manual_password}"
     user = cms_session.query(CMSUser).filter(CMSUser.id == user_id).first()
-    contest = cms_session.query(Contest).filter(Contest.id == contest_id).first()
+    contest = cms_session.query(CMSContest).filter(CMSContest.id == contest_id).first()
     part = CMSParticipation(
         user=user,
         contest=contest,

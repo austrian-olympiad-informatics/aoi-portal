@@ -63,7 +63,7 @@ export default class Navbar extends Vue {
     return this.$store.getters.isAuthenticated;
   }
   get isNavbarSmall(): boolean {
-    return this.$route.meta?.navbarSmall || false;
+    return this.$route.matched.some((x) => x.meta.navbarSmall);
   }
 
   get name(): string {

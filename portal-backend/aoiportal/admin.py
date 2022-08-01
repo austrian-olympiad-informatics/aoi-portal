@@ -11,7 +11,7 @@ from flask import Blueprint, current_app
 from sqlalchemy.orm import joinedload
 
 from aoiportal import cms_bridge
-from aoiportal.auth_util import get_current_user, hash_password, login_required
+from aoiportal.auth_util import admin_required, get_current_user, hash_password, login_required
 from aoiportal.cmsmirror.db import Contest as CMSContest  # type: ignore
 from aoiportal.cmsmirror.db import session as cms_session  # type: ignore
 from aoiportal.const import (
@@ -63,19 +63,6 @@ from aoiportal.newsletter import gen_unsubscribe_link
 from aoiportal.web_utils import json_api
 
 admin_bp = Blueprint("admin", __name__)
-
-
-def admin_required(fn):
-    @login_required
-    @functools.wraps(fn)
-    def wrapped(*args, **kwargs):
-        if not get_current_user().is_admin:
-            raise AOIForbidden(
-                "This API needs admin access.", error_code=ERROR_ADMIN_REQUIRED
-            )
-        return fn(*args, **kwargs)
-
-    return wrapped
 
 
 def _conv_user(user: User) -> dict:

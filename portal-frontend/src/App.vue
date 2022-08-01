@@ -39,10 +39,10 @@ export default class AppComponent extends Vue {
     return this.$store.getters.isAdmin;
   }
   get isFooterHidden(): boolean {
-    return this.$route.meta?.footerHidden || false;
+    return this.$route.matched.some((x) => x.meta.footerHidden);
   }
   get isAdminButtonHidden(): boolean {
-    return this.$route.meta?.adminButtonHidden || false;
+    return this.$route.matched.some((x) => x.meta.adminButtonHidden);
   }
   async mounted(): Promise<void> {
     await this.$store.dispatch("checkStatus");

@@ -48,7 +48,7 @@ class PrintJob(Base):
     participation = relationship(Participation, back_populates="printjobs")
 
     # Submission time of the print job.
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime, nullable=False, index=True)
 
     # Filename and digest of the submitted file.
     filename = Column(Filename, nullable=False)

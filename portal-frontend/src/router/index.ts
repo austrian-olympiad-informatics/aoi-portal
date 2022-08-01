@@ -23,6 +23,12 @@ import store from "@/store";
 
 Vue.use(VueRouter);
 
+const CMS_META = {
+  navbarSmall: true,
+  footerHidden: true,
+  adminButtonHidden: true,
+};
+
 const routes: Array<RouteConfig> = [
   {
     path: "/error",
@@ -278,35 +284,23 @@ const routes: Array<RouteConfig> = [
     component: ContestView,
   },
   {
-    path: "/cms/:contestName",
+    path: "/cms/contest/:contestName",
     name: "CMSContest",
     component: () =>
       import(/* webpackChunkName: "cms" */ "../views/cms/ContestView.vue"),
-    meta: {
-      navbarSmall: true,
-      footerHidden: true,
-    },
+    meta: CMS_META,
   },
   {
     path: "/cms/contest/:contestName/task/:taskName",
     component: () =>
       import(/* webpackChunkName: "cms" */ "../views/cms/TaskView.vue"),
-    meta: {
-      navbarSmall: true,
-      footerHidden: true,
-      adminButtonHidden: true,
-    },
+    meta: CMS_META,
     children: [
       {
         path: "",
         name: "CMSTask",
         component: () =>
           import(/* webpackChunkName: "cms" */ "../views/cms/CodePanel.vue"),
-        meta: {
-          navbarSmall: true,
-          footerHidden: true,
-          adminButtonHidden: true,
-        },
       },
       {
         path: "submission/:submissionUuid",
@@ -315,13 +309,53 @@ const routes: Array<RouteConfig> = [
           import(
             /* webpackChunkName: "cms" */ "../views/cms/SubmissionDetailsPanel.vue"
           ),
-        meta: {
-          navbarSmall: true,
-          footerHidden: true,
-          adminButtonHidden: true,
-        },
       },
     ],
+  },
+  {
+    path: "/cms/admin/submissions",
+    name: "CMSAdminSubmissions",
+    component: () =>
+      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/SubmissionsView.vue"),
+    meta: CMS_META,
+    children: [
+      {
+        path: "submission/:submissionUuid",
+        name: "CMSAdminSubmission",
+        component: () =>
+          import(
+            /* webpackChunkName: "cmsadmin" */ "../views/cms/admin/SubDetailsPanel.vue"
+          ),
+      }
+    ]
+  },
+  {
+    path: "/cms/admin",
+    name: "CMSAdminIndex",
+    component: () =>
+      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/IndexView.vue"),
+    meta: CMS_META,
+  },
+  {
+    path: "/cms/admin/contest/:contestId",
+    name: "CMSAdminContest",
+    component: () =>
+      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/ContestView.vue"),
+    meta: CMS_META,
+  },
+  {
+    path: "/cms/admin/task/:taskId",
+    name: "CMSAdminTask",
+    component: () =>
+      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/TaskView.vue"),
+    meta: CMS_META,
+  },
+  {
+    path: "/cms/admin/user/:userId",
+    name: "CMSAdminUser",
+    component: () =>
+      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/UserView.vue"),
+    meta: CMS_META,
   },
 ];
 

@@ -63,7 +63,7 @@ class Contest(Base):
     id = Column(Integer, primary_key=True)
 
     # Short name of the contest.
-    name = Column(Codename, nullable=False, unique=True)
+    name = Column(Codename, nullable=False, unique=True, index=True)
     # Description of the contest (human readable).
     description = Column(Unicode, nullable=False)
 
@@ -281,7 +281,7 @@ class Announcement(Base):
     id = Column(Integer, primary_key=True)
 
     # Time, subject and text of the announcement.
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime, nullable=False, index=True)
     subject = Column(Unicode, nullable=False)
     text = Column(Unicode, nullable=False)
 

@@ -62,7 +62,7 @@ class UserTest(Base):
     task = relationship(Task, back_populates="user_tests")
 
     # Time of the request.
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime, nullable=False, index=True)
 
     # Language of test, or None if not applicable.
     language = Column(String, nullable=True)

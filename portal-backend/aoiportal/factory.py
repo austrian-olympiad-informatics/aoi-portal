@@ -34,10 +34,12 @@ def create_app(base_config_obj, config_file):
     error.init_app(app)
 
     from aoiportal.cmsmirror.db import init_app as cmsmirror_init_app  # type: ignore
-    from aoiportal.cmsmirror.views import cmsmirror_bp  # type: ignore
+    from aoiportal.cmsmirror.views import cmsmirror_bp
+    from aoiportal.cmsmirror.admin import cmsadmin_bp
 
     cmsmirror_init_app(app)
     app.register_blueprint(cmsmirror_bp)
+    app.register_blueprint(cmsadmin_bp)
 
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 

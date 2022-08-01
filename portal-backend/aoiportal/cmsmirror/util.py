@@ -7,7 +7,11 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 from uuid import uuid4
 
-from aoiportal.cmsmirror.db import FSObject, LargeObject, session  # type: ignore
+from flask import request
+from sqlalchemy.orm import Query
+
+from aoiportal.cmsmirror.db import FSObject, LargeObject, session
+from aoiportal.error import AOIBadRequest  # type: ignore
 
 
 @dataclass
@@ -116,6 +120,12 @@ class ScoreInput:
 
 
 @dataclass(frozen=True)
+class ScoreInputSingle:
+    score: float
+    score_details: dict
+
+
+@dataclass(frozen=True)
 class SubtaskResult:
     fraction: float
     max_score: float
@@ -131,39 +141,67 @@ class ScoreTaskPart:
     subtasks: Optional[List[SubtaskResult]] = None
 
 
+def score_calculation_single(rows: List[ScoreInputSingle], score_mode: str) -> ScoreTaskPart:
+    if score_mode == "max":
+        return ScoreTaskPart(score=max((r.score for r in rows), default=0.0))
+    if score_mode == "max_subtask":
+        subtasks: Dict[int, SubtaskResult] = {}
+        for r in rows:
+            details = r.score_details
+            if not details or "max_score" not in details[0]:
+                continue
+            for st in details:
+                sti = st["idx"]
+                prev = subtasks.get(sti, NULL_SUBTASK_RESULT)
+                subtasks[sti] = SubtaskResult(
+                    fraction=max(prev.fraction, st["score_fraction"]),
+                    max_score=max(prev.max_score, st["max_score"]),
+                    score=max(prev.score, st["score_fraction"] * st["max_score"]),
+                )
+        return ScoreTaskPart(
+            score=sum((v.score for v in subtasks.values()), start=0.0),
+            subtasks=[subtasks[k] for k in sorted(subtasks.keys())],
+        )
+    raise ValueError(f"Unsupported score mode {score_mode}")
+
+
 def score_calculation(rows: List[ScoreInput]) -> Dict[Tuple[int, int], ScoreTaskPart]:
     task_score_mode = {}
     by_task_part = collections.defaultdict(list)
-
     for row in rows:
         task_score_mode[row.task_id] = row.score_mode
-        by_task_part[(row.task_id, row.part_id)].append((row.score, row.score_details))
+        by_task_part[(row.task_id, row.part_id)].append(ScoreInputSingle(row.score, row.score_details))
 
     result = {}
-
     for k, v in by_task_part.items():
         task_id, _ = k
         score_mode = task_score_mode[task_id]
-        if score_mode == "max":
-            result[k] = ScoreTaskPart(score=max(s for s, _ in v))
-        elif score_mode == "max_subtask":
-            subtasks: Dict[int, SubtaskResult] = {}
-            for _, details in v:
-                if not details or "max_score" not in details[0]:
-                    continue
-                for st in details:
-                    sti = st["idx"]
-                    prev = subtasks.get(sti, NULL_SUBTASK_RESULT)
-                    subtasks[sti] = SubtaskResult(
-                        fraction=max(prev.fraction, st["score_fraction"]),
-                        max_score=max(prev.max_score, st["max_score"]),
-                        score=max(prev.score, st["score_fraction"] * st["max_score"]),
-                    )
-            result[k] = ScoreTaskPart(
-                score=sum(v.score for v in subtasks.values()),
-                subtasks=[subtasks[k] for k in sorted(subtasks.keys())],
-            )
-        else:
-            raise ValueError(f"Unsupported score mode {score_mode}")
-
+        result[k] = score_calculation_single(v, score_mode)
     return result
+
+
+@dataclass
+class Pagination:
+    page: int
+    per_page: int
+    total: int
+    items: list
+
+
+def paginate(q: Query) -> Pagination:
+    try:
+        page = int(request.args.get("page", 1))
+    except (TypeError, ValueError):
+        raise AOIBadRequest("Bad page number")
+    try:
+        per_page = int(request.args.get("per_page", 20))
+    except (TypeError, ValueError):
+        raise AOIBadRequest("Bad per page number")
+    items = q.limit(per_page).offset((page - 1) * per_page).all()
+    total = q.order_by(None).count()
+    return Pagination(
+        page=page,
+        per_page=per_page,
+        total=total,
+        items=items,
+    )

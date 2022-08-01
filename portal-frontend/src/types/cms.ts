@@ -92,7 +92,7 @@ export interface SubmissionResultScoredShort {
   score: number;
   subtasks?: {
     max_score: number;
-    score_fraction: number;
+    fraction: number;
   }[];
   meme_digest: string | null;
 }
@@ -136,7 +136,11 @@ export interface Task {
   max_score: number;
   score_precision: number;
   score_mode: "max" | "max_subtask" | "max_tokened_last";
-  score_subtasks: null | number[];
+  score_subtasks: null | {
+    fraction: number;
+    max_score: number;
+    score: number;
+  }[];
   submission_format: string[];
   languages: string[];
   language_templates: {
@@ -188,7 +192,7 @@ export interface SubmissionResultScoredGroups
   status: "scored";
   subtasks: {
     max_score: number;
-    score_fraction: number;
+    fraction: number;
     testcases: {
       text: string[];
       time: number;
@@ -300,3 +304,16 @@ export interface CheckNotificationsResult {
   new_messages: Message[];
   new_replies: Question[];
 }
+
+export interface ContestTaskScore {
+  task: string;
+  score: number;
+  subtasks: {
+    fraction: number;
+    score: number;
+    max_score: number;
+  } | null;
+  max_score: number;
+  score_precision: number;
+}
+export type ContestTaskScores = ContestTaskScore[];

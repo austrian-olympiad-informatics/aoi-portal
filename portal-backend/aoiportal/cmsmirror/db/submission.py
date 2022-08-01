@@ -75,7 +75,7 @@ class Submission(Base):
     task = relationship(Task, back_populates="submissions")
 
     # Time of the submission.
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime, nullable=False, index=True)
 
     # Language of submission, or None if not applicable.
     language = Column(String, nullable=True)
@@ -167,7 +167,7 @@ class Token(Base):
     submission = relationship(Submission, back_populates="token", single_parent=True)
 
     # Time the token was played.
-    timestamp = Column(DateTime, nullable=False, default=func.now())
+    timestamp = Column(DateTime, nullable=False, default=func.now(), index=True)
 
 
 class SubmissionResult(Base):

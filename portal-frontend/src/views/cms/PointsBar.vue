@@ -1,41 +1,16 @@
 <template>
-  <div
-    :class="{
-      'progress-wrapper': true,
-      'is-not-native': isSubtasks,
-      'is-squared': true,
-      'is-large': true,
-    }"
-  >
-    <template v-if="!isSubtasks">
-      <progress
-        class="progress is-large is-squared"
-        :class="{
-          progress: true,
-          'is-more-than-half': isMoreThanHalf,
-          'is-success': score >= maxScore,
-          'is-warning': score < maxScore,
-        }"
-        :max="maxScore"
-        :value="score"
-      >
-        {{ scoreShow }}
-      </progress>
-      <p class="progress-value">{{ scoreShow }}</p>
-    </template>
-    <template v-else>
-      <div
-        v-for="(bar, index) in subtaskBars"
-        class="progress-bar is-large is-squared"
-        role="progressbar"
-        :style="{ width: bar.width }"
-        :class="bar.class"
-        :key="index"
-      />
-      <p class="progress-value" :class="[subtaskMoreThanHalfClass]">
-        {{ scoreShow }}
-      </p>
-    </template>
+  <div class="progress-wrapper is-not-native is-squared is-large">
+    <div
+      v-for="(bar, index) in subtaskBars"
+      class="progress-bar is-large is-squared"
+      role="progressbar"
+      :style="{ width: bar.width }"
+      :class="bar.class"
+      :key="index"
+    />
+    <p class="progress-value" :class="[subtaskMoreThanHalfClass]">
+      {{ scoreShow }}
+    </p>
   </div>
 </template>
 
@@ -44,7 +19,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 
 export interface Subtask {
   max_score: number;
-  score_fraction: number;
+  fraction: number;
 }
 
 @Component
@@ -80,15 +55,20 @@ export default class PointsBar extends Vue {
   showMaxScore!: boolean;
 
   get subtaskData() {
-    if (this.subtasks === null) return { isMoreThanHalf: [], bars: [] };
+    let subtasks: Subtask[];
+    if (this.subtasks === null || !this.subtasks.length)
+      subtasks = [
+        { max_score: this.maxScore, fraction: this.score / this.maxScore },
+      ];
+    else subtasks = this.subtasks;
     let cumw = 0;
     let res = [];
     const mul = 100 / this.maxScore;
     let isMoreThanHalf = [];
-    for (const st of this.subtasks) {
-      const posWidth = st.score_fraction * st.max_score * mul;
-      const negWidth = (1 - st.score_fraction) * st.max_score * mul;
-      const posClass = st.score_fraction >= 1 ? "is-success" : "is-warning";
+    for (const st of subtasks) {
+      const posWidth = st.fraction * st.max_score * mul;
+      const negWidth = (1 - st.fraction) * st.max_score * mul;
+      const posClass = st.fraction >= 1 ? "is-success" : "is-warning";
       const posStart = cumw;
       const posEnd = cumw + posWidth;
       if (
@@ -114,12 +94,6 @@ export default class PointsBar extends Vue {
   }
   get subtaskBars() {
     return this.subtaskData.bars;
-  }
-  get isSubtasks(): boolean {
-    return this.subtasks !== null;
-  }
-  get isMoreThanHalf(): boolean {
-    return this.score > this.maxScore / 2;
   }
   get subtaskMoreThanHalfClass() {
     const v = this.subtaskData.isMoreThanHalf;

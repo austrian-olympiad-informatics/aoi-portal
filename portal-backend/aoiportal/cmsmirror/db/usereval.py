@@ -67,7 +67,7 @@ class UserEval(Base):
     task = relationship(Task, back_populates="user_evals")
 
     # Time of the request.
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime, nullable=False, index=True)
 
     # Language of eval, or None if not applicable.
     language = Column(String, nullable=True)

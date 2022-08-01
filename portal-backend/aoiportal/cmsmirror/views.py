@@ -1,15 +1,16 @@
 import base64
+import collections
 import datetime
 import functools
 import logging
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 from uuid import uuid4
 
 import dateutil.parser
 import voluptuous as vol  # type: ignore
 from flask import Blueprint, g, request, send_file
-from sqlalchemy.orm import Load, joinedload
+from sqlalchemy.orm import Load, joinedload, selectinload
 from werkzeug.local import LocalProxy
 
 from aoiportal.auth_util import get_current_user, login_required
@@ -38,10 +39,12 @@ from aoiportal.cmsmirror.util import (  # type: ignore
     STATIC_FILES_CACHE,
     USER_CACHE,
     ScoreInput,
+    ScoreInputSingle,
     ScoreTaskPart,
     create_file,
     open_digest,
     score_calculation,
+    score_calculation_single,
     send_sub_to_evaluation_service,
     send_user_eval_to_evaluation_service,
 )
@@ -197,6 +200,96 @@ def get_contest(contest_name: str):
     return ret
 
 
+@cmsmirror_bp.route("/api/cms/contest/<contest_name>/scores")
+@login_required
+@active_contest_required
+@json_api()
+def get_contest_scores(contest_name: str):
+    part = current_participation
+    contest = current_contest
+    tasks: List[Task] = (
+        session.query(Task)
+        .filter(Task.contest_id == contest.id)
+        .options(
+            joinedload(Task.active_dataset)
+        )
+        .all()
+    )
+    rows: List[Tuple[SubmissionResult, Submission]] = (
+        session.query(SubmissionResult, Submission)
+        .join(SubmissionResult.submission)
+        .join(Submission.participation)
+        .join(Submission.task)
+        .filter(Participation.id == part.id)
+        .filter(SubmissionResult.score > 0)
+        .filter(Submission.official)
+        .options(
+            Load(SubmissionResult).load_only(
+                SubmissionResult.submission_id,
+                SubmissionResult.dataset_id,
+                SubmissionResult.compilation_outcome,
+                SubmissionResult.score,
+                SubmissionResult.score_details,
+                SubmissionResult.compilation_outcome,
+                SubmissionResult.evaluation_outcome,
+            ),
+            joinedload(SubmissionResult.submission),
+            Load(Submission).load_only(
+                Submission.id,
+                Submission.uuid,
+                Submission.timestamp,
+                Submission.language,
+                Submission.official,
+            ),
+            selectinload(Submission.task),
+            Load(Task).load_only(
+                Task.id,
+                Task.name,
+                Task.title,
+                Task.score_precision,
+                Task.score_mode,
+            ),
+        )
+        .order_by(Submission.timestamp.desc())
+        .all()
+    )
+
+    score_input_by_task: Dict[str, List[ScoreInputSingle]] = collections.defaultdict(list)
+    for r,s in rows:
+        score_input_by_task[s.task.name].append(
+            ScoreInputSingle(r.score, r.score_details)
+        )
+
+    res = []
+    for task in tasks:
+        ds: Dataset = task.active_dataset
+        if ds.score_type == "Sum":
+            max_score = ds.score_type_parameters * len(ds.testcases)
+        else:
+            max_score = sum(p for p, _ in ds.score_type_parameters)
+        calc = score_calculation_single(score_input_by_task[task.name], task.score_mode)
+        res.append(
+            {
+                "task": task.name,
+                "score": calc.score,
+                "subtasks": [
+                    {
+                        "fraction": st.fraction,
+                        "score": st.score,
+                        "max_score": st.max_score,
+                    }
+                    for st in calc.subtasks
+                ]
+                if calc.subtasks is not None
+                else None,
+                "max_score": max_score,
+                "score_precision": task.score_precision,
+            }
+        )
+
+    return res
+
+
 def dump_submission(
     sub: Submission, res: Optional[SubmissionResult], *, detailed: bool
 ):
@@ -230,7 +323,7 @@ def dump_submission(
             res_dct["subtasks"] = [
                 {
                     "max_score": st["max_score"],
-                    "score_fraction": st["score_fraction"],
+                    "fraction": st["score_fraction"],
                 }
                 for st in res.score_details
             ]
@@ -277,7 +370,7 @@ def dump_submission(
                 res_dct["subtasks"] = [
                     {
                         "max_score": st["max_score"],
-                        "score_fraction": st["score_fraction"],
+                        "fraction": st["score_fraction"],
                         "testcases": [
                             {
                                 "text": tc["text"],
@@ -354,19 +447,17 @@ def get_task(contest_name: str, task_name: str):
     score = 0.0
     score_subtasks = None
 
-    score_res = score_calculation(
+    score_res = score_calculation_single(
         [
-            ScoreInput(
-                task_id=task.id,
-                part_id=part.id,
-                score_mode=task.score_mode,
+            ScoreInputSingle(
                 score=res.score,
                 score_details=res.score_details,
             )
             for sub, res in submissions
             if res is not None and sub.official and res.score > 0
-        ]
-    ).get((task.id, part.id), ScoreTaskPart(score=0.0))
+        ],
+        task.score_mode
+    )
     score = score_res.score
     score_subtasks = None
     if score_res.subtasks is not None:
@@ -516,7 +607,9 @@ def get_submission_meme(contest_name: str, task_name: str, submission_uuid: str)
     return resp
 
 
-@cmsmirror_bp.route("/api/cms/contest/<contest_name>/task/<task_name>/statements/<language>")
+@cmsmirror_bp.route(
+    "/api/cms/contest/<contest_name>/task/<task_name>/statements/<language>"
+)
 @login_required
 @active_contest_required
 def get_statement(contest_name: str, task_name: str, language: str):
@@ -534,7 +627,9 @@ def get_statement(contest_name: str, task_name: str, language: str):
     return resp
 
 
-@cmsmirror_bp.route("/api/cms/contest/<contest_name>/task/<task_name>/attachments/<filename>")
+@cmsmirror_bp.route(
+    "/api/cms/contest/<contest_name>/task/<task_name>/attachments/<filename>"
+)
 @login_required
 @active_contest_required
 def get_attachment(contest_name: str, task_name: str, filename: str):
@@ -658,7 +753,9 @@ def _base64_content(value: str):
         raise vol.Invalid("Not valid base64")
 
 
-@cmsmirror_bp.route("/api/cms/contest/<contest_name>/task/<task_name>/submit", methods=["POST"])
+@cmsmirror_bp.route(
+    "/api/cms/contest/<contest_name>/task/<task_name>/submit", methods=["POST"]
+)
 @login_required
 @active_contest_required
 @json_api(
@@ -716,7 +813,9 @@ def submit(data, contest_name: str, task_name: str):
     }
 
 
-@cmsmirror_bp.route("/api/cms/contest/<contest_name>/task/<task_name>/eval", methods=["POST"])
+@cmsmirror_bp.route(
+    "/api/cms/contest/<contest_name>/task/<task_name>/eval", methods=["POST"]
+)
 @login_required
 @active_contest_required
 @json_api(
@@ -848,7 +947,9 @@ def _check_dt_isoformat(value):
     return value
 
 
-@cmsmirror_bp.route("/api/cms/contest/<contest_name>/check-notifications", methods=["POST"])
+@cmsmirror_bp.route(
+    "/api/cms/contest/<contest_name>/check-notifications", methods=["POST"]
+)
 @login_required
 @json_api({vol.Optional(KEY_LAST_NOTIFICAITON): _check_dt_isoformat})
 def check_notifications(data, contest_name: str):

@@ -117,7 +117,7 @@ class Task(Base):
     contest = relationship(Contest, back_populates="tasks")
 
     # Short name and long human readable title of the task.
-    name = Column(Codename, nullable=False)
+    name = Column(Codename, nullable=False, index=True)
     title = Column(Unicode, nullable=False)
 
     # The names of the files that the contestant needs to submit (with

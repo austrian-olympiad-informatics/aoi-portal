@@ -10,7 +10,7 @@ import nacl.secret
 from flask import current_app, g, request
 from sqlalchemy.orm import joinedload
 
-from aoiportal.error import ERROR_LOGIN_REQUIRED, AOIUnauthorized
+from aoiportal.error import ERROR_ADMIN_REQUIRED, ERROR_LOGIN_REQUIRED, AOIForbidden, AOIUnauthorized
 from aoiportal.models import User, UserSession, db  # type: ignore
 from aoiportal.utils import as_utc, utcnow
 
@@ -127,3 +127,16 @@ def login_required(fn):
         return fn(*args, **kwargs)
 
     return decorated
+
+
+def admin_required(fn):
+    @login_required
+    @functools.wraps(fn)
+    def wrapped(*args, **kwargs):
+        if not get_current_user().is_admin:
+            raise AOIForbidden(
+                "This API needs admin access.", error_code=ERROR_ADMIN_REQUIRED
+            )
+        return fn(*args, **kwargs)
+
+    return wrapped

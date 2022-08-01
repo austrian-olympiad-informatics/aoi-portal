@@ -226,7 +226,7 @@ export default class DescriptionPanel extends Vue {
     return maxSt.map((x, i) => {
       return {
         max_score: x,
-        score_fraction: ourSt[i] / x,
+        fraction: i < ourSt.length ? ourSt[i].fraction : 0,
       };
     });
   }

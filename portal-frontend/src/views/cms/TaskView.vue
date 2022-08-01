@@ -78,7 +78,7 @@ export default class TaskView extends Vue {
       const calcScoreFractions = () => {
         const ourSt = this.task!.score_subtasks!;
         const maxSt = (this.task!.scoring as ScoringGroup).subtasks;
-        return maxSt.map((x, i) => ourSt[i] / x);
+        return maxSt.map((x, i) => ourSt[i].fraction / x);
       };
       const stBefore = calcScoreFractions();
       await this.loadTask();
