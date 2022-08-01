@@ -58,7 +58,7 @@ export function langToCMSLang(lang: Language, cmsLangs: string[]): string {
   for (const ord of order)
     if (cmsLangs.includes(ord))
       return ord;
-  return cmsLangs[0];
+  return "";
 }
 
 export function extToLang(extension: string): Language {
