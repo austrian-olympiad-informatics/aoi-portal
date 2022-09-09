@@ -7,3 +7,5 @@ pynacl
 psycopg2
 python-dateutil
 python-slugify==6.1.2
+requests
+
