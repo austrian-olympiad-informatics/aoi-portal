@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 from uuid import uuid4
 
-from flask import request
+from flask import request, current_app
 from sqlalchemy.orm import Query
 
 from aoiportal.cmsmirror.db import FSObject, LargeObject, session
@@ -89,8 +89,10 @@ def create_file(content: bytes, description: str) -> str:
 
 
 def _send_rpc_evaluation_service(method: str, data):
+    host = current_app.config.get("CMS_EVALUATION_HOST", "127.0.0.1:25000")
+    hostname, port_s = host.split(":")
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(("127.0.0.1", 25000))
+    sock.connect((hostname, int(port_s)))
     payload = json.dumps(
         {
             "__id": uuid4().hex,
