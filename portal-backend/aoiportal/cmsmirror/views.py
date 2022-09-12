@@ -804,7 +804,7 @@ def submit(data, contest_name: str, task_name: str):
     try:
         send_sub_to_evaluation_service(sub.id)
     except Exception:
-        _LOGGER.warning("Failed to send submission to evaluation service")
+        _LOGGER.warning("Failed to send submission to evaluation service", exc_info=True)
 
     return {
         "success": True,
@@ -859,7 +859,7 @@ def user_eval(data, contest_name: str, task_name: str):
     try:
         send_user_eval_to_evaluation_service(ueval.id)
     except Exception:
-        _LOGGER.warning("Failed to send submission to evaluation service")
+        _LOGGER.warning("Failed to send submission to evaluation service", exc_info=True)
 
     return {
         "success": True,
