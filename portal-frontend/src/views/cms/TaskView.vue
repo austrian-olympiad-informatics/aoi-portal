@@ -81,9 +81,13 @@ export default class TaskView extends Vue {
       const stBefore = calcScoreFractions();
       await this.loadTask();
       const stAfter = calcScoreFractions();
-      const stSolved = stAfter
-        .filter((x, i) => x >= 1 && (i >= stBefore.length || stBefore[i] < 1))
-        .map((_, i) => i + 1);
+      const stSolved = [];
+      for (let i = 0; i < stAfter.length; i++) {
+        const x = stAfter[i];
+        const y = i >= stBefore.length ? 0 : stBefore[i];
+        if (x >= 1 && y < 1)
+          stSolved.push(i+1);
+      }
       if (stSolved.length > 0) {
         successModalText = `Subtask ${stSolved.join(", ")} gelöst! 🎉`;
       }
