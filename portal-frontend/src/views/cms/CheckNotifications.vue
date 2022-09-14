@@ -31,7 +31,7 @@ export default class CheckNotifications extends Vue {
       hasIcon: true,
       indefinite: true,
     });
-    if (this.hasNotificationPermission) {
+    if ("Notification" in window && window.Notification.permission === "granted") {
       new Notification(subject, {
         body: body,
         icon: require("@/assets/logo.png"),
@@ -84,11 +84,6 @@ export default class CheckNotifications extends Vue {
     this.checkNotificationsHandle = setInterval(async () => {
       await this.checkNotifications(true);
     }, 15000);
-    if ("Notification" in window) {
-      window.Notification.requestPermission().then(() => {
-        this.hasNotificationPermission = true;
-      });
-    }
   }
 
   destroyed() {
