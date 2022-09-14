@@ -33,7 +33,7 @@ import { cpp } from "@codemirror/lang-cpp";
 import { java } from "@codemirror/lang-java";
 import { python } from "@codemirror/lang-python";
 import { rust } from "@codemirror/lang-rust";
-import { oneDark } from "@codemirror/theme-one-dark";
+import { oneDark, oneDarkHighlightStyle, oneDarkTheme } from "@codemirror/theme-one-dark";
 import {
   lineNumbers,
   highlightActiveLineGutter,
@@ -119,6 +119,12 @@ export default class CodeMirror extends Vue {
     type: Boolean,
     default: true,
   })
+  darkTheme!: boolean;
+
+  @Prop({
+    type: Boolean,
+    default: true,
+  })
   fullheight!: boolean;
   @Prop({
     type: Boolean,
@@ -149,7 +155,8 @@ export default class CodeMirror extends Vue {
       dropCursor(),
       EditorState.allowMultipleSelections.of(true),
       indentOnInput(),
-      syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+      syntaxHighlighting(this.darkTheme ? oneDarkHighlightStyle : defaultHighlightStyle, { fallback: true }),
+      this.darkTheme ? oneDark : undefined,
       bracketMatching(),
       closeBrackets(),
       autocompletion(),
@@ -168,7 +175,6 @@ export default class CodeMirror extends Vue {
         ...completionKeymap,
         ...lintKeymap,
       ]),
-      oneDark,
       keymap.of([indentWithTab]),
       this.lang === Language.CSharp ? StreamLanguage.define(csharp) : undefined,
       this.lang === Language.C ? StreamLanguage.define(c) : undefined,

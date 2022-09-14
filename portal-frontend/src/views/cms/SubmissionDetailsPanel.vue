@@ -185,6 +185,7 @@
             :fullheight="false"
             :editable="false"
             :readonly="true"
+            :dark-theme="false"
           />
         </div>
       </div>
