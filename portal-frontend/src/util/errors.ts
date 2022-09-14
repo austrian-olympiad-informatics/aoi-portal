@@ -12,7 +12,8 @@ type ErrorCode =
   | "rate_limit"
   | "no_longer_valid"
   | "too_many_attempts"
-  | "invalid_verification_code";
+  | "invalid_verification_code"
+  | "throttled";
 
 type Handlers = {
   [key in ErrorCode | "default"]?: string | (() => void);

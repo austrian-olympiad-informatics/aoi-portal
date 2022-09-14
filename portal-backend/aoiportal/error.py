@@ -13,6 +13,7 @@ ERROR_RATE_LIMIT = "rate_limit"
 ERROR_NO_LONGER_VALID = "no_longer_valid"
 ERROR_TOO_MANY_ATTEMPTS = "too_many_attempts"
 ERROR_INVALID_VERIFICATION_CODE = "invalid_verification_code"
+ERROR_THROTTLED = "throttled"
 
 
 class _AOIHTTPError(Exception):

@@ -58,7 +58,7 @@ from aoiportal.const import (
     KEY_SUBJECT,
     KEY_TEXT,
 )
-from aoiportal.error import AOIBadRequest, AOIForbidden, AOINotFound
+from aoiportal.error import ERROR_THROTTLED, AOIBadRequest, AOIForbidden, AOINotFound
 from aoiportal.utils import as_utc
 from aoiportal.web_utils import json_api
 
@@ -454,7 +454,7 @@ def get_task(contest_name: str, task_name: str):
                 score_details=res.score_details,
             )
             for sub, res in submissions
-            if res is not None and sub.official and res.score > 0
+            if res is not None and sub.official and res.score is not None and res.score > 0
         ],
         task.score_mode
     )
@@ -779,7 +779,16 @@ def submit(data, contest_name: str, task_name: str):
         raise AOIBadRequest("At least one file doesn't match submission format.")
     if data[KEY_LANGUAGE] not in current_contest.languages:
         raise AOIBadRequest("Language not allowed.")
+
     now = datetime.datetime.utcnow()
+    q = (
+        session.query(Submission)
+        .filter(Submission.participation_id == current_participation.id)
+        .filter(Submission.timestamp >= now - datetime.timedelta(seconds=10))
+    )
+    if q.count() >= 4:
+        raise AOIBadRequest("Too many requests", error_code=ERROR_THROTTLED)
+
     sub = Submission(
         uuid=str(uuid4()),
         participation_id=current_participation.id,
@@ -832,6 +841,13 @@ def submit(data, contest_name: str, task_name: str):
 )
 def user_eval(data, contest_name: str, task_name: str):
     now = datetime.datetime.utcnow()
+    q = (
+        session.query(UserEval)
+        .filter(UserEval.participation_id == current_participation.id)
+        .filter(UserEval.timestamp >= now - datetime.timedelta(seconds=10))
+    )
+    if q.count() >= 4:
+        raise AOIBadRequest("Too many requests", error_code=ERROR_THROTTLED)
     ueval = UserEval(
         uuid=str(uuid4()),
         participation_id=current_participation.id,

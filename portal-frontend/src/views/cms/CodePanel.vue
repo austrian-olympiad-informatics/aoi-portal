@@ -60,10 +60,10 @@
         </div>
       </div>
       <div class="code-bar-submit">
-        <b-button type="is-primary" @click="submitCode" v-if="!isTestMode">
+        <b-button type="is-primary" @click="submitCode" v-if="!isTestMode" :loading="submitLoading">
           Abschicken
         </b-button>
-        <b-button type="is-primary" @click="testCode" v-if="isTestMode">
+        <b-button type="is-primary" @click="testCode" v-if="isTestMode" :loading="submitLoading">
           Testen
         </b-button>
       </div>
@@ -72,7 +72,7 @@
 </template>
 
 <script lang="ts">
-import { Task, UserEval } from "@/types/cms";
+import { SubmitResult, Task, UserEval, UserEvalSubmitResult } from "@/types/cms";
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { PropType } from "vue";
 import CodeMirror from "@/components/CodeMirror.vue";
@@ -81,6 +81,7 @@ import cms from "@/services/cms";
 import { b64DecodeUnicode, b64EncodeUnicode } from "@/util/base64";
 import { extToLang, langToCMSLang, lookupCMSLang } from "@/util/lang-table";
 import { translateText } from "@/util/cms";
+import { matchError } from "@/util/errors";
 
 interface CodeStorage {
   language: string;
@@ -114,6 +115,7 @@ export default class CodePanel extends Vue {
   testEvalTimeoutHandle: number | null = null;
   testEval: UserEval | null = null;
   testEvalLoading = false;
+  submitLoading = false;
   get testOutput(): string | null {
     if (this.testEval === null) return "Noch nicht ausgeführt";
     if (this.testEval.result.status === "compilation_failed")
@@ -208,15 +210,28 @@ export default class CodePanel extends Vue {
   }
 
   async submitCode() {
-    const resp = await cms.submit(this.contestName!, this.taskName!, {
-      language: this.lang,
-      files: [
-        {
-          filename: this.task!.submission_format[0],
-          content: b64EncodeUnicode(this.code),
-        },
-      ],
-    });
+    this.submitLoading = true;
+    let resp: SubmitResult;
+    try {
+      resp = await cms.submit(this.contestName!, this.taskName!, {
+        language: this.lang,
+        files: [
+          {
+            filename: this.task!.submission_format[0],
+            content: b64EncodeUnicode(this.code),
+          },
+        ],
+      });
+    } catch (err) {
+      matchError(err, {
+        throttled: "Einsendungen zu schnell hintereinander!",
+        default:
+          "Beim Abschicken ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+      });
+      return;
+    } finally {
+      this.submitLoading = false;
+    }
     this.$emit("new-submission", resp.submission);
   }
 
@@ -268,16 +283,30 @@ export default class CodePanel extends Vue {
     if (this.testEvalTimeoutHandle !== null)
       clearTimeout(this.testEvalTimeoutHandle);
 
-    const resp = await cms.userEval(this.contestName!, this.taskName!, {
-      language: this.lang,
-      files: [
-        {
-          filename: this.task!.submission_format[0],
-          content: b64EncodeUnicode(this.code),
-        },
-      ],
-      input: b64EncodeUnicode(this.testInput),
-    });
+    
+    this.submitLoading = true;
+    let resp: UserEvalSubmitResult;
+    try {
+      resp = await cms.userEval(this.contestName!, this.taskName!, {
+        language: this.lang,
+        files: [
+          {
+            filename: this.task!.submission_format[0],
+            content: b64EncodeUnicode(this.code),
+          },
+        ],
+        input: b64EncodeUnicode(this.testInput),
+      });
+    } catch (err) {
+      matchError(err, {
+        throttled: "Einsendungen zu schnell hintereinander!",
+        default:
+          "Beim Abschicken ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+      });
+      return;
+    } finally {
+      this.submitLoading = false;
+    }
     this.testEval = null;
     this.testEvalUuid = resp.uuid;
     this.testEvalLoading = true;
