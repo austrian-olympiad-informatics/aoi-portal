@@ -33,7 +33,7 @@ import { cpp } from "@codemirror/lang-cpp";
 import { java } from "@codemirror/lang-java";
 import { python } from "@codemirror/lang-python";
 import { rust } from "@codemirror/lang-rust";
-import { oneDark, oneDarkHighlightStyle, oneDarkTheme } from "@codemirror/theme-one-dark";
+import { oneDark, oneDarkHighlightStyle } from "@codemirror/theme-one-dark";
 import {
   lineNumbers,
   highlightActiveLineGutter,
