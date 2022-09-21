@@ -23,7 +23,7 @@
     "@codemirror/state": "^6.1.1",
     "@codemirror/theme-one-dark": "^6.1.0",
     "@codemirror/view": "^6.2.4",
-    "@mdi/font": "^6.6.96",
+    "@mdi/font": "^7.0.96",
     "@tiptap/extension-bubble-menu": "^2.0.0-beta.56",
     "@tiptap/extension-link": "^2.0.0-beta.37",
     "@tiptap/extension-underline": "^2.0.0-beta.23",
