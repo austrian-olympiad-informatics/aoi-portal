@@ -365,7 +365,7 @@ def get_contest_scores(contest_name: str):
         my_score = part_to_score[part.id]
         sorted_scores = sorted(part_to_score.values(), reverse=True)
         global_rank = sorted_scores.index(my_score) + 1
-        if contest.show_global_rank:
+        if contest.show_global_rank and my_score != 0:
             res["global_rank"] = global_rank
         if contest.show_points_to_next_rank and global_rank != 1:
             dedup_scores = sorted(set(sorted_scores), reverse=True)
