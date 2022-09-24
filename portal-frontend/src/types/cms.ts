@@ -316,4 +316,11 @@ export interface ContestTaskScore {
   max_score: number;
   score_precision: number;
 }
-export type ContestTaskScores = ContestTaskScore[];
+export interface ContestTaskScores {
+  score: number;
+  max_score: number;
+  score_precision: number;
+  tasks: ContestTaskScore[];
+  global_rank?: number;
+  points_to_next_rank?: number;
+}

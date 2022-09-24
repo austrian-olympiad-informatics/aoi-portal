@@ -4,8 +4,9 @@ import io
 import json
 import socket
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Generic, List, Optional, Tuple, TypeVar
 from uuid import uuid4
+import datetime
 
 from flask import request, current_app
 from sqlalchemy.orm import Query
@@ -207,3 +208,35 @@ def paginate(q: Query) -> Pagination:
         total=total,
         items=items,
     )
+
+
+T = TypeVar("T")
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+@dataclass(frozen=True)
+class _CachedEntry(Generic[T]):
+    data: T
+    timestamp: datetime.datetime
+
+
+class MaxAgeCache(Generic[K, V]):
+    _cache: Dict[K, _CachedEntry[V]] = {}
+
+    def __init__(self, default_max_age: datetime.timedelta):
+        self._default_max_age = default_max_age
+
+    def get(self, key: K, max_age: Optional[datetime.timedelta] = None) -> Optional[V]:
+        if max_age is None:
+            max_age = self._default_max_age
+        entry = self._cache.get(key)
+        if entry is None:
+            return None
+        if datetime.datetime.utcnow() - entry.timestamp > max_age:
+            del self._cache[key]
+            return None
+        return entry.data
+
+    def put(self, key: K, value: V):
+        self._cache[key] = _CachedEntry(data=value, timestamp=datetime.datetime.utcnow())

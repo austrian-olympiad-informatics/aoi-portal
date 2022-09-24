@@ -7,6 +7,24 @@
         <ContestStartStop :contest="contest" />
       </div>
 
+      <div class="block" v-if="scores !== null">
+        <h2 class="title is-3">Deine Punktzahl</h2>
+        <PointsBar
+          :score="scores.score"
+          :max-score="scores.max_score"
+          :score-precision="scores.score_precision"
+          :show-max-score="true"
+          :subtasks="null"
+        />
+
+        <p v-if="scores.global_rank !== undefined">
+          Du bist derzeit auf Rang #{{ scores.global_rank }}.
+        </p>
+        <p v-if="scores.points_to_next_rank !== undefined">
+          Mit {{ scores.points_to_next_rank }} zusätzlichen Punkten erreichst du den nächsten Platz.
+        </p>
+      </div>
+
       <div class="block" v-if="contest.is_active">
         <h2 class="title is-3">Aufgaben</h2>
 
@@ -98,7 +116,7 @@ export default class ContestView extends Vue {
 
   get tasksWithScores() {
     if (this.contest === null || this.contest.is_active === false) return null;
-    const scoreByTask = new Map(this.scores?.map((s) => [s.task, s]));
+    const scoreByTask = new Map(this.scores?.tasks.map((s) => [s.task, s]));
     return this.contest.tasks.map((t) => {
       return {
         task: t,
