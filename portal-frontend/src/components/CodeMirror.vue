@@ -62,6 +62,7 @@ import { lintKeymap } from "@codemirror/lint";
 import { StreamLanguage } from "@codemirror/language";
 import { go } from "@codemirror/legacy-modes/mode/go";
 import { haskell } from "@codemirror/legacy-modes/mode/haskell";
+import { swift } from "@codemirror/legacy-modes/mode/swift";
 import { c, csharp, kotlin } from "@codemirror/legacy-modes/mode/clike";
 import { Language } from "@/util/lang-table";
 
@@ -180,6 +181,9 @@ export default class CodeMirror extends Vue {
       this.lang === Language.C ? StreamLanguage.define(c) : undefined,
       this.lang === Language.Cpp ? cpp() : undefined,
       this.lang === Language.Go ? StreamLanguage.define(go) : undefined,
+      this.lang === Language.Haskell
+        ? StreamLanguage.define(haskell)
+        : undefined,
       this.lang === Language.Haskell
         ? StreamLanguage.define(haskell)
         : undefined,

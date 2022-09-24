@@ -11,6 +11,7 @@ export enum Language {
   Python = "python",
   Rust = "rust",
   Typescript = "typescript",
+  Swift = "swift",
 }
 
 const langToExtsMap: Map<Language, string[]> = new Map([
@@ -25,6 +26,7 @@ const langToExtsMap: Map<Language, string[]> = new Map([
   [Language.Python, [".py"]],
   [Language.Rust, [".rs"]],
   [Language.Typescript, [".ts"]],
+  [Language.Swift, [".swift"]],
 ]);
 
 const langToCMSLangsMap: Map<Language, string[]> = new Map([
@@ -39,6 +41,7 @@ const langToCMSLangsMap: Map<Language, string[]> = new Map([
   [Language.Python, ["Python 3 / PyPy", "Python 3 / CPython", "Python 2 / CPython"]],
   [Language.Rust, ["Rust"]],
   [Language.Typescript, ["Typescript"]],
+  [Language.Swift, ["Swift"]],
 ]);
 
 export function lookupCMSLang(cmsLang: string): Language {
