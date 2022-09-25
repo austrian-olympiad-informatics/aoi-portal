@@ -50,7 +50,7 @@
               params: { contestName: contest.cms_name },
             }"
             type="is-success is-light"
-            >Zum Server</b-button
+            >Zum Bewerb</b-button
           >
           <b-button
             v-else-if="contest.sso_enabled"

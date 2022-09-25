@@ -51,7 +51,7 @@
               name: 'CMSContest',
               params: { contestName: contest.cms_name },
             }"
-            >Zum Server</b-button
+            >Zum Bewerb</b-button
           >
           <b-button
             v-else-if="contest.sso_enabled"
