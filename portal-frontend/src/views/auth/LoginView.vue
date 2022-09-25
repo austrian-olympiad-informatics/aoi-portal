@@ -3,6 +3,11 @@
     <form @submit.prevent="submit">
       <h1 class="title is-3 mb-3">Anmelden</h1>
       <LoginInput v-model="data" />
+      <p class="mb-3" v-if="unsuccessfulAttempts >= 2">
+        Probleme beim Anmelden? Du kannst dein 
+        <router-link :to="{ name: 'PasswordReset' }">Passwort zurücksetzen</router-link> oder
+        uns unter <a href="mailto:orga@informatikolympiade.at">orga@informatikolympiade.at</a> erreichen.
+      </p>
       <b-button type="is-primary" native-type="submit" expanded
         >Anmelden</b-button
       >
@@ -65,6 +70,7 @@ export default class LoginView extends Vue {
     email: "",
     password: "",
   };
+  unsuccessfulAttempts = 0;
   mounted(): void {
     if (this.$store.getters.isAuthenticated) {
       this.$router.push("/");
@@ -89,6 +95,7 @@ export default class LoginView extends Vue {
           "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       });
       this.data.password = "";
+      this.unsuccessfulAttempts++;
       return;
     }
 
