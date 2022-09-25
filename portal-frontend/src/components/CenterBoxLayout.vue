@@ -1,6 +1,6 @@
 <template>
-  <section class="section">
-    <div class="container">
+  <div class="container">
+    <section class="section">
       <div class="columns is-centered">
         <div class="column is-8-tablet is-8-desktop is-6-widescreen">
           <div class="box">
@@ -8,8 +8,8 @@
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
 </template>
 
 <script lang="ts">

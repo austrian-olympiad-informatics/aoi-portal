@@ -23,6 +23,11 @@
         required
       />
     </b-field>
+    <b-field>
+      <b-checkbox required>
+        Ich stimme den <a href="https://informatikolympiade.at/datenschutz.html">Datenschutzbestimmungen</a> zu.
+      </b-checkbox>
+    </b-field>
   </section>
 </template>
 

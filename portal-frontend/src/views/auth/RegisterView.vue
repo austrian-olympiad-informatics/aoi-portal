@@ -1,50 +1,52 @@
 <template>
-  <div class="container">
-    <section class="section">
-      <div class="columns is-centered">
-        <div class="column is-5">
-          <div class="box">
-            <form @submit.prevent="register">
-              <h1 class="title is-3 mb-3">Registrieren</h1>
-              <RegisterInput v-model="data" />
-              <b-button
-                type="is-primary"
-                native-type="submit"
-                expanded
-                :loading="submitButtonLoading"
-                >Registrieren</b-button
-              >
-            </form>
+  <center-box-layout>
+    <form @submit.prevent="register">
+      <h1 class="title is-3 mb-3">Registrieren</h1>
+      <b-message type="is-info">
+        <small>
+          Hinweis: Du kannst dich hier auch als Lehrer:in oder Externe:r registrieren
+          (für Trainigsaufgaben etc). Die Anmeldung für die Qualifikationsrunde
+          erfolgt in einem nächsten Schritt.
+        </small>
+      </b-message>
+      <RegisterInput v-model="data" />
+      <b-button
+        class="mt-3"
+        type="is-primary"
+        native-type="submit"
+        expanded
+        :loading="submitButtonLoading"
+        >Registrieren</b-button
+      >
+    </form>
 
-            <p class="mt-5">
-              <router-link :to="{ name: 'Login' }">Zur Anmeldung</router-link>
-            </p>
-            <div class="is-divider" data-content="ODER"></div>
-            <router-link
-              class="button is-rounded is-fullwidth"
-              type="button"
-              :to="{ name: 'GitHubOAuth' }"
-            >
-              <span class="icon">
-                <img src="../../assets/github-icon.svg" loading="lazy" />
-              </span>
-              Mit GitHub registrieren
-            </router-link>
-            <router-link
-              class="button is-rounded is-fullwidth mt-2"
-              type="button"
-              :to="{ name: 'GoogleOAuth' }"
-            >
-              <span class="icon">
-                <img src="../../assets/google-icon.svg" loading="lazy" />
-              </span>
-              Mit Google registrieren
-            </router-link>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
+    <p class="mt-5">
+      <router-link :to="{ name: 'Login' }">Zur Anmeldung</router-link>
+    </p>
+    <div class="is-divider" data-content="ODER"></div>
+    <router-link
+      class="button is-rounded is-fullwidth"
+      type="button"
+      :to="{ name: 'GitHubOAuth' }"
+    >
+      <span class="icon">
+        <img src="../../assets/github-icon.svg" loading="lazy" />
+      </span>
+      Mit GitHub registrieren
+    </router-link>
+    <!--
+    <router-link
+      class="button is-rounded is-fullwidth mt-2"
+      type="button"
+      :to="{ name: 'GoogleOAuth' }"
+    >
+      <span class="icon">
+        <img src="../../assets/google-icon.svg" loading="lazy" />
+      </span>
+      Mit Google registrieren
+    </router-link>
+    -->
+  </center-box-layout>
 </template>
 
 <script lang="ts">
@@ -55,10 +57,12 @@ import RegisterInput, {
 } from "@/components/RegisterInput.vue";
 import { AuthRegisterResult } from "@/types/auth";
 import { matchError } from "@/util/errors";
+import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 
 @Component({
   components: {
     RegisterInput,
+    CenterBoxLayout,
   },
 })
 export default class RegisterView extends Vue {

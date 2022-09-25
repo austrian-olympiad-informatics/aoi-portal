@@ -10,7 +10,7 @@
         class="content"
       >
         Die folgenden Felder müssen noch ausgefüllt werden, damit du dich für
-        Trainingscamps und den Bundesbewerb qualifieren kannst:
+        Trainingscamps und den Bundesbewerb qualifizieren kannst:
         <ul>
           <li v-for="field in missingFields" :key="field">
             {{ field }}

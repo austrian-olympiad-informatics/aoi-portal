@@ -1,55 +1,49 @@
 <template>
-  <section class="section">
-    <div class="container">
-      <div class="columns is-centered">
-        <div class="column is-5">
-          <div class="box">
-            <form @submit.prevent="submit">
-              <h1 class="title is-3 mb-3">Anmelden</h1>
-              <LoginInput v-model="data" />
-              <b-button type="is-primary" native-type="submit" expanded
-                >Anmelden</b-button
-              >
-            </form>
+  <center-box-layout>
+    <form @submit.prevent="submit">
+      <h1 class="title is-3 mb-3">Anmelden</h1>
+      <LoginInput v-model="data" />
+      <b-button type="is-primary" native-type="submit" expanded
+        >Anmelden</b-button
+      >
+    </form>
 
-            <p class="mt-5">
-              Kein Konto?
-              <router-link :to="{ name: 'Register' }"
-                >Hier registrieren</router-link
-              >
-            </p>
-            <p class="mt-2">
-              Passwort vergessen?
-              <router-link :to="{ name: 'PasswordReset' }"
-                >Zurücksetzen</router-link
-              >
-            </p>
-            <div class="is-divider" data-content="ODER"></div>
-            <router-link
-              class="button is-rounded is-fullwidth"
-              type="button"
-              :to="{ name: 'GitHubOAuth' }"
-            >
-              <span class="icon">
-                <img src="../../assets/github-icon.svg" loading="lazy" />
-              </span>
-              Mit GitHub anmelden
-            </router-link>
-            <router-link
-              class="button is-rounded is-fullwidth mt-2"
-              type="button"
-              :to="{ name: 'GoogleOAuth' }"
-            >
-              <span class="icon">
-                <img src="../../assets/google-icon.svg" loading="lazy" />
-              </span>
-              Mit Google anmelden
-            </router-link>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+    <p class="mt-5">
+      Kein Konto?
+      <router-link :to="{ name: 'Register' }"
+        >Hier registrieren</router-link
+      >
+    </p>
+    <p class="mt-2">
+      Passwort vergessen?
+      <router-link :to="{ name: 'PasswordReset' }"
+        >Zurücksetzen</router-link
+      >
+    </p>
+    <div class="is-divider" data-content="ODER"></div>
+    <router-link
+      class="button is-rounded is-fullwidth"
+      type="button"
+      :to="{ name: 'GitHubOAuth' }"
+    >
+      <span class="icon">
+        <img src="../../assets/github-icon.svg" loading="lazy" />
+      </span>
+      Mit GitHub anmelden
+    </router-link>
+    <!--
+    <router-link
+      class="button is-rounded is-fullwidth mt-2"
+      type="button"
+      :to="{ name: 'GoogleOAuth' }"
+    >
+      <span class="icon">
+        <img src="../../assets/google-icon.svg" loading="lazy" />
+      </span>
+      Mit Google anmelden
+    </router-link>
+    -->
+  </center-box-layout>
 </template>
 
 <script lang="ts">
@@ -58,10 +52,12 @@ import LoginInput, { LoginInputData } from "@/components/LoginInput.vue";
 import { AuthLoginResult } from "@/types/auth";
 import auth from "@/services/auth";
 import { matchError } from "@/util/errors";
+import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 
 @Component({
   components: {
     LoginInput,
+    CenterBoxLayout,
   },
 })
 export default class LoginView extends Vue {
