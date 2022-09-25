@@ -356,7 +356,6 @@ def get_contest_scores(contest_name: str):
 
     if contest.show_global_rank or contest.show_points_to_next_rank:
         contest_scores = _get_contest_scores(contest.id)
-        print(contest_scores)
         part_to_score = {
             part_id: round(sum(task_scores.values()), contest.score_precision)
             for part_id, task_scores in contest_scores.items()
@@ -576,6 +575,8 @@ def get_task(contest_name: str, task_name: str):
             }
             for stmt in task.statements.values()
         ],
+        "statement_html_digest": task.statement_html_digest,
+        "default_input_digest": task.default_input_digest,
         "attachments": [
             {
                 "filename": att.filename,
@@ -713,6 +714,36 @@ def get_statement(contest_name: str, task_name: str, language: str):
         raise AOINotFound("Statement not found")
     fh = open_digest(stmt.digest, cache=STATIC_FILES_CACHE)
     resp = send_file(fh, download_name=f"{stmt.task.name} ({language}).pdf")
+    resp.headers["Cache-Control"] = "private, max-age=604800"
+    return resp
+
+
+@cmsmirror_bp.route(
+    "/api/cms/contest/<contest_name>/task/<task_name>/statement-html"
+)
+@login_required
+@active_contest_required
+def get_statement_html(contest_name: str, task_name: str):
+    dig = current_task.statement_html_digest
+    if dig is None:
+        raise AOINotFound("Statement HTML not found")
+    fh = open_digest(dig, cache=STATIC_FILES_CACHE)
+    resp = send_file(fh, download_name=f"{current_task.name}.html")
+    resp.headers["Cache-Control"] = "private, max-age=604800"
+    return resp
+
+
+@cmsmirror_bp.route(
+    "/api/cms/contest/<contest_name>/task/<task_name>/default-input"
+)
+@login_required
+@active_contest_required
+def get_default_input(contest_name: str, task_name: str):
+    dig = current_task.default_input_digest
+    if dig is None:
+        raise AOINotFound("Default Input not found")
+    fh = open_digest(dig, cache=STATIC_FILES_CACHE)
+    resp = send_file(fh, download_name=f"{current_task.name}.in")
     resp.headers["Cache-Control"] = "private, max-age=604800"
     return resp
 

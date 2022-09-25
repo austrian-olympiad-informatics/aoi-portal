@@ -204,6 +204,12 @@ export default class CodePanel extends Vue {
   @Watch("isTestMode")
   testModeChanged() {
     this.saveStorageData();
+    this.loadDefaultInput();
+  }
+  async loadDefaultInput() {
+    if (this.testInput !== "" || this.task.default_input_digest === null) return;
+    const resp = await cms.getDefaultInput(this.contestName, this.taskName, this.task.default_input_digest);
+    this.testInput = await resp.text();
   }
   get codemirrorLang() {
     return lookupCMSLang(this.lang);
@@ -238,6 +244,7 @@ export default class CodePanel extends Vue {
   async mounted() {
     this.restoreStorageData();
     await this.setDefaults();
+    await this.loadDefaultInput();
   }
 
   async onMainDrop(files: FileList) {

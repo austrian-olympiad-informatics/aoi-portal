@@ -89,7 +89,7 @@ export default class TaskView extends Vue {
           stSolved.push(i+1);
       }
       if (stSolved.length > 0) {
-        successModalText = `Subtask ${stSolved.join(", ")} gelöst! 🎉`;
+        successModalText = `Teilaufgabe ${stSolved.join(", ")} gelöst! 🎉`;
       }
     }
 

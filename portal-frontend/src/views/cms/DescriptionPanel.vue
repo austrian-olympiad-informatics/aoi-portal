@@ -138,6 +138,10 @@
           </b-dropdown>
         </template>
       </div>
+
+      <div class="content" v-if="statement_html !== null">
+        <div v-html="statement_html" />
+      </div>
     </div>
 
     <div class="block" v-if="task.attachments.length">
@@ -207,6 +211,8 @@ export default class DescriptionPanel extends Vue {
     type: Object as PropType<Task>,
   })
   task!: Task;
+  statement_html: string | null = null;
+
   get contestName(): string {
     return this.$route.params.contestName;
   }
@@ -251,9 +257,12 @@ export default class DescriptionPanel extends Vue {
     );
     downloadBlob(resp, att.filename);
   }
-  mounted() {
+  async mounted() {
     this.now = new Date();
     this.scheduleCheckSubmissions(1000);
+    if (this.task.statement_html_digest !== null) {
+      this.statement_html = await (await cms.getStatementHTML(this.contestName!, this.taskName!, this.task.statement_html_digest)).text();
+    }
   }
 
   formatSubDate(date: Date) {

@@ -79,6 +79,42 @@ class CMSService {
     );
     return new Blob([resp.data]);
   }
+  async getStatementHTML(
+    contestName: string,
+    taskName: string,
+    digest: string
+  ): Promise<Blob> {
+    const resp = await http.get(
+      `/api/cms/contest/${encodeURIComponent(
+        contestName
+      )}/task/${encodeURIComponent(taskName)}/statement-html`,
+      {
+        responseType: "blob",
+        params: {
+          digest: digest,
+        },
+      }
+    );
+    return new Blob([resp.data]);
+  }
+  async getDefaultInput(
+    contestName: string,
+    taskName: string,
+    digest: string
+  ): Promise<Blob> {
+    const resp = await http.get(
+      `/api/cms/contest/${encodeURIComponent(
+        contestName
+      )}/task/${encodeURIComponent(taskName)}/default-input`,
+      {
+        responseType: "blob",
+        params: {
+          digest: digest,
+        },
+      }
+    );
+    return new Blob([resp.data]);
+  }
   async getAttachment(
     contestName: string,
     taskName: string,

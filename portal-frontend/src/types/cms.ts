@@ -123,6 +123,8 @@ export interface Task {
     language: string;
     digest: string;
   }[];
+  statement_html_digest: string | null;
+  default_input_digest: string | null;
   attachments: {
     filename: string;
     digest: string;
