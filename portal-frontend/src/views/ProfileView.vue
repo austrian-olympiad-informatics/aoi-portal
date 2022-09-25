@@ -16,6 +16,11 @@
             {{ field }}
           </li>
         </ul>
+
+        <p>
+          Wir benötigen diese Informationen um deine Schule nach einer Freistellung vom Unterricht
+          für die Dauer der Trainingswochen und Wettbewerben zu fragen.
+        </p>
       </b-message>
 
       <b-field grouped group-multiline class="mb-5">
