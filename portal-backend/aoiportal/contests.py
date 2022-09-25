@@ -40,7 +40,7 @@ def list_contests():
         joined = part is not None
         can_join = False
         if not joined:
-            can_join = contest.open_signup
+            can_join = contest.open_signup or get_current_user().is_admin
         if not joined and not can_join:
             continue
 
@@ -50,7 +50,7 @@ def list_contests():
             "teaser": contest.teaser,
             "description": contest.description,
             "joined": joined,
-            "open_signup": contest.open_signup,
+            "open_signup": contest.open_signup or get_current_user().is_admin,
             "quali_round": contest.quali_round,
             "order_priority": contest.order_priority,
             "archived": contest.archived,
@@ -90,7 +90,7 @@ def get_contest(contest_uuid: str):
     joined = part is not None
     can_join = False
     if not joined:
-        can_join = contest.open_signup
+        can_join = contest.open_signup or current_user.is_admin
     if not joined and not can_join:
         raise AOINotFound("Contest not found")
 
@@ -99,7 +99,7 @@ def get_contest(contest_uuid: str):
         "teaser": contest.teaser,
         "description": contest.description,
         "joined": joined,
-        "open_signup": contest.open_signup,
+        "open_signup": contest.open_signup or current_user.is_admin,
         "quali_round": contest.quali_round,
         "order_priority": contest.order_priority,
         "archived": contest.archived,
@@ -123,7 +123,11 @@ def get_contest(contest_uuid: str):
 @json_api()
 def join_contest(contest_uuid: str):
     contest = Contest.query.filter_by(uuid=contest_uuid).first()
-    can_join = contest is not None and contest.open_signup and not contest.deleted
+    can_join = (
+        contest is not None 
+        and (contest.open_signup or get_current_user().is_admin) 
+        and not contest.deleted
+    )
     if not can_join:
         raise AOINotFound("Contest not found")
 
