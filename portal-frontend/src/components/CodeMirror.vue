@@ -91,6 +91,12 @@ const italicTheme = EditorView.baseTheme({
   ".cm-italic": { fontStyle: "italic" },
 });
 
+const fontTheme = EditorView.theme({
+  ".cm-scroller": {
+    fontFamily: "'Fira Code', monospace",
+  },
+});
+
 function italicAll(view: EditorView) {
   addItalic.of;
   let effects: StateEffect<unknown>[] = [
@@ -156,8 +162,12 @@ export default class CodeMirror extends Vue {
       dropCursor(),
       EditorState.allowMultipleSelections.of(true),
       indentOnInput(),
-      syntaxHighlighting(this.darkTheme ? oneDarkHighlightStyle : defaultHighlightStyle, { fallback: true }),
+      syntaxHighlighting(
+        this.darkTheme ? oneDarkHighlightStyle : defaultHighlightStyle,
+        { fallback: true }
+      ),
       this.darkTheme ? oneDark : undefined,
+      fontTheme,
       bracketMatching(),
       closeBrackets(),
       autocompletion(),

@@ -1,4 +1,7 @@
 // Import Bulma's core
+$family-sans-serif: "Arimo", sans-serif;
+$family-monospace: "Fira Code", monospace;
+
 @import "~bulma/sass/utilities/_all";
 
 // Set your colors
@@ -83,3 +86,4 @@ $link-focus-border: $primary;
 // Import Bulma and Buefy styles
 @import "~bulma";
 @import "~buefy/src/scss/buefy";
+@import "./fonts.scss";

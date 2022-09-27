@@ -138,10 +138,10 @@
           </b-dropdown>
         </template>
       </div>
+    </div>
 
-      <div class="content" v-if="statement_html !== null">
-        <div v-html="statement_html" />
-      </div>
+    <div class="block" v-if="statement_html !== null">
+      <div class="content" v-html="statement_html" />
     </div>
 
     <div class="block" v-if="task.attachments.length">

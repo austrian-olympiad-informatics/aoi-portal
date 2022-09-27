@@ -90,9 +90,11 @@ export default class Navbar extends Vue {
 }
 .aoi-logo-text {
   padding-left: 0.5rem;
-  font-size: 1.35rem !important;
-  font-weight: 420;
+  font-size: 1.75rem !important;
+  font-weight: 600 !important;
+  font-family: "Arimo", sans-serif;
 }
+
 .navbar.navbar-big {
   padding: 1.5rem 1rem;
   font-size: 1.125rem;
@@ -102,15 +104,20 @@ export default class Navbar extends Vue {
   width: 48px;
   height: 48px;
 }
-.navbar-big .aoi-logo-text {
-  padding-left: 0.5rem;
-  font-size: 1.5rem !important;
-  font-weight: 420;
-}
 .navbar-container {
   border-bottom: 2px solid #f5f5f5;
 }
 .navbar {
   min-height: initial !important;
+}
+</style>
+
+<style>
+
+.navbar-burger {
+  margin-top: 0.5rem;
+  margin-right: 0.75rem;
+  margin-bottom: 0.5rem;
+  margin-left: auto;
 }
 </style>
