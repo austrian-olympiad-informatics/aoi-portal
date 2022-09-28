@@ -1,10 +1,5 @@
 <template>
-  <b-navbar
-    shadow
-    :class="{
-      'navbar-big': !isNavbarSmall,
-    }"
-  >
+  <b-navbar shadow>
     <template #brand>
       <b-navbar-item tag="router-link" :to="{ path: '/' }">
         <img
@@ -40,13 +35,22 @@
 
       <b-navbar-dropdown v-if="isAuthenticated">
         <template slot="label">
-          <b-icon class="ml-1 mr-2" icon="account-circle" /> {{ name }}
+          <span class="icon-text ml-1">
+            <b-icon class="mr-2" icon="account-circle" />
+            <span>{{ name }}</span>
+          </span>
         </template>
         <b-navbar-item tag="router-link" :to="{ name: 'Profile' }">
-          <b-icon class="mr-2" icon="account" /> Profil
+          <span class="icon-text">
+            <b-icon class="mr-2" icon="account" />
+            <span>Profil</span>
+          </span>
         </b-navbar-item>
         <b-navbar-item @click="logout">
-          <b-icon class="mr-2" icon="logout" /> Abmelden
+          <span class="icon-text">
+            <b-icon class="mr-2" icon="logout" />
+            <span>Abmelden</span>
+          </span>
         </b-navbar-item>
       </b-navbar-dropdown>
     </template>
@@ -79,14 +83,10 @@ export default class Navbar extends Vue {
 </script>
 
 <style scoped>
-.aoi-logo-container {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-}
 .aoi-logo {
-  max-height: 36px !important;
-  width: 36px;
-  height: 36px;
+  max-height: 48px !important;
+  width: 48px;
+  height: 48px;
 }
 .aoi-logo-text {
   padding-left: 0.5rem;
@@ -94,30 +94,24 @@ export default class Navbar extends Vue {
   font-weight: 600 !important;
   font-family: "Arimo", sans-serif;
 }
-
-.navbar.navbar-big {
-  padding: 1.5rem 1rem;
-  font-size: 1.125rem;
-}
-.navbar-big .aoi-logo {
-  max-height: 48px !important;
-  width: 48px;
-  height: 48px;
-}
 .navbar-container {
   border-bottom: 2px solid #f5f5f5;
 }
 .navbar {
+  font-size: 1.125rem;
   min-height: initial !important;
+}
+@media screen and (max-width: 768px) {
+  .aoi-logo-text {
+    font-size: 1.35rem !important;
+  }
 }
 </style>
 
 <style>
-
 .navbar-burger {
-  margin-top: 0.5rem;
-  margin-right: 0.75rem;
-  margin-bottom: 0.5rem;
-  margin-left: auto;
+  margin-top: 0.5rem !important;
+  margin-right: 0.75rem !important;
+  margin-left: auto !important;
 }
 </style>
