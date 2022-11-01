@@ -157,7 +157,11 @@ export default class UserForm extends Vue {
     return new Date(this.data.birthday);
   }
   set birthday(date: Date | null) {
-    this.data.birthday = date ? date!.toISOString().slice(0, 10) : null;
+    if (this.birthday === null) {
+      this.data.birthday = null;
+      return;
+    }
+    this.data.birthday = `${this.birthday.getFullYear()}-${this.birthday.getMonth()+1}-${this.birthday.getDate()}`;
   }
 
   get filteredGroups(): AdminGroup[] {

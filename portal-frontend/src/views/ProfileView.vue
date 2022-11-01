@@ -137,10 +137,14 @@ export default class ProfileView extends Vue {
   }
 
   async submit() {
+    let bstring = null;
+    if (this.birthday !== null) {
+      bstring = `${this.birthday.getFullYear()}-${this.birthday.getMonth()+1}-${this.birthday.getDate()}`;
+    }
     await profile.updateProfile({
       first_name: this.firstName,
       last_name: this.lastName,
-      birthday: this.birthday ? this.birthday.toISOString().slice(0, 10) : null,
+      birthday: bstring,
       phone_nr: this.phoneNr || null,
       address_street: this.addressStreet || null,
       address_zip: this.addressZip || null,
