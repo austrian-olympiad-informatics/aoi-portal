@@ -59,7 +59,7 @@
             <div class="level-left">
               <div class="level-item">
                 <p class="subtitle is-5">
-                  <strong>{{ submissions.length }}</strong> submissions
+                  <strong>{{ total }}</strong> submissions
                 </p>
               </div>
             </div>
