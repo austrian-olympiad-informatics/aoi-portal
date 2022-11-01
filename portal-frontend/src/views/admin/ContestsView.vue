@@ -43,7 +43,7 @@
                 </span>
               </li>
               <li>
-                <span class="icon-text" v-if="contest.public">
+                <span class="icon-text" v-if="contest.open_signup">
                   <b-icon icon="earth" />&nbsp;Public
                 </span>
                 <span class="icon-text" v-else>
