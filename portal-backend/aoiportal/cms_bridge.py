@@ -157,6 +157,8 @@ def get_contest_ranking(contest_id: int) -> RankingResult:
         .join(CMSSubmission.participation)
         .join(CMSParticipation.user)
         .filter(CMSTask.contest_id == contest_id)
+        .filter(CMSParticipation.hidden == False)
+        .filter(CMSParticipation.contest_id == contest_id)
         .filter(CMSSubmissionResult.dataset_id == CMSTask.active_dataset_id)
         .filter(CMSSubmission.official)
         .all()

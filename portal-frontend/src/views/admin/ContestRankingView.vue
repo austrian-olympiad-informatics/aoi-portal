@@ -17,7 +17,6 @@
         default-sort-direction="desc"
         hoverable
         sticky-header
-        scrollable
       >
         <b-table-column label="User" v-slot="props" sticky>
           <router-link
@@ -69,9 +68,9 @@ interface TableRow {
   part_id: number;
   part_cmsid: number;
   task_scores: {
-    [key: string]: number | null;
-  } | null;
-  total_score: number | null;
+    [key: string]: number;
+  };
+  total_score: number;
 }
 
 @Component({
@@ -99,7 +98,14 @@ export default class ContestView extends Vue {
     const uidToRanking = new Map(
       this.ranking.ranking.map((r) => [r.user_id, r])
     );
+    const taskScores = this.ranking.tasks.reduce((acc, v) => {
+      return {...acc, [v]: 0.0};
+    }, {});
     return this.contest.participations.map((p) => {
+      const v = uidToRanking.get(p.user.id);
+      const taskScores = this.ranking!.tasks.reduce((acc, k) => {
+        return {...acc, [k]: v?.task_scores[k] || 0.0};
+      }, {});
       return {
         user_id: p.user.id,
         user_username: p.user.username,
@@ -107,8 +113,8 @@ export default class ContestView extends Vue {
         user_last_name: p.user.last_name,
         part_id: p.id,
         part_cmsid: p.cms_id,
-        task_scores: uidToRanking.get(p.user.id)?.task_scores || null,
-        total_score: uidToRanking.get(p.user.id)?.total_score || null,
+        task_scores: taskScores,
+        total_score: v?.total_score || 0.0,
       };
     });
   }
