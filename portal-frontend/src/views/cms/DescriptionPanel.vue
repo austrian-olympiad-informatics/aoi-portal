@@ -141,7 +141,7 @@
     </div>
 
     <div class="block" v-if="statement_html !== null">
-      <div class="content" v-html="statement_html" />
+      <div class="content" ref="statementHtml" v-html="statement_html" />
     </div>
 
     <div class="block" v-if="task.attachments.length">
@@ -199,6 +199,7 @@ import { PropType } from "vue";
 import { downloadBlob } from "@/util/download";
 import PointsBar from "./PointsBar.vue";
 import NotificationsSection from "./NotificationsSection.vue";
+import katex from 'katex';
 
 @Component({
   components: {
@@ -262,6 +263,20 @@ export default class DescriptionPanel extends Vue {
     this.scheduleCheckSubmissions(1000);
     if (this.task.statement_html_digest !== null) {
       this.statement_html = await (await cms.getStatementHTML(this.contestName!, this.taskName!, this.task.statement_html_digest)).text();
+      this.$nextTick(() => {
+        const root = this.$refs.statementHtml as Element;
+        const mathElems = root.querySelectorAll(".math");
+        const macros = {};
+        mathElems.forEach((elem) => {
+          const displayMode = elem.classList.contains("display");
+          const text = elem.textContent;
+          katex.render(text, elem, {
+              throwOnError: false,
+              displayMode: displayMode,
+              macros
+          });
+        })
+      });
     }
   }
 
@@ -403,4 +418,8 @@ tr.is-active {
 .submission-list-leave-active {
   position: absolute;
 }
+</style>
+
+<style scoped lang="scss">
+@import "~katex/dist/katex.min.css";
 </style>
