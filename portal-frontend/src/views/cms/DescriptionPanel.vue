@@ -423,3 +423,10 @@ tr.is-active {
 <style scoped lang="scss">
 @import "~katex/dist/katex.min.css";
 </style>
+
+<style scoped>
+.content >>> figure {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+</style>
