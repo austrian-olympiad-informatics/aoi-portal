@@ -119,6 +119,7 @@ export interface AdminSubmissionBase {
   participation: AdminParticipationShort;
   task: AdminTaskShort;
   contest: AdminContestShort;
+  comment: string;
 }
 
 export interface AdminSubmissionShort extends AdminSubmissionBase {

@@ -81,6 +81,15 @@
                 </td>
                 <td>{{ submission.official ? "Yes" : "No" }}</td>
               </tr>
+              <tr v-if="submission.comment">
+                <td class="pr-5">
+                  <span class="icon-text">
+                    <b-icon icon="pencil" />
+                    <span><b>Comment</b></span>
+                  </span>
+                </td>
+                <td>{{ submission.comment }}</td>
+              </tr>
             </tbody>
           </table>
         </div>

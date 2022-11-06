@@ -200,6 +200,7 @@ def dump_submission(
         "timestamp": as_utc(sub.timestamp).isoformat(),
         "language": sub.language,
         "official": sub.official,
+        "comment": sub.comment,
     }
 
     base["participation"] = _dump_participation_short(sub.participation)
