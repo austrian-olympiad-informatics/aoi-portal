@@ -96,7 +96,7 @@ def _conv_user(user: User) -> dict:
 @admin_required
 @json_api()
 def get_users():
-    q = db.session.query(User).options(joinedload(User.groups))
+    q = db.session.query(User).order_by(User.created_at.asc()).options(joinedload(User.groups))
     return [_conv_user(u) for u in q]
 
 
