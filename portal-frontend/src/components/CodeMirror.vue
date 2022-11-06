@@ -27,6 +27,7 @@ import { indentWithTab } from "@codemirror/commands";
 import {
   syntaxHighlighting,
   defaultHighlightStyle,
+  indentUnit,
 } from "@codemirror/language";
 import { javascript } from "@codemirror/lang-javascript";
 import { cpp } from "@codemirror/lang-cpp";
@@ -177,6 +178,8 @@ export default class CodeMirror extends Vue {
       highlightSelectionMatches(),
       this.readonly ? EditorState.readOnly.of(this.readonly) : undefined,
       this.editable ? EditorView.editable.of(this.editable) : undefined,
+      this.lang === Language.Python ? EditorState.tabSize.of(4) : undefined,
+      this.lang === Language.Python ? indentUnit.of("    ") : undefined,
       keymap.of([
         ...closeBracketsKeymap,
         ...defaultKeymap,
