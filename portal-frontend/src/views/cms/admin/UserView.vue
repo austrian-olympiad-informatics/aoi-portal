@@ -16,7 +16,7 @@
       <h1 class="title is-2">Admin - User {{ fullName }}</h1>
       <div class="block" v-if="submissions !== null">
         <h2 class="title is-4">Submissions</h2>
-        <router-link :to="{ name: 'CMSAdminSubmissions', query: { task_id: taskId } }">
+        <router-link :to="{ name: 'CMSAdminSubmissions', query: { user_id: userId } }">
           {{ submissions.total }} submissions
         </router-link>
       </div>
