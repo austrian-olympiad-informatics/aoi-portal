@@ -331,3 +331,84 @@ export interface AdminMeme {
   task: AdminTaskShort | null;
 }
 export type AdminMemes = AdminMeme[];
+
+export interface AdminUserEvalResultCompilingShort {
+  status: "compiling";
+}
+export interface AdminUserEvalResultCompilationFailedShort {
+  status: "compilation_failed";
+}
+export interface AdminUserEvalResultEvaluatingShort {
+  status: "evaluating";
+}
+export interface AdminUserEvalResultEvaluatedShort {
+  status: "evaluated";
+}
+export type AdminUserEvalResultShort =
+  | AdminUserEvalResultCompilingShort
+  | AdminUserEvalResultCompilationFailedShort
+  | AdminUserEvalResultEvaluatingShort
+  | AdminUserEvalResultEvaluatedShort;
+
+export interface AdminUserEvalBase {
+  id: number;
+  uuid: string;
+  timestamp: string;
+  language: string;
+  participation: AdminParticipationShort;
+  contest: AdminContestShort;
+  task: AdminTaskShort;
+}
+export interface AdminUserEvalShort extends AdminUserEvalBase {
+  result: AdminUserEvalResultShort;
+}
+export type AdminUserEvalsPaginated = PaginatedResult<AdminUserEvalShort>;
+
+export interface AdminUserEvalResultCompilingDetailed {
+  status: "compiling";
+}
+export interface AdminUserEvalResultWithCompilation {
+  compilation_text: string;
+  compilation_stdout: string;
+  compilation_stderr: string;
+  compilation_time: number;
+  compilation_wall_clock_time: number;
+  compilation_memory: number;
+  compilation_tries: number;
+  compilation_shard: number;
+  compilation_sandbox: string;
+  executables: AdminExecutable[];
+}
+export interface AdminUserEvalResultCompilationFailedDetailed
+  extends AdminUserEvalResultWithCompilation {
+  status: "compilation_failed";
+}
+export interface AdminUserEvalResultEvaluatingDetailed
+  extends AdminUserEvalResultWithCompilation {
+  status: "evaluating";
+}
+export interface AdminUserEvalResultEvaluatedDetailed
+  extends AdminUserEvalResultWithCompilation {
+  status: "evaluated";
+  evaluation_tries: number;
+  execution_time: number;
+  execution_wall_clock_time: number;
+  execution_memory: number;
+  evaluation_shard: number;
+  evaluation_sandbox: string;
+  output_digest: string;
+}
+export type AdminUserEvalResultDetailed =
+  | AdminUserEvalResultCompilingDetailed
+  | AdminUserEvalResultCompilationFailedDetailed
+  | AdminUserEvalResultEvaluatingDetailed
+  | AdminUserEvalResultEvaluatedDetailed;
+
+export interface AdminUserEvalDetailed extends AdminUserEvalBase {
+  input_digest: string;
+  result: AdminUserEvalResultDetailed;
+  files: {
+    filename: string;
+    digest: string;
+  }[];
+}

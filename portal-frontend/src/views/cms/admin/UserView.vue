@@ -20,6 +20,12 @@
           {{ submissions.total }} submissions
         </router-link>
       </div>
+      <div class="block" v-if="userEvals !== null">
+        <h2 class="title is-4">User Evals</h2>
+        <router-link :to="{ name: 'CMSAdminUserEvals', query: { user_id: userId } }">
+          {{ userEvals.total }} user evals
+        </router-link>
+      </div>
       <div class="block">
         <h2 class="title is-4">Info</h2>
         <ul>
@@ -47,7 +53,7 @@
 
 <script lang="ts">
 import cmsadmin from "@/services/cmsadmin";
-import { AdminUser, AdminContestParticipations, AdminSubmissionsPaginated } from "@/types/cmsadmin";
+import { AdminUser, AdminContestParticipations, AdminSubmissionsPaginated, AdminUserEvalsPaginated } from "@/types/cmsadmin";
 import { formatDateShort } from "@/util/dt";
 import { Component, Vue } from "vue-property-decorator";
 
@@ -58,6 +64,7 @@ export default class AdminUserView extends Vue {
   }
   user: AdminUser | null = null;
   submissions: AdminSubmissionsPaginated | null = null;
+  userEvals: AdminUserEvalsPaginated | null = null;
 
   get fullName() {
     if (this.user === null) return null;
@@ -73,8 +80,14 @@ export default class AdminUserView extends Vue {
       perPage: 0,
     });
   }
+  async loadUserEvals() {
+    this.userEvals = await cmsadmin.getUserEvals({
+      userId: this.userId,
+      perPage: 0,
+    });
+  }
   async mounted() {
-    await Promise.all([this.loadUser(), this.loadSubmissions()]);
+    await Promise.all([this.loadUser(), this.loadSubmissions(), this.loadUserEvals()]);
   }
 }
 </script>

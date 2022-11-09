@@ -25,6 +25,17 @@
           {{ submissions.total }} submissions
         </router-link>
       </div>
+      <div class="block" v-if="userEvals !== null">
+        <h2 class="title is-4">User Evals</h2>
+        <router-link
+          :to="{
+            name: 'CMSAdminUserEvals',
+            query: { contest_id: contestId },
+          }"
+        >
+          {{ userEvals.total }} user evals
+        </router-link>
+      </div>
       <div class="block">
         <h2 class="title is-4">Settings</h2>
         <ul>
@@ -86,6 +97,7 @@ import {
   AdminContest,
   AdminContestParticipations,
   AdminSubmissionsPaginated,
+  AdminUserEvalsPaginated,
 } from "@/types/cmsadmin";
 import { formatDateShort } from "@/util/dt";
 import { Component, Vue } from "vue-property-decorator";
@@ -98,6 +110,7 @@ export default class AdminContestView extends Vue {
   contest: AdminContest | null = null;
   participations: AdminContestParticipations | null = null;
   submissions: AdminSubmissionsPaginated | null = null;
+  userEvals: AdminUserEvalsPaginated | null = null;
 
   async loadContest() {
     this.contest = await cmsadmin.getContest(this.contestId);
@@ -113,11 +126,18 @@ export default class AdminContestView extends Vue {
       perPage: 0,
     });
   }
+  async loadUserEvals() {
+    this.userEvals = await cmsadmin.getUserEvals({
+      contestId: this.contestId,
+      perPage: 0,
+    });
+  }
   async mounted() {
     await Promise.all([
       this.loadContest(),
       this.loadParticipations(),
       this.loadSubmissions(),
+      this.loadUserEvals(),
     ]);
   }
   formatDate(date: string) {

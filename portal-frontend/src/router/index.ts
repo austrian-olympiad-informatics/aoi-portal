@@ -325,6 +325,23 @@ const routes: Array<RouteConfig> = [
     ]
   },
   {
+    path: "/cms/admin/user-evals",
+    name: "CMSAdminUserEvals",
+    component: () =>
+      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/UserEvalsView.vue"),
+    meta: CMS_META,
+    children: [
+      {
+        path: "user-eval/:userEvalUuid",
+        name: "CMSAdminUserEval",
+        component: () =>
+          import(
+            /* webpackChunkName: "cmsadmin" */ "../views/cms/admin/UserEvalDetailsPanel.vue"
+          ),
+      }
+    ]
+  },
+  {
     path: "/cms/admin",
     name: "CMSAdminIndex",
     component: () =>

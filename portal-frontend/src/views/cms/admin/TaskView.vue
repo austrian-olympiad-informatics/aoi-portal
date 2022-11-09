@@ -34,6 +34,14 @@
           {{ submissions.total }} submissions
         </router-link>
       </div>
+      <div class="block" v-if="userEvals !== null">
+        <h2 class="title is-4">User Evals</h2>
+        <router-link
+          :to="{ name: 'CMSAdminUserEvals', query: { task_id: taskId } }"
+        >
+          {{ userEvals.total }} user evals
+        </router-link>
+      </div>
       <div class="block">
         <h2 class="title is-4">Settings</h2>
         <ul>
@@ -65,7 +73,15 @@
             Memory Limit:
             {{ (dataset.memory_limit / 1024 / 1024).toFixed(1) }} MiB
           </li>
-          <li>Time Limit: {{ dataset.time_limit == null ? 'None' : dataset.time_limit.toFixed(1) }} s</li>
+          <li>
+            Time Limit:
+            {{
+              dataset.time_limit == null
+                ? "None"
+                : dataset.time_limit.toFixed(1)
+            }}
+            s
+          </li>
         </ul>
       </div>
       <div class="block content">
@@ -163,7 +179,10 @@
           <template #detail="props">
             <tr class="detail">
               <td colspan="3" class="testcase-td">
-                <div class="testcase-wrapper" :key="`tc${props.row.id}-${testcaseKey}`">
+                <div
+                  class="testcase-wrapper"
+                  :key="`tc${props.row.id}-${testcaseKey}`"
+                >
                   <div class="testcase testcase-input">
                     <b-button
                       type="is-link is-light"
@@ -187,7 +206,9 @@
                     <CodeMirror
                       :editable="false"
                       :readonly="true"
-                      :value="testcaseDigests.get(props.row.output_digest) || ''"
+                      :value="
+                        testcaseDigests.get(props.row.output_digest) || ''
+                      "
                     />
                   </div>
                 </div>
@@ -211,6 +232,7 @@ import {
   AdminTaskDetailed,
   AdminTestcase,
   AdminTestManager,
+  AdminUserEvalsPaginated,
 } from "@/types/cmsadmin";
 import { downloadBlob } from "@/util/download";
 import { formatDateShort } from "@/util/dt";
@@ -228,6 +250,7 @@ export default class AdminTaskView extends Vue {
   }
   task: AdminTaskDetailed | null = null;
   submissions: AdminSubmissionsPaginated | null = null;
+  userEvals: AdminUserEvalsPaginated | null = null;
 
   get dataset() {
     return this.task === null ? null : this.task.active_dataset;
@@ -242,8 +265,18 @@ export default class AdminTaskView extends Vue {
       perPage: 0,
     });
   }
+  async loadUserEvals() {
+    this.userEvals = await cmsadmin.getUserEvals({
+      taskId: this.taskId,
+      perPage: 0,
+    });
+  }
   async mounted() {
-    await Promise.all([this.loadTask(), this.loadSubmissions()]);
+    await Promise.all([
+      this.loadTask(),
+      this.loadSubmissions(),
+      this.loadUserEvals(),
+    ]);
   }
   formatDate(date: string) {
     return formatDateShort(new Date(), new Date(date));

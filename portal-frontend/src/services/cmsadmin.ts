@@ -14,6 +14,8 @@ import {
   AdminSubmissionsPaginated,
   AdminTaskDetailed,
   AdminUser,
+  AdminUserEvalDetailed,
+  AdminUserEvalsPaginated,
   AdminUsers,
 } from "@/types/cmsadmin";
 import http from "./common";
@@ -113,11 +115,39 @@ class CMSAdminService {
     });
     return resp.data;
   }
+  async getUserEvals(
+    args?: {
+      contestId?: number;
+      taskId?: number;
+      userId?: number;
+      perPage?: number;
+      page?: number;
+    }
+  ): Promise<AdminUserEvalsPaginated> {
+    const resp = await http.get("/api/cms/admin/user-evals", {
+      params: {
+        contest_id: args?.contestId,
+        task_id: args?.taskId,
+        user_id: args?.userId,
+        per_page: args?.perPage,
+        page: args?.page,
+      }
+    });
+    return resp.data;
+  }
   async getSubmission(
     submissionUuid: string
   ): Promise<AdminSubmissionDetailed> {
     const resp = await http.get(
       `/api/cms/admin/submission/${encodeURIComponent(submissionUuid)}`
+    );
+    return resp.data;
+  }
+  async getUserEval(
+    userEvalUuid: string
+  ): Promise<AdminUserEvalDetailed> {
+    const resp = await http.get(
+      `/api/cms/admin/user-eval/${encodeURIComponent(userEvalUuid)}`
     );
     return resp.data;
   }

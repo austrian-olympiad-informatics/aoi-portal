@@ -1,14 +1,14 @@
 <template>
-  <div class="wrap" :class="[selectedSub !== null ? 'has-selection' : undefined]">
+  <div class="wrap" :class="[selectedUserEval !== null ? 'has-selection' : undefined]">
     <div class="left-column">
       <div class="left-wrap">
-        <h1 class="title is-3">Einsendungen</h1>
+        <h1 class="title is-3">User Evals</h1>
         <b-breadcrumb align="is-left" size="is-left">
           <b-breadcrumb-item tag="router-link" :to="{ name: 'CMSAdminIndex' }">
             Admin Panel
           </b-breadcrumb-item>
           <b-breadcrumb-item tag="router-link" :to="$route.fullPath" active>
-            Submissions
+            User Evals
           </b-breadcrumb-item>
         </b-breadcrumb>
 
@@ -21,7 +21,7 @@
                 v-model="filterByContestId"
                 :value-func="(c) => c.id"
                 :formatter="(c) => c.description"
-                @input="reloadSubmissions"
+                @input="reloadUserEvals"
               />
             </b-field>
             <b-field label="Filter by Task">
@@ -36,7 +36,7 @@
                       t.contest ? t.contest.description : 'No Contest'
                     })`
                 "
-                @input="reloadSubmissions"
+                @input="reloadUserEvals"
               />
             </b-field>
             <b-field label="Filter by User">
@@ -48,7 +48,7 @@
                 :formatter="
                   (u) => `${u.first_name} ${u.last_name} (${u.username})`
                 "
-                @input="reloadSubmissions"
+                @input="reloadUserEvals"
               />
             </b-field>
           </form>
@@ -59,7 +59,7 @@
             <div class="level-left">
               <div class="level-item">
                 <p class="subtitle is-5">
-                  <strong>{{ total }}</strong> submissions
+                  <strong>{{ total }}</strong> user evals
                 </p>
               </div>
             </div>
@@ -68,7 +68,7 @@
               <div class="level-item">
                 <b-button
                   icon-left="reload"
-                  @click="reloadSubmissions"
+                  @click="reloadUserEvals"
                 >
                   Reload
                 </b-button>
@@ -76,7 +76,7 @@
             </div>
           </nav>
           <b-table
-            :data="submissions"
+            :data="userEvals"
             :loading="loading"
             paginated
             backend-pagination
@@ -84,7 +84,7 @@
             :per-page="perPage"
             @page-change="onPageChange"
             narrowed
-            :selected="selectedSub"
+            :selected="selectedUserEval"
             @click="onRowClick"
             focusable
             scrollable
@@ -151,13 +151,8 @@
               </router-link>
             </b-table-column>
             <b-table-column label="Punktzahl" v-slot="props" centered>
-              <template v-if="props.row.result.status === 'scored'">
-                <PointsBar
-                  :subtasks="props.row.result.subtasks"
-                  :score="props.row.result.score"
-                  :max-score="props.row.max_score"
-                  :score-precision="props.row.result.score_precision"
-                />
+              <template v-if="props.row.result.status === 'evaluated'">
+                <i>Ausgewertet</i>
               </template>
               <template
                 v-else-if="props.row.result.status === 'compilation_failed'"
@@ -169,7 +164,6 @@
                   {
                     compiling: "Kompilierung...",
                     evaluating: "Auswertung...",
-                    scoring: "Bewertung...",
                   }[props.row.result.status]
                 }}</i>
                 <span class="sub-loading"></span>
@@ -188,28 +182,26 @@
 <script lang="ts">
 import cmsadmin from "@/services/cmsadmin";
 import {
-  AdminSubmissionsPaginated,
   AdminParticipationShort,
-  AdminSubmissionShort,
   AdminContests,
   AdminUsers,
   AdminAllTasks,
+  AdminUserEvalsPaginated,
+  AdminUserEvalShort,
 } from "@/types/cmsadmin";
 import { formatDateShort } from "@/util/dt";
 import { Component, Vue, Watch } from "vue-property-decorator";
-import PointsBar from "../PointsBar.vue";
 import SimpleAutoselect from "./SimpleAutoselect.vue";
 
 @Component({
   components: {
-    PointsBar,
     SimpleAutoselect,
   },
 })
-export default class AdminSubmissionsView extends Vue {
-  data: AdminSubmissionsPaginated | null = null;
+export default class AdminUserEvalsView extends Vue {
+  data: AdminUserEvalsPaginated | null = null;
   loading = true;
-  get submissions(): AdminSubmissionShort[] {
+  get userEvals(): AdminUserEvalShort[] {
     return this.data === null ? [] : this.data.items;
   }
   get total(): number | null {
@@ -228,11 +220,11 @@ export default class AdminSubmissionsView extends Vue {
 
   async onPageChange(idx: number) {
     this.page = idx;
-    await this.reloadSubmissions();
+    await this.reloadUserEvals();
   }
 
-  async loadSubmissions() {
-    this.data = await cmsadmin.getSubmissions({
+  async loadUserEvals() {
+    this.data = await cmsadmin.getUserEvals({
       page: this.page,
       perPage: this.perPage,
       contestId:
@@ -241,7 +233,7 @@ export default class AdminSubmissionsView extends Vue {
       userId: this.filterByUserId === null ? undefined : this.filterByUserId,
     });
   }
-  async reloadSubmissions() {
+  async reloadUserEvals() {
     this.$router.push({
       path: this.$route.path,
       query: {
@@ -253,7 +245,7 @@ export default class AdminSubmissionsView extends Vue {
       },
     });
     this.loading = true;
-    await this.loadSubmissions();
+    await this.loadUserEvals();
     this.loading = false;
   }
   async loadContests() {
@@ -289,13 +281,13 @@ export default class AdminSubmissionsView extends Vue {
       this.filterByTaskId = +this.$route.query.task_id;
     if (this.$route.query.user_id !== undefined)
       this.filterByUserId = +this.$route.query.user_id;
-    if (this.$route.params.submissionUuid !== undefined)
-      this.selectedSub = { uuid: this.$route.params.submissionUuid };
+    if (this.$route.params.userEvalUuid !== undefined)
+      this.selectedUserEval = { uuid: this.$route.params.userEvalUuid };
     this.reloadHandle = setInterval(async () => {
-      await this.loadSubmissions();
+      await this.loadUserEvals();
     }, 15000);
     await Promise.all([
-      this.loadSubmissions(),
+      this.loadUserEvals(),
       this.loadContests(),
       this.loadTasks(),
       this.loadUsers(),
@@ -311,21 +303,21 @@ export default class AdminSubmissionsView extends Vue {
     return formatDateShort(new Date(), date);
   }
 
-  selectedSub: { uuid: string } | null = null;
+  selectedUserEval: { uuid: string } | null = null;
   onRowClick(v: { uuid: string }) {
-    if (this.selectedSub?.uuid === v.uuid) {
-      this.selectedSub = null;
+    if (this.selectedUserEval?.uuid === v.uuid) {
+      this.selectedUserEval = null;
       this.$router.push({
-        name: "CMSAdminSubmissions",
+        name: "CMSAdminUserEvals",
         query: this.$route.query,
       });
       return;
     }
-    this.selectedSub = v;
+    this.selectedUserEval = v;
     this.$router.push({
-      name: "CMSAdminSubmission",
+      name: "CMSAdminUserEval",
       params: {
-        submissionUuid: v.uuid,
+        userEvalUuid: v.uuid,
       },
       query: this.$route.query,
     });
@@ -341,10 +333,10 @@ export default class AdminSubmissionsView extends Vue {
 
   @Watch("$route")
   watchRoute() {
-    if (this.$route.params.submissionUuid !== undefined)
-      this.selectedSub = { uuid: this.$route.params.submissionUuid };
+    if (this.$route.params.userEvalUuid !== undefined)
+      this.selectedUserEval = { uuid: this.$route.params.userEvalUuid };
     else
-      this.selectedSub = null;
+      this.selectedUserEval = null;
   }
 }
 </script>
@@ -401,8 +393,6 @@ export default class AdminSubmissionsView extends Vue {
     width: 100%;
     height: auto;
     flex: initial;
-    /* prevent layout jumping around when selecting a submission */
-    min-height: 80vh;
   }
   .has-selection .left-wrap {
     display: none;

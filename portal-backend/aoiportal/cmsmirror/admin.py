@@ -7,7 +7,7 @@ from werkzeug.local import LocalProxy
 import voluptuous as vol
 
 from aoiportal.auth_util import admin_required, get_current_user
-from aoiportal.cmsmirror.db import Contest, session, Participation, User, Task, Dataset
+from aoiportal.cmsmirror.db import Contest, session, Participation, User, Task, Dataset, UserEval, UserEvalResult, UserEvalFile, UserEvalExecutable
 from aoiportal.cmsmirror.db.contest import Announcement
 from aoiportal.cmsmirror.db.submission import Meme, Submission, SubmissionResult
 from aoiportal.cmsmirror.db.user import Message, Question
@@ -347,6 +347,89 @@ def dump_submission(
     return base
 
 
+def dump_user_eval(
+    eva: UserEval,
+    res: Optional[UserEvalResult],
+    *,
+    detailed: bool = False,
+):
+    base = {
+        "id": eva.id,
+        "uuid": eva.uuid,
+        "timestamp": as_utc(eva.timestamp).isoformat(),
+        "language": eva.language,
+    }
+
+    base["participation"] = _dump_participation_short(eva.participation)
+    base["contest"] = _dump_contest_short(eva.task.contest)
+    base["task"] = _dump_task_short(eva.task)
+
+    if res is None:
+        status = UserEvalResult.COMPILING
+    else:
+        status = res.get_status()
+    res_dct = base["result"] = {
+        "status": {
+            UserEvalResult.COMPILING: "compiling",
+            UserEvalResult.COMPILATION_FAILED: "compilation_failed",
+            UserEvalResult.EVALUATING: "evaluating",
+            UserEvalResult.EVALUATED: "evaluated",
+        }[status],
+    }
+
+    if detailed:
+        base["input_digest"] = eva.input
+        base["files"] = [
+            {
+                "filename": f.filename,
+                "digest": f.digest,
+            }
+            for f in eva.files.values()
+        ]
+
+        if status in [
+            UserEvalResult.COMPILATION_FAILED,
+            UserEvalResult.EVALUATING,
+            UserEvalResult.EVALUATED,
+        ]:
+            res_dct.update(
+                {
+                    "compilation_text": res.compilation_text[0],  # COMPILATION_MESSAGES
+                    "compilation_stdout": res.compilation_stdout,
+                    "compilation_stderr": res.compilation_stderr,
+                    "compilation_time": res.compilation_time,
+                    "compilation_memory": res.compilation_memory,
+                    "compilation_wall_clock_time": res.compilation_wall_clock_time,
+                    "compilation_tries": res.compilation_tries,
+                    "compilation_shard": res.compilation_shard,
+                    "compilation_sandbox": res.compilation_sandbox,
+                    "executables": [
+                        {
+                            "id": exe.id,
+                            "filename": exe.filename,
+                            "digest": exe.digest,
+                        }
+                        for exe in res.executables.values()
+                    ],
+                }
+            )
+
+        if status in [UserEvalResult.EVALUATED]:
+            res_dct.update(
+                {
+                    "evaluation_tries": res.evaluation_tries,
+                    "execution_time": res.execution_time,
+                    "execution_wall_clock_time": res.execution_wall_clock_time,
+                    "execution_memory": res.execution_memory,
+                    "evaluation_shard": res.evaluation_shard,
+                    "evaluation_sandbox": res.evaluation_sandbox,
+                    "output_digest": res.output,
+                }
+            )
+
+    return base
+
+
 def _get_submissions(
     contest_id: Optional[int] = None,
     task_id: Optional[int] = None,
@@ -640,6 +723,122 @@ def get_all_submissions():
     return resp.make_conditional(request)
 
 
+@cmsadmin_bp.route("/api/cms/admin/user-evals")
+@admin_required
+@json_api()
+def get_all_user_evals():
+    contest_id = None
+    if "contest_id" in request.args:
+        try:
+            contest_id = int(request.args["contest_id"])
+        except (ValueError, TypeError):
+            raise AOIBadRequest("Contest id invalid format")
+        contest = session.query(Contest).filter(Contest.id == contest_id).first()
+        if contest is None:
+            raise AOINotFound("Task not found")
+    
+    task_id = None
+    if "task_id" in request.args:
+        try:
+            task_id = int(request.args["task_id"])
+        except (ValueError, TypeError):
+            raise AOIBadRequest("Task id invalid format")
+        task = session.query(Task).filter(Task.id == task_id).first()
+        if task is None:
+            raise AOINotFound("Task not found")
+    
+    user_id = None
+    if "user_id" in request.args:
+        try:
+            user_id = int(request.args["user_id"])
+        except (ValueError, TypeError):
+            raise AOIBadRequest("User id invalid format")
+        user = session.query(User).filter(User.id == user_id).first()
+        if user is None:
+            raise AOINotFound("User not found")
+    
+    q = (
+        session.query(UserEval, UserEvalResult, Participation)
+        .join(UserEval.task)
+        .join(UserEval.participation)
+        .outerjoin(
+            UserEval.results.and_(
+                UserEvalResult.dataset_id == Task.active_dataset_id
+            )
+        )
+        .options(
+            Load(UserEval).load_only(
+                UserEval.id,
+                UserEval.uuid,
+                UserEval.timestamp,
+                UserEval.language,
+            ),
+            Load(UserEvalResult).load_only(
+                UserEvalResult.user_eval_id,
+                UserEvalResult.dataset_id,
+                UserEvalResult.compilation_outcome,
+                UserEvalResult.compilation_outcome,
+                UserEvalResult.evaluation_outcome,
+            ),
+            selectinload(UserEval.task),
+            Load(Task).load_only(
+                Task.id,
+                Task.name,
+                Task.title,
+                Task.score_precision,
+                Task.score_mode,
+            ),
+            Load(Participation).load_only(
+                Participation.id,
+                Participation.user_id,
+            ),
+            selectinload(Participation.contest),
+            Load(Contest).load_only(
+                Contest.id,
+                Contest.name,
+            ),
+            joinedload(Participation.user),
+            Load(User).load_only(
+                User.id,
+                User.first_name,
+                User.last_name,
+                User.username,
+            ),
+        )
+        .order_by(UserEval.timestamp.desc())
+    )
+
+    if contest_id is not None:
+        q = q.filter(Task.contest_id == contest_id)
+
+    if task_id is not None:
+        q = q.filter(Task.id == task_id)
+
+    if user_id is not None:
+        q = q.filter(Participation.user_id == user_id)
+    
+    page = paginate(q)
+    user_evals: List[Tuple[UserEval, Optional[UserEvalResult], Participation]] = page.items
+
+    data = {
+        "page": page.page,
+        "per_page": page.per_page,
+        "total": page.total,
+        "items": [
+            dump_user_eval(
+                eva,
+                res,
+                detailed=False,
+            )
+            for eva, res, _ in user_evals
+        ],
+    }
+
+    resp = jsonify(data)
+    resp.add_etag()
+    return resp.make_conditional(request)
+
+
 @cmsadmin_bp.route("/api/cms/admin/submission/<submission_uuid>")
 @admin_required
 @json_api()
@@ -669,6 +868,37 @@ def get_submission(submission_uuid):
     sub, res = q
     return dump_submission(
         sub,
+        res,
+        detailed=True,
+    )
+
+
+@cmsadmin_bp.route("/api/cms/admin/user-eval/<user_eval_uuid>")
+@admin_required
+@json_api()
+def get_user_eval(user_eval_uuid):
+    q: Optional[Tuple[UserEval, Optional[UserEvalResult]]] = (
+        session.query(UserEval, UserEvalResult)
+        .filter(UserEval.uuid == user_eval_uuid)
+        .join(UserEval.task)
+        .outerjoin(
+            UserEval.results.and_(
+                UserEvalResult.dataset_id == Task.active_dataset_id
+            )
+        )
+        .options(
+            joinedload(UserEval.task),
+            joinedload(UserEval.participation),
+            joinedload(UserEval.files),
+            joinedload(UserEvalResult.executables),
+        )
+        .first()
+    )
+    if q is None:
+        raise AOINotFound("User Eval not found")
+    eva, res = q
+    return dump_user_eval(
+        eva,
         res,
         detailed=True,
     )
