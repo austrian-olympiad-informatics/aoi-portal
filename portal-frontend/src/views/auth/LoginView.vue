@@ -36,7 +36,6 @@
       </span>
       Mit GitHub anmelden
     </router-link>
-    <!--
     <router-link
       class="button is-rounded is-fullwidth mt-2"
       type="button"
@@ -47,7 +46,6 @@
       </span>
       Mit Google anmelden
     </router-link>
-    -->
   </center-box-layout>
 </template>
 
