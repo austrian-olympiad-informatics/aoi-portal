@@ -286,7 +286,10 @@ const routes: Array<RouteConfig> = [
     path: "/cms/contest/:contestName/task/:taskName",
     component: () =>
       import(/* webpackChunkName: "cms" */ "../views/cms/TaskView.vue"),
-    meta: CMS_META,
+    meta: {
+      ...CMS_META,
+      isAdminButtonHidden: true,
+    },
     children: [
       {
         path: "",

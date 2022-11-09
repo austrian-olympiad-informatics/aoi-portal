@@ -46,6 +46,12 @@
             <span>Profil</span>
           </span>
         </b-navbar-item>
+        <b-navbar-item tag="router-link" :to="isCMS ? { name: 'CMSAdminIndex' } : { name: 'AdminContests' }">
+          <span class="icon-text">
+            <b-icon class="mr-2" icon="cog" />
+            <span>Admin</span>
+          </span>
+        </b-navbar-item>
         <b-navbar-item @click="logout">
           <span class="icon-text">
             <b-icon class="mr-2" icon="logout" />
@@ -63,6 +69,12 @@ import { Component, Vue } from "vue-property-decorator";
 
 @Component
 export default class Navbar extends Vue {
+  get isAdmin(): boolean {
+    return this.$store.getters.isAdmin;
+  }
+  get isCMS(): boolean {
+    return this.$route.matched.some((x) => x.meta.isCMS);
+  }
   get isAuthenticated(): boolean {
     return this.$store.getters.isAuthenticated;
   }
