@@ -155,8 +155,8 @@
                 <PointsBar
                   :subtasks="props.row.result.subtasks"
                   :score="props.row.result.score"
-                  :max-score="100"
-                  :score-precision="0"
+                  :max-score="props.row.max_score"
+                  :score-precision="props.row.result.score_precision"
                 />
               </template>
               <template

@@ -120,6 +120,7 @@ export interface AdminSubmissionBase {
   task: AdminTaskShort;
   contest: AdminContestShort;
   comment: string;
+  max_score: number;
 }
 
 export interface AdminSubmissionShort extends AdminSubmissionBase {

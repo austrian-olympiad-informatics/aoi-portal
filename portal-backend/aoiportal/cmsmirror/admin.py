@@ -7,7 +7,7 @@ from werkzeug.local import LocalProxy
 import voluptuous as vol
 
 from aoiportal.auth_util import admin_required, get_current_user
-from aoiportal.cmsmirror.db import Contest, session, Participation, User, Task
+from aoiportal.cmsmirror.db import Contest, session, Participation, User, Task, Dataset
 from aoiportal.cmsmirror.db.contest import Announcement
 from aoiportal.cmsmirror.db.submission import Meme, Submission, SubmissionResult
 from aoiportal.cmsmirror.db.user import Message, Question
@@ -213,6 +213,13 @@ def dump_submission(
     else:
         status = res.get_status()
         meme_digest = res.meme.digest if res.meme is not None else None
+
+        ds = res.dataset
+        if ds.score_type == "Sum":
+            max_score = ds.score_type_parameters * len(ds.testcases)
+        else:
+            max_score = sum(p for p, _ in ds.score_type_parameters)
+        base["max_score"] = max_score
     res_dct = base["result"] = {
         "status": {
             SubmissionResult.COMPILING: "compiling",
@@ -385,6 +392,8 @@ def _get_submissions(
                 Task.score_precision,
                 Task.score_mode,
             ),
+            selectinload(SubmissionResult.dataset),
+            Load(Dataset).load_only(Dataset.score_type_parameters),
             Load(Participation).load_only(
                 Participation.id,
                 Participation.user_id,
