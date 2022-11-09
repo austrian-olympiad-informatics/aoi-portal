@@ -26,7 +26,7 @@ Vue.use(VueRouter);
 const CMS_META = {
   navbarSmall: true,
   footerHidden: true,
-  adminButtonHidden: true,
+  isCMS: true,
 };
 
 const routes: Array<RouteConfig> = [
@@ -237,14 +237,6 @@ const routes: Array<RouteConfig> = [
         component: () =>
           import(
             /* webpackChunkName: "admin" */ "../views/admin/GroupView.vue"
-          ),
-      },
-      {
-        path: "settings",
-        name: "AdminSettings",
-        component: () =>
-          import(
-            /* webpackChunkName: "admin" */ "../views/admin/SettingsView.vue"
           ),
       },
       {

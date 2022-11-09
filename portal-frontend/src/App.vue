@@ -17,7 +17,7 @@
       v-if="isAdmin && !isAdminButtonHidden"
       type="is-danger"
       tag="router-link"
-      :to="{ name: 'AdminIndex' }"
+      :to="isCMS ? { name: 'CMSAdminIndex' } : { name: 'AdminContests' }"
       icon-right="cog"
     >
       Admin
@@ -41,8 +41,8 @@ export default class AppComponent extends Vue {
   get isFooterHidden(): boolean {
     return this.$route.matched.some((x) => x.meta.footerHidden);
   }
-  get isAdminButtonHidden(): boolean {
-    return this.$route.matched.some((x) => x.meta.adminButtonHidden);
+  get isCMS(): boolean {
+    return this.$route.matched.some((x) => x.meta.isCMS);
   }
   async mounted(): Promise<void> {
     await this.$store.dispatch("checkStatus");

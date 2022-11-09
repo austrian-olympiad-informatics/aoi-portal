@@ -5,14 +5,6 @@
         <p class="menu-label">Admin Panel</p>
         <ul class="menu-list">
           <li>
-            <router-link
-              :to="{ name: 'AdminSettings' }"
-              active-class="is-active"
-            >
-              <b-icon icon="cog" size="is-small" />&nbsp; Settings
-            </router-link>
-          </li>
-          <li>
             <router-link :to="{ name: 'AdminUsers' }" active-class="is-active">
               <b-icon icon="account" size="is-small" />&nbsp; Users
             </router-link>
