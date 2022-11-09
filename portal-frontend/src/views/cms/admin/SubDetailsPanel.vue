@@ -81,6 +81,15 @@
                 </td>
                 <td>{{ submission.official ? "Yes" : "No" }}</td>
               </tr>
+              <tr>
+                <td class="pr-5">
+                  <span class="icon-text">
+                    <b-icon icon="web" />
+                    <span><b>Language</b></span>
+                  </span>
+                </td>
+                <td>{{ submission.language }}</td>
+              </tr>
               <tr v-if="submission.comment">
                 <td class="pr-5">
                   <span class="icon-text">
@@ -93,6 +102,25 @@
             </tbody>
           </table>
         </div>
+  
+        <div class="is-relative block codepanel" v-if="files !== null">
+          <div class="is-relative" v-for="(value, fname) in files" :key="fname">
+            <b-button
+              type="is-link is-light"
+              icon-right="download"
+              class="download-button"
+              @click="downloadFile(fname, value)"
+            />
+            <CodeMirror
+              :value="value"
+              :lang="codeLang"
+              :fullheight="false"
+              :editable="false"
+              :readonly="true"
+            />
+          </div>
+        </div>
+
         <div class="block" v-if="submission.result.subtasks">
           <div
             class="mb-3"
@@ -259,24 +287,6 @@
         </div>
       </div>
 
-      <div class="is-relative block" v-if="files !== null">
-        <div class="is-relative" v-for="(value, fname) in files" :key="fname">
-          <b-button
-            type="is-link is-light"
-            icon-right="download"
-            class="download-button"
-            @click="downloadFile(fname, value)"
-          />
-          <CodeMirror
-            :value="value"
-            :lang="codeLang"
-            :fullheight="false"
-            :editable="false"
-            :readonly="true"
-          />
-        </div>
-      </div>
-
       <div
         class="block pt-3 pb-3 pr-3 pl-3"
         v-if="submission.result.evaluations"
@@ -354,17 +364,23 @@ export default class AdminSubmissionDetailsPanel extends Vue {
   files: Record<string, string> | null = null;
   memeUrl: string | null = null;
 
+  async loadMeme() {
+    if (this.submission!.result.meme_digest === null)
+      return;
+    const blob = await cmsadmin.getDigest(this.submission!.result.meme_digest);
+    this.memeUrl = URL.createObjectURL(blob);
+  }
+
   async loadSubmission() {
     this.submission = await cmsadmin.getSubmission(this.submissionUuid);
-    if (this.submission.result.meme_digest !== null) {
-      const blob = await cmsadmin.getDigest(this.submission.result.meme_digest);
-      this.memeUrl = URL.createObjectURL(blob);
-    }
+    await Promise.all([this.loadMeme(), this.loadFiles()]);
   }
   memeUrlLoaded() {
     if (this.memeUrl !== null) URL.revokeObjectURL(this.memeUrl);
   }
   async loadFiles() {
+    if (this.files !== null)
+      return;
     this.files = Object.fromEntries(
       await Promise.all(
         this.submission!.files.map(async (file) => {
@@ -379,7 +395,6 @@ export default class AdminSubmissionDetailsPanel extends Vue {
     this.now = new Date();
     await this.loadSubmission();
     this.scheduleCheckSubmissions(1000);
-    await this.loadFiles();
   }
 
   formatSubDate(date: Date) {
@@ -500,5 +515,9 @@ export default class AdminSubmissionDetailsPanel extends Vue {
   .meme-img {
     width: 300px;
   }
+}
+.codepanel {
+  margin-left: -15px;
+  margin-right: -15px;
 }
 </style>

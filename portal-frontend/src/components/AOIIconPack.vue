@@ -13,7 +13,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { mdiAccount, mdiAccountCircle, mdiAccountGroup, mdiAccountMultiple, mdiAccountPlus, mdiAlert, mdiAlertCircle, mdiArrowDown, mdiArrowLeft, mdiArrowUp, mdiBriefcase, mdiCalendar, mdiCalendarToday, mdiCertificate, mdiCheck, mdiChevronDown, mdiChevronLeft, mdiChevronRight, mdiClose, mdiCloseCircle, mdiCodeBraces, mdiCodeTags, mdiCog, mdiDelete, mdiDownload, mdiEarth, mdiEmail, mdiEmailNewsletter, mdiEye, mdiEyeOff, mdiFormatBold, mdiFormatItalic, mdiFormatListBulleted, mdiFormatListNumbered, mdiFormatQuoteClose, mdiFormatSize, mdiFormatStrikethrough, mdiFormatUnderline, mdiInformation, mdiLinkVariant, mdiLogin, mdiLogout, mdiMagnify, mdiMedal, mdiMemory, mdiMenuDown, mdiMenuUp, mdiMinus, mdiPencil, mdiPlus, mdiRedo, mdiRefresh, mdiTimerOutline, mdiUndo } from "@mdi/js";
+import { mdiAccount, mdiAccountCircle, mdiAccountGroup, mdiAccountMultiple, mdiAccountPlus, mdiAlert, mdiAlertCircle, mdiArrowDown, mdiArrowLeft, mdiArrowUp, mdiBriefcase, mdiCalendar, mdiCalendarToday, mdiCertificate, mdiCheck, mdiChevronDown, mdiChevronLeft, mdiChevronRight, mdiClose, mdiCloseCircle, mdiCodeBraces, mdiCodeTags, mdiCog, mdiDelete, mdiDownload, mdiEarth, mdiEmail, mdiEmailNewsletter, mdiEye, mdiEyeOff, mdiFormatBold, mdiFormatItalic, mdiFormatListBulleted, mdiFormatListNumbered, mdiFormatQuoteClose, mdiFormatSize, mdiFormatStrikethrough, mdiFormatUnderline, mdiInformation, mdiLinkVariant, mdiLogin, mdiLogout, mdiMagnify, mdiMedal, mdiMemory, mdiMenuDown, mdiMenuUp, mdiMinus, mdiPencil, mdiPlus, mdiRedo, mdiRefresh, mdiReload, mdiTimerOutline, mdiUndo, mdiWeb } from "@mdi/js";
 
 type IconLookupType = {
   [key: string]: string;
@@ -74,6 +74,8 @@ const ICON_LOOKUP: IconLookupType = {
   "briefcase": mdiBriefcase,
   "certificate": mdiCertificate,
   "calendar": mdiCalendar,
+  "reload": mdiReload,
+  "web": mdiWeb,
 };
 
 @Component

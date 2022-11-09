@@ -66,9 +66,12 @@
 
             <div class="level-right">
               <div class="level-item">
-                <b-switch v-model="autoreloadEnabled" @input="autoreloadChanged"
-                  >Auto Reload</b-switch
+                <b-button
+                  icon-left="reload"
+                  @click="reloadSubmissions"
                 >
+                  Reload
+                </b-button>
               </div>
             </div>
           </nav>
@@ -189,9 +192,7 @@ import {
   AdminParticipationShort,
   AdminSubmissionShort,
   AdminContests,
-  AdminContest,
   AdminUsers,
-  AdminUser,
   AdminAllTasks,
 } from "@/types/cmsadmin";
 import { formatDateShort } from "@/util/dt";
@@ -276,18 +277,7 @@ export default class AdminContestSubmissionsView extends Vue {
       u.participations.some((p) => p.contest.id === this.filterByContestId)
     );
   }
-  autoreloadEnabled = false;
   reloadHandle: number | null = null;
-  autoreloadChanged(val: boolean) {
-    if (val) {
-      this.reloadHandle = setInterval(async () => {
-        await this.loadSubmissions();
-      }, 15000);
-    } else if (this.reloadHandle !== null) {
-      clearInterval(this.reloadHandle);
-      this.reloadHandle = null;
-    }
-  }
   destroyed() {
     if (this.reloadHandle !== null) clearInterval(this.reloadHandle);
   }
@@ -301,6 +291,9 @@ export default class AdminContestSubmissionsView extends Vue {
       this.filterByUserId = +this.$route.query.user_id;
     if (this.$route.params.submissionUuid !== undefined)
       this.selectedSub = { uuid: this.$route.params.submissionUuid };
+    this.reloadHandle = setInterval(async () => {
+      await this.loadSubmissions();
+    }, 15000);
     await Promise.all([
       this.loadSubmissions(),
       this.loadContests(),
