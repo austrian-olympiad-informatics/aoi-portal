@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
-from flask import Blueprint, g, request, send_file
+from flask import Blueprint, g, request, send_file, jsonify
 from sqlalchemy.orm import joinedload, Load, selectinload, Query
 from werkzeug.local import LocalProxy
 import voluptuous as vol
@@ -621,11 +621,14 @@ def get_all_submissions():
         if user is None:
             raise AOINotFound("User not found")
     
-    return _get_submissions(
+    data = _get_submissions(
         contest_id=contest_id,
         task_id=task_id,
         user_id=user_id,
     )
+    resp = jsonify(data)
+    resp.add_etag()
+    return resp.make_conditional(request)
 
 
 @cmsadmin_bp.route("/api/cms/admin/submission/<submission_uuid>")
