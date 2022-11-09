@@ -14,7 +14,14 @@
         </b-breadcrumb-item>
       </b-breadcrumb>
       <h1 class="title is-2">Admin - User {{ fullName }}</h1>
+      <div class="block" v-if="submissions !== null">
+        <h2 class="title is-4">Submissions</h2>
+        <router-link :to="{ name: 'CMSAdminSubmissions', query: { task_id: taskId } }">
+          {{ submissions.total }} submissions
+        </router-link>
+      </div>
       <div class="block">
+        <h2 class="title is-4">Info</h2>
         <ul>
           <li>ID: {{ user.id }}</li>
           <li>First name: {{ user.first_name }}</li>
@@ -33,12 +40,6 @@
             </router-link>
           </li>
         </ul>
-      </div>
-      <div class="block" v-if="submissions !== null">
-        <h2 class="title is-4">Submissions</h2>
-        <router-link :to="{ name: 'CMSAdminSubmissions', query: { task_id: taskId } }">
-          {{ submissions.total }} submissions
-        </router-link>
       </div>
     </section>
   </div>

@@ -14,7 +14,7 @@
 
     <b-button
       class="admin-button"
-      v-if="isAdmin && !isAdminButtonHidden"
+      v-if="isAdmin"
       type="is-danger"
       tag="router-link"
       :to="isCMS ? { name: 'CMSAdminIndex' } : { name: 'AdminContests' }"
