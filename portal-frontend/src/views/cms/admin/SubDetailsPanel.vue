@@ -1,11 +1,25 @@
 <template>
-  <div class="wrapper">
+  <div>
+    <div class="sub-head">
+      <span class="icon-text">
+        <router-link
+          :to="{
+            name: 'CMSAdminSubmissions',
+            query: $route.query,
+          }"
+        >
+          <b-icon class="sub-head-back has-text-white" icon="arrow-left" />
+        </router-link>
+        <span>
+          Einsendung&nbsp;
+          <span v-if="submission !== null">
+            {{ formatSubDate(new Date(submission.timestamp)) }}
+          </span>
+        </span>
+      </span>
+    </div>
     <div class="sub-details" v-if="submission !== null">
       <div class="sub-details-inner">
-        <h1 class="title is-3">
-          Einsendung&nbsp;
-          {{ formatSubDate(new Date(submission.timestamp)) }}
-        </h1>
         <div class="block">
           <table>
             <tbody>
@@ -102,24 +116,6 @@
             </tbody>
           </table>
         </div>
-  
-        <div class="is-relative block codepanel" v-if="files !== null">
-          <div class="is-relative" v-for="(value, fname) in files" :key="fname">
-            <b-button
-              type="is-link is-light"
-              icon-right="download"
-              class="download-button"
-              @click="downloadFile(fname, value)"
-            />
-            <CodeMirror
-              :value="value"
-              :lang="codeLang"
-              :fullheight="false"
-              :editable="false"
-              :readonly="true"
-            />
-          </div>
-        </div>
 
         <div class="block" v-if="submission.result.subtasks">
           <div
@@ -186,6 +182,24 @@
                 </b-table>
               </div>
             </b-collapse>
+          </div>
+        </div>
+
+        <div class="is-relative block codepanel" v-if="files !== null">
+          <div class="is-relative" v-for="(value, fname) in files" :key="fname">
+            <b-button
+              type="is-link is-light"
+              icon-right="download"
+              class="download-button"
+              @click="downloadFile(fname, value)"
+            />
+            <CodeMirror
+              :value="value"
+              :lang="codeLang"
+              :fullheight="false"
+              :editable="false"
+              :readonly="true"
+            />
           </div>
         </div>
 
@@ -365,8 +379,7 @@ export default class AdminSubmissionDetailsPanel extends Vue {
   memeUrl: string | null = null;
 
   async loadMeme() {
-    if (this.submission!.result.meme_digest === null)
-      return;
+    if (this.submission!.result.meme_digest === null) return;
     const blob = await cmsadmin.getDigest(this.submission!.result.meme_digest);
     this.memeUrl = URL.createObjectURL(blob);
   }
@@ -379,8 +392,7 @@ export default class AdminSubmissionDetailsPanel extends Vue {
     if (this.memeUrl !== null) URL.revokeObjectURL(this.memeUrl);
   }
   async loadFiles() {
-    if (this.files !== null)
-      return;
+    if (this.files !== null) return;
     this.files = Object.fromEntries(
       await Promise.all(
         this.submission!.files.map(async (file) => {
@@ -465,9 +477,6 @@ export default class AdminSubmissionDetailsPanel extends Vue {
 <style scoped lang="scss">
 @import "~bulma/sass/utilities/mixins";
 
-.sub-details-inner {
-  padding: 16px;
-}
 .sub-loader {
   height: 100%;
   position: relative;

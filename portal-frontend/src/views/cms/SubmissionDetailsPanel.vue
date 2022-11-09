@@ -353,12 +353,6 @@ export default class SubmissionDetailsPanel extends Vue {
 <style scoped lang="scss">
 @import "~bulma/sass/utilities/mixins";
 
-.wrapper {
-  flex-basis: 0;
-  flex-grow: 1;
-  overflow-y: auto;
-  display: flex;
-}
 .sub-loader {
   height: 100%;
   position: relative;

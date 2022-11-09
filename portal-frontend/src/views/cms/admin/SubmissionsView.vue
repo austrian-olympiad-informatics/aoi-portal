@@ -1,5 +1,5 @@
 <template>
-  <div class="wrap">
+  <div class="wrap" :class="[selectedSub !== null ? 'has-selection' : undefined]">
     <div class="left-column">
       <div class="left-wrap">
         <h1 class="title is-3">Einsendungen</h1>
@@ -196,7 +196,7 @@ import {
   AdminAllTasks,
 } from "@/types/cmsadmin";
 import { formatDateShort } from "@/util/dt";
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import PointsBar from "../PointsBar.vue";
 import SimpleAutoselect from "./SimpleAutoselect.vue";
 
@@ -338,6 +338,14 @@ export default class AdminContestSubmissionsView extends Vue {
       },
     };
   }
+
+  @Watch("$route")
+  watchRoute() {
+    if (this.$route.params.submissionUuid !== undefined)
+      this.selectedSub = { uuid: this.$route.params.submissionUuid };
+    else
+      this.selectedSub = null;
+  }
 }
 </script>
 
@@ -395,6 +403,12 @@ export default class AdminContestSubmissionsView extends Vue {
     flex: initial;
     /* prevent layout jumping around when selecting a submission */
     min-height: 80vh;
+  }
+  .has-selection .left-wrap {
+    display: none;
+  }
+  .has-selection .right-column {
+    height: 100%;
   }
 }
 </style>
