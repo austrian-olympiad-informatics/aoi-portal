@@ -89,6 +89,7 @@
             focusable
             scrollable
             custom-row-key="uuid"
+            :mobile-cards="false"
           >
             <b-table-column
               label="Datum"
@@ -150,7 +151,7 @@
                 {{ props.row.task.name }}
               </router-link>
             </b-table-column>
-            <b-table-column label="Punktzahl" v-slot="props" centered>
+            <b-table-column label="Status" v-slot="props" centered>
               <template v-if="props.row.result.status === 'evaluated'">
                 <i>Ausgewertet</i>
               </template>

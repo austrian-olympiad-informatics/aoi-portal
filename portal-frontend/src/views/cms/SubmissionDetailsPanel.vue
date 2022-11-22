@@ -55,7 +55,7 @@
               </template>
 
               <div class="panel-block">
-                <b-table :data="st.testcases" class="subt-table">
+                <b-table :data="st.testcases" class="subt-table" :mobile-cards="false">
                   <b-table-column label="#" numeric v-slot="props">
                     {{ props.index + 1 }}
                   </b-table-column>
@@ -92,7 +92,7 @@
         </div>
 
         <div class="block" v-if="submission.result.testcases">
-          <b-table :data="submission.result.testcases" class="subt-table">
+          <b-table :data="submission.result.testcases" class="subt-table" :mobile-cards="false">
             <b-table-column label="#" numeric v-slot="props">
               {{ props.index + 1 }}
             </b-table-column>

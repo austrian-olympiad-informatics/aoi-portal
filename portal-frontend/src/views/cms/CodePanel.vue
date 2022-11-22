@@ -119,7 +119,7 @@ export default class CodePanel extends Vue {
   get testOutput(): string | null {
     if (this.testEval === null) return "Noch nicht ausgeführt";
     if (this.testEval.result.status === "compilation_failed")
-      return this.testEval.result.compilation_stderr;
+      return this.testEval.result.compilation_stderr + '\n' + this.testEval.result.compilation_stdout;
     if (this.testEval.result.status !== "evaluated")
       return "Wird ausgeführt...";
     if (this.testEval.result.output === undefined)

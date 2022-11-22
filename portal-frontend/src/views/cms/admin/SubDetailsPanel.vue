@@ -149,7 +149,7 @@
               </template>
 
               <div class="panel-block">
-                <b-table :data="st.testcases" class="subt-table">
+                <b-table :data="st.testcases" class="subt-table" :mobile-cards="false">
                   <b-table-column label="#" numeric v-slot="props">
                     {{ props.index + 1 }}
                   </b-table-column>
@@ -204,7 +204,7 @@
         </div>
 
         <div class="block" v-if="submission.result.testcases">
-          <b-table :data="submission.result.testcases" class="subt-table">
+          <b-table :data="submission.result.testcases" class="subt-table" :mobile-cards="false">
             <b-table-column label="#" numeric v-slot="props">
               {{ props.index + 1 }}
             </b-table-column>
@@ -306,7 +306,7 @@
         v-if="submission.result.evaluations"
       >
         <h2 class="title is-4">Evaluations</h2>
-        <b-table :data="submission.result.evaluations" narrowed scrollable>
+        <b-table :data="submission.result.evaluations" narrowed scrollable :mobile-cards="false">
           <b-table-column label="Testcase" v-slot="props">
             {{ props.row.testcase.codename }}
           </b-table-column>

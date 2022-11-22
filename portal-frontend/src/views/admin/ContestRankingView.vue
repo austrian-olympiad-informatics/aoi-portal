@@ -16,6 +16,7 @@
         :default-sort="['total_score', 'desc']"
         default-sort-direction="desc"
         hoverable
+        :mobile-cards="false"
       >
         <b-table-column label="User" v-slot="props" sticky>
           <router-link

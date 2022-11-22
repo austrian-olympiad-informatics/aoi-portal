@@ -168,6 +168,7 @@
           custom-detail-row
           @details-open="testcaseOpen"
           class="testcase-table"
+          :mobile-cards="false"
         >
           <b-table-column label="Testcase" v-slot="props">
             {{ props.row.codename }}

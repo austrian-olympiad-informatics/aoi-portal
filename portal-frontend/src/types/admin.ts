@@ -37,6 +37,38 @@ export interface AdminUserDetail extends Omit<AdminUser, "groups"> {
       cms_description: string;
     };
   }[];
+  sessions: {
+    id: number;
+    created_at: string;
+    valid_until: string;
+  }[];
+  email_change_requests: {
+    id: number;
+    uuid: string;
+    new_email: string;
+    created_at: string;
+    valid_until: string;
+    attempts: number;
+    valid: boolean;
+  }[];
+  password_reset_requests: {
+    id: number;
+    uuid: string;
+    created_at: string;
+    valid_until: string;
+    attempts: number;
+    valid: boolean;
+  }[];
+  github_oauths: {
+    id: number;
+    created_at: string;
+    extra_data: string;
+  }[];
+  google_oauths: {
+    id: number;
+    created_at: string;
+    extra_data: string;
+  }[];
 }
 
 export interface AdminUserUpdateParams {

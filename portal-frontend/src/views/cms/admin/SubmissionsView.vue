@@ -89,6 +89,7 @@
             focusable
             scrollable
             custom-row-key="uuid"
+            :mobile-cards="false"
           >
             <b-table-column
               label="Datum"

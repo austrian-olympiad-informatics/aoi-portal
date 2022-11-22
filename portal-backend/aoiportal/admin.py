@@ -128,6 +128,53 @@ def get_user(user_id: int):
             }
             for p in u.participations
         ],
+        "sessions": [
+            {
+                "id": s.id,
+                "created_at": s.created_at,
+                "valid_until": s.valid_until,
+            }
+            for s in u.sessions
+        ],
+        "email_change_requests": [
+            {
+                "id": e.id,
+                "uuid": e.uuid,
+                "new_email": e.new_email,
+                "created_at": e.created_at,
+                "valid_until": e.valid_until,
+                "attempts": e.attempts,
+                "valid": e.valid,
+            }
+            for e in u.email_change_requests
+        ],
+        "password_reset_requests": [
+            {
+                "id": p.id,
+                "uuid": p.uuid,
+                "created_at": p.created_at,
+                "valid_until": p.valid_until,
+                "attempts": p.attempts,
+                "valid": p.valid,
+            }
+            for p in u.password_reset_requests
+        ],
+        "github_oauths": [
+            {
+                "id": g.id,
+                "created_at": g.created_at,
+                "extra_data": g.extra_data,
+            }
+            for g in u.github_oauths
+        ],
+        "google_oauths": [
+            {
+                "id": g.id,
+                "created_at": g.created_at,
+                "extra_data": g.extra_data,
+            }
+            for g in u.google_oauths
+        ],
     }
 
 

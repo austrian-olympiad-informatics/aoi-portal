@@ -68,7 +68,7 @@ export default class PointsBar extends Vue {
     for (const st of subtasks) {
       const posWidth = st.fraction * st.max_score * mul;
       const negWidth = (1 - st.fraction) * st.max_score * mul;
-      const posClass = st.fraction >= 1 ? "is-success" : "is-warning";
+      const posClass = "is-success";
       const posStart = cumw;
       const posEnd = cumw + posWidth;
       if (
@@ -98,8 +98,7 @@ export default class PointsBar extends Vue {
   get subtaskMoreThanHalfClass() {
     const v = this.subtaskData.isMoreThanHalf;
     if (!v.length) return "";
-    if (v.includes("is-success")) return "is-more-than-half-success";
-    return "is-more-than-half-warning";
+    return "is-more-than-half-success";
   }
   get scoreShow(): string {
     const a = parseFloat(this.score.toFixed(this.scorePrecision)).toString();
@@ -120,8 +119,5 @@ export default class PointsBar extends Vue {
 }
 .is-more-than-half-success {
   color: #fff;
-}
-.is-more-than-half-warning {
-  color: rgba(0, 0, 0, 0.7);
 }
 </style>

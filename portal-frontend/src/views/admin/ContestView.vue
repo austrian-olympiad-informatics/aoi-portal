@@ -74,7 +74,7 @@
         </div>
       </nav>
 
-      <b-table :data="contest.participations" hoverable default-sort="id">
+      <b-table :data="contest.participations" hoverable default-sort="id" :mobile-cards="false">
         <b-table-column label="Name" v-slot="props">
           <router-link
             :to="{

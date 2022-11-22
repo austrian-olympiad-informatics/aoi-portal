@@ -33,7 +33,7 @@
       </div>
     </nav>
 
-    <b-table :data="subscribers" hoverable v-if="subscribers !== null">
+    <b-table :data="subscribers" hoverable v-if="subscribers !== null" :mobile-cards="false">
       <b-table-column field="email" label="Email" sortable v-slot="props">
         {{ props.row.email }}
       </b-table-column>
