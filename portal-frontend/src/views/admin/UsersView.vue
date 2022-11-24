@@ -10,27 +10,13 @@
     </div>
 
     <b-field grouped group-multiline>
-      <b-checkbox v-model="showEmail">
-        Email
-      </b-checkbox>
-      <b-checkbox v-model="showCMS">
-        CMS Username
-      </b-checkbox>
-      <b-checkbox v-model="showGroups">
-        Groups
-      </b-checkbox>
-      <b-checkbox v-model="showAdmin">
-        Admin
-      </b-checkbox>
-      <b-checkbox v-model="showCreatedAt">
-        Created At
-      </b-checkbox>
-      <b-checkbox v-model="showBirthday">
-        Birthday
-      </b-checkbox>
-      <b-checkbox v-model="showSchool">
-        School
-      </b-checkbox>
+      <b-checkbox v-model="showEmail"> Email </b-checkbox>
+      <b-checkbox v-model="showCMS"> CMS Username </b-checkbox>
+      <b-checkbox v-model="showGroups"> Groups </b-checkbox>
+      <b-checkbox v-model="showAdmin"> Admin </b-checkbox>
+      <b-checkbox v-model="showCreatedAt"> Created At </b-checkbox>
+      <b-checkbox v-model="showBirthday"> Birthday </b-checkbox>
+      <b-checkbox v-model="showSchool"> School </b-checkbox>
     </b-field>
 
     <nav class="level" v-if="users !== null">
@@ -58,9 +44,15 @@
       </div>
     </nav>
 
-    <b-table :data="users" hoverable default-sort="id" v-if="users !== null" :mobile-cards="false"
-      @click="row => $router.push({ name: 'AdminUser', params: { userId: row.id }})"
-      class="is-clickable"
+    <b-table
+      :data="users"
+      hoverable
+      default-sort="id"
+      v-if="users !== null"
+      :mobile-cards="false"
+      detailed
+      detail-key="id"
+      @details-open="detailsOpen"
     >
       <b-table-column
         field="first_name"
@@ -100,8 +92,12 @@
       >
         {{ props.row.cms_username === null ? "N/A" : props.row.cms_username }}
       </b-table-column>
-      <b-table-column label="Groups" v-slot="props" width="200"
-        :visible="showGroups">
+      <b-table-column
+        label="Groups"
+        v-slot="props"
+        width="200"
+        :visible="showGroups"
+      >
         <b-taglist>
           <b-tag v-for="group in props.row.groups" :key="group.id">
             <router-link
@@ -115,8 +111,13 @@
           </b-tag>
         </b-taglist>
       </b-table-column>
-      <b-table-column field="is_admin" label="Admin" centered v-slot="props"
-        :visible="showAdmin">
+      <b-table-column
+        field="is_admin"
+        label="Admin"
+        centered
+        v-slot="props"
+        :visible="showAdmin"
+      >
         <b-icon icon="check" v-if="props.row.is_admin" />
         <b-icon icon="times" v-else />
       </b-table-column>
@@ -158,6 +159,47 @@
       >
         {{ props.row.school_name }}
       </b-table-column>
+
+      <template #detail="props">
+        <b>Vorname:</b> {{ props.row.first_name }} <br />
+        <b>Nachname:</b> {{ props.row.last_name }} <br />
+        <b>Email:</b>
+        <a :href="`mailto:${props.row.email}`"> {{ props.row.email }} </a>
+        <br />
+        <b>Adresse:</b>
+        {{ props.row.address_street ? props.row.address_street : "N/A" }} <br />
+        <b>Stadt:</b>
+        {{ props.row.address_town ? props.row.address_town : "N/A" }} <br />
+        <b>PLZ:</b> {{ props.row.address_zip ? props.row.address_zip : "N/A" }}
+        <br />
+        <b>Geburtstag:</b>
+        {{ props.row.birthday ? props.row.birthday : "N/A" }} <br />
+        <b>CMS Username:</b>
+        {{
+          props.row.cms_username
+            ? `${props.row.cms_username} (#${props.row.cms_id})`
+            : "N/A"
+        }}
+        <br />
+        <b>Erstellt am:</b> {{ props.row.created_at }} <br />
+        <b>Admin?</b> {{ props.row.is_admin }} <br />
+        <b>Telefonnummer:</b>
+        {{ props.row.phone_nr ? props.row.phone_nr : "N/A" }} <br />
+        <b>Schule:</b>
+        {{ props.row.school_name ? props.row.school_name : "N/A" }} <br />
+        <b>Schuladresse:</b>
+        {{ props.row.school_address ? props.row.school_address : "N/A" }} <br />
+        <div class="buttons is-pulled-right">
+          <b-button
+            tag="router-link"
+            :to="{ name: 'AdminUser', params: { userId: props.row.id } }"
+            icon-left="pencil"
+            type="is-warning"
+          >
+            Edit
+          </b-button>
+        </div>
+      </template>
     </b-table>
   </AdminCard>
 </template>
