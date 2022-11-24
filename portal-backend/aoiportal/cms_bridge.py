@@ -281,7 +281,8 @@ def create_user(email: str, first_name: str, last_name: str) -> CreateUserResult
 
 
 def create_participation(
-    user_id: int, contest_id: int, manual_password: Optional[str] = None
+    user_id: int, contest_id: int, manual_password: Optional[str] = None,
+    hidden: bool = False
 ) -> int:
     stored_password = None
     if manual_password is not None:
@@ -296,7 +297,7 @@ def create_participation(
         extra_time=datetime.timedelta(seconds=0),
         password=stored_password,
         team=None,
-        hidden=False,
+        hidden=hidden,
         unrestricted=False,
     )
     cms_session.add(part)

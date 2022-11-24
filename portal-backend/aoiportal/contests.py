@@ -142,7 +142,7 @@ def join_contest(contest_uuid: str):
     if existing_part is not None:
         raise AOIConflict("Contest already joined.")
 
-    create_participation(current_user, contest)
+    create_participation(current_user, contest, hidden=current_user.is_admin)
 
     if contest.auto_add_to_group is not None:
         try:

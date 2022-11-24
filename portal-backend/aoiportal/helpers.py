@@ -18,7 +18,8 @@ def create_cms_user(user: User) -> int:
 
 
 def create_participation(
-    user: User, contest: Contest, *, manual_password: Optional[str] = None
+    user: User, contest: Contest, *, manual_password: Optional[str] = None,
+    hidden: bool = False,
 ) -> Participation:
     if user.cms_id is None:
         create_cms_user(user)
@@ -27,6 +28,7 @@ def create_participation(
         user_id=cast(int, user.cms_id),
         contest_id=contest.cms_id,
         manual_password=manual_password,
+        hidden=hidden,
     )
     part = Participation(
         cms_id=res,
