@@ -206,6 +206,7 @@ def get_contest_scores(contest_name: str):
     part = current_participation
     contest = current_contest
 
+    scores.invalidate_part_score(part.id)
     contest_data = scores.get_contest_scores(contest.id)
     part_res = (
         contest_data.results[current_participation.id] 
@@ -439,6 +440,7 @@ def get_task(contest_name: str, task_name: str):
             }
             for st in score_res.subtasks
         ]
+    scores.invalidate_part_score(current_participation.id)
 
     return {
         "name": task.name,

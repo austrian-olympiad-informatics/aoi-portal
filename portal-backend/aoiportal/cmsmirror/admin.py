@@ -749,6 +749,7 @@ def get_participation_score(participation_id: int):
     )
     if part is None:
         raise AOINotFound("Participation not found")
+    scores.invalidate_part_score(part.id)
     contest_data = scores.get_contest_scores(part.contest_id)
     if participation_id not in contest_data.results:
         return {}
