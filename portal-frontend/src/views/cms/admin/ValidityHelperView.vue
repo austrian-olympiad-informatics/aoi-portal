@@ -23,6 +23,9 @@
         detailed
         detail-key="id"
       >
+        <b-table-column label="#" v-slot="props">
+          <span v-if="!props.row.hidden">{{ props.row.rank }}</span>
+        </b-table-column>
         <b-table-column label="Name" v-slot="props">
           {{ props.row.first_name }} {{ props.row.last_name }}
         </b-table-column>
