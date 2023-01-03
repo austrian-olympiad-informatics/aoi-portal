@@ -724,7 +724,7 @@ def get_participation(participation_id: int):
         vol.Optional(KEY_HIDDEN): bool,
     }
 )
-def update_participation(participation_id: int, data):
+def update_participation(data, participation_id: int):
     part: Optional[Participation] = (
         session.query(Participation)
         .filter(Participation.id == participation_id)

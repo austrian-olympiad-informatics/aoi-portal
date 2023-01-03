@@ -356,6 +356,13 @@ const routes: Array<RouteConfig> = [
     meta: CMS_META,
   },
   {
+    path: "/cms/admin/validity-helper/:contestId",
+    name: "CMSAdminValidityHelper",
+    component: () =>
+      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/ValidityHelperView.vue"),
+    meta: CMS_META,
+  },
+  {
     path: "/cms/admin/task/:taskId",
     name: "CMSAdminTask",
     component: () =>

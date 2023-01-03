@@ -21,7 +21,7 @@
       <span v-if="!scores.hidden"> Derzeit auf Rang #{{ scores.rank }}. </span>
     </div>
 
-    <div class="block">
+    <div class="block" v-if="scores !== null">
       <div class="columns is-multiline">
         <div
           class="column is-4"

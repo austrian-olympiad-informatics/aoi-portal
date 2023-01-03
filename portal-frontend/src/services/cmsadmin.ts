@@ -19,6 +19,7 @@ import {
   AdminUserEvalsPaginated,
   AdminUsers,
   AdminContestRanking,
+  AdminParticipationUpdateParams,
 } from "@/types/cmsadmin";
 import http from "./common";
 
@@ -112,6 +113,15 @@ class CMSAdminService {
       `/api/cms/admin/participation/${encodeURIComponent(participationId)}/score`
     );
     return resp.data;
+  }
+  async updateParticipation(
+    participationId: number,
+    params: AdminParticipationUpdateParams
+  ): Promise<void> {
+    await http.put(
+      `/api/cms/admin/participation/${encodeURIComponent(participationId)}/update`,
+      params
+    );
   }
   async getSubmissions(
     args?: {

@@ -465,3 +465,7 @@ export interface AdminParticipationScore {
   }[];
   hidden: boolean;
 }
+
+export interface AdminParticipationUpdateParams {
+  hidden?: boolean;
+}

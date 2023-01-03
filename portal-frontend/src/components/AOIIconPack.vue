@@ -13,7 +13,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { mdiAccount, mdiAccountCircle, mdiAccountGroup, mdiAccountMultiple, mdiAccountPlus, mdiAlert, mdiAlertCircle, mdiArrowDown, mdiArrowLeft, mdiArrowUp, mdiBriefcase, mdiCalendar, mdiCalendarToday, mdiCertificate, mdiCheck, mdiChevronDown, mdiChevronLeft, mdiChevronRight, mdiClock, mdiClockOutline, mdiClose, mdiCloseCircle, mdiCodeBraces, mdiCodeTags, mdiCog, mdiDelete, mdiDownload, mdiEarth, mdiEmail, mdiEmailNewsletter, mdiEye, mdiEyeOff, mdiFormatBold, mdiFormatItalic, mdiFormatListBulleted, mdiFormatListNumbered, mdiFormatQuoteClose, mdiFormatSize, mdiFormatStrikethrough, mdiFormatUnderline, mdiInformation, mdiLinkVariant, mdiLogin, mdiLogout, mdiMagnify, mdiMedal, mdiMemory, mdiMenuDown, mdiMenuUp, mdiMinus, mdiPencil, mdiPlus, mdiRedo, mdiRefresh, mdiReload, mdiTimer, mdiTimerOutline, mdiUndo, mdiWeb } from "@mdi/js";
+import { mdiAccount, mdiAccountCircle, mdiAccountGroup, mdiAccountMultiple, mdiAccountPlus, mdiAlert, mdiAlertCircle, mdiAlertOctagon, mdiArrowDown, mdiArrowLeft, mdiArrowUp, mdiBriefcase, mdiCalendar, mdiCalendarToday, mdiCertificate, mdiCheck, mdiChevronDown, mdiChevronLeft, mdiChevronRight, mdiClock, mdiClockOutline, mdiClose, mdiCloseCircle, mdiCodeBraces, mdiCodeTags, mdiCog, mdiDelete, mdiDownload, mdiEarth, mdiEmail, mdiEmailNewsletter, mdiEye, mdiEyeOff, mdiFormatBold, mdiFormatItalic, mdiFormatListBulleted, mdiFormatListNumbered, mdiFormatQuoteClose, mdiFormatSize, mdiFormatStrikethrough, mdiFormatUnderline, mdiInformation, mdiLinkVariant, mdiLogin, mdiLogout, mdiMagnify, mdiMedal, mdiMemory, mdiMenuDown, mdiMenuUp, mdiMinus, mdiPencil, mdiPlus, mdiRedo, mdiRefresh, mdiReload, mdiTimer, mdiTimerOutline, mdiUndo, mdiWeb } from "@mdi/js";
 
 type IconLookupType = {
   [key: string]: string;
@@ -77,6 +77,7 @@ const ICON_LOOKUP: IconLookupType = {
   "reload": mdiReload,
   "web": mdiWeb,
   "clock-outline": mdiClockOutline,
+  "alert-octagon": mdiAlertOctagon,
 };
 
 @Component
