@@ -7,11 +7,22 @@ from werkzeug.local import LocalProxy
 import voluptuous as vol
 
 from aoiportal.auth_util import admin_required, get_current_user
-from aoiportal.cmsmirror.db import Contest, session, Participation, User, Task, Dataset, UserEval, UserEvalResult, UserEvalFile, UserEvalExecutable
+from aoiportal.cmsmirror.db import (
+    Contest,
+    session,
+    Participation,
+    User,
+    Task,
+    Dataset,
+    UserEval,
+    UserEvalResult,
+)
 from aoiportal.cmsmirror.db.contest import Announcement
 from aoiportal.cmsmirror.db.submission import Meme, Submission, SubmissionResult
 from aoiportal.cmsmirror.db.user import Message, Question
 from aoiportal.cmsmirror.util import open_digest, paginate
+from aoiportal.cmsmirror.const import KEY_HIDDEN
+from aoiportal.cmsmirror import scores
 from aoiportal.const import KEY_CONTEST_ID, KEY_PARTICIPATION_ID, KEY_TASK_ID
 from aoiportal.error import AOIBadRequest, AOINotFound
 from aoiportal.utils import as_utc
@@ -117,6 +128,7 @@ def _dump_participation_short(p: Participation):
             "last_name": p.user.last_name,
             "username": p.user.username,
         },
+        "hidden": p.hidden,
     }
 
 
@@ -303,7 +315,9 @@ def dump_submission(
                             "evaluation_shard": ev.evaluation_shard,
                             "evaluation_sandbox": ev.evaluation_sandbox,
                         }
-                        for ev in sorted(res.evaluations, key=lambda ev: ev.testcase.codename)
+                        for ev in sorted(
+                            res.evaluations, key=lambda ev: ev.testcase.codename
+                        )
                     ],
                 }
             )
@@ -507,7 +521,9 @@ def _get_submissions(
         q = q.filter(Participation.user_id == user_id)
 
     page = paginate(q)
-    submissions: List[Tuple[Submission, Optional[SubmissionResult], Participation]] = page.items
+    submissions: List[
+        Tuple[Submission, Optional[SubmissionResult], Participation]
+    ] = page.items
 
     return {
         "page": page.page,
@@ -579,7 +595,10 @@ def _dump_task(task: Task, detailed: bool = False):
                             "input_digest": tc.input,
                             "output_digest": tc.output,
                         }
-                        for tc in sorted(task.active_dataset.testcases.values(), key=lambda x: x.codename)
+                        for tc in sorted(
+                            task.active_dataset.testcases.values(),
+                            key=lambda x: x.codename,
+                        )
                     ],
                     "language_templates": [
                         {
@@ -634,6 +653,53 @@ def get_contest_participations(contest_id: int):
     return [_dump_participation_short(part) for part in parts]
 
 
+@cmsadmin_bp.route("/api/cms/admin/contest/<int:contest_id>/ranking")
+@admin_required
+@json_api()
+def get_contest_ranking(contest_id: int):
+    contest_data = scores.get_contest_scores(current_contest.id)
+    return {
+        "tasks": [
+            {
+                "id": tid,
+                "name": task.name,
+                "title": task.title,
+                "max_score": task.max_score,
+                "score_precision": task.score_precision,
+            }
+            for tid, task in contest_data.tasks.items()
+        ],
+        "score_precision": contest_data.score_precision,
+        "results": [
+            {
+                "id": pid,
+                "hidden": part.hidden,
+                "score": part.score,
+                "task_scores": [
+                    {
+                        "id": tid,
+                        "score": task.score,
+                        "subtasks": [
+                            {
+                                "score": st.score,
+                                "fraction": st.fraction,
+                                "max_score": st.max_score,
+                            }
+                            for st in task.subtasks
+                        ]
+                        if task.subtasks is not None
+                        else None,
+                        "num_submissions": task.num_submissions,
+                    }
+                    for tid, task in part.task_scores.items()
+                ],
+                "rank": part.rank,
+            }
+            for pid, part in contest_data.results.items()
+        ],
+    }
+
+
 @cmsadmin_bp.route("/api/cms/admin/participation/<int:participation_id>")
 @admin_required
 @json_api()
@@ -647,6 +713,83 @@ def get_participation(participation_id: int):
     if part is None:
         raise AOINotFound("Participation not found")
     return _dump_participation_short(part)
+
+
+@cmsadmin_bp.route(
+    "/api/cms/admin/participation/<int:participation_id>/update", methods=["PUT"]
+)
+@admin_required
+@json_api(
+    {
+        vol.Optional(KEY_HIDDEN): bool,
+    }
+)
+def update_participation(participation_id: int, data):
+    part: Optional[Participation] = (
+        session.query(Participation)
+        .filter(Participation.id == participation_id)
+        .first()
+    )
+    if part is None:
+        raise AOINotFound("Participation not found")
+    if KEY_HIDDEN in data:
+        part.hidden = data[KEY_HIDDEN]
+    session.commit()
+    return {"success": True}
+
+
+@cmsadmin_bp.route("/api/cms/admin/participation/<int:participation_id>/score")
+@admin_required
+@json_api()
+def get_participation_score(participation_id: int):
+    part: Optional[Participation] = (
+        session.query(Participation)
+        .filter(Participation.id == participation_id)
+        .first()
+    )
+    if part is None:
+        raise AOINotFound("Participation not found")
+    contest_data = scores.get_contest_scores(part.contest_id)
+    if participation_id not in contest_data.results:
+        return {}
+    part_res = contest_data.results.get(
+        participation_id,
+        scores.ParticipationResult(hidden=False, score=0.0, task_scores={}),
+    )
+    return {
+        "score": part_res.score,
+        "task_scores": [
+            {
+                "id": task_id,
+                "score": task_res.score,
+                "subtasks": [
+                    {
+                        "score": st.score,
+                        "fraction": st.fraction,
+                        "max_score": st.max_score,
+                    }
+                    for st in task_res.subtasks
+                ]
+                if task_res.subtasks is not None
+                else None,
+                "num_submissions": task_res.num_submissions,
+            }
+            for task_id, task_res in part_res.task_scores.items()
+        ],
+        "rank": part_res.rank,
+        "tasks": [
+            {
+                "id": tid,
+                "name": task.name,
+                "title": task.title,
+                "max_score": task.max_score,
+                "score_precision": task.score_precision,
+            }
+            for tid, task in contest_data.tasks.items()
+        ],
+        "score_precision": contest_data.score_precision,
+        "hidden": part_res.hidden,
+    }
 
 
 @cmsadmin_bp.route("/api/cms/admin/participation/<int:participation_id>/questions")
@@ -692,7 +835,7 @@ def get_all_submissions():
         contest = session.query(Contest).filter(Contest.id == contest_id).first()
         if contest is None:
             raise AOINotFound("Task not found")
-    
+
     task_id = None
     if "task_id" in request.args:
         try:
@@ -702,7 +845,7 @@ def get_all_submissions():
         task = session.query(Task).filter(Task.id == task_id).first()
         if task is None:
             raise AOINotFound("Task not found")
-    
+
     user_id = None
     if "user_id" in request.args:
         try:
@@ -712,7 +855,7 @@ def get_all_submissions():
         user = session.query(User).filter(User.id == user_id).first()
         if user is None:
             raise AOINotFound("User not found")
-    
+
     data = _get_submissions(
         contest_id=contest_id,
         task_id=task_id,
@@ -736,7 +879,7 @@ def get_all_user_evals():
         contest = session.query(Contest).filter(Contest.id == contest_id).first()
         if contest is None:
             raise AOINotFound("Task not found")
-    
+
     task_id = None
     if "task_id" in request.args:
         try:
@@ -746,7 +889,7 @@ def get_all_user_evals():
         task = session.query(Task).filter(Task.id == task_id).first()
         if task is None:
             raise AOINotFound("Task not found")
-    
+
     user_id = None
     if "user_id" in request.args:
         try:
@@ -756,15 +899,13 @@ def get_all_user_evals():
         user = session.query(User).filter(User.id == user_id).first()
         if user is None:
             raise AOINotFound("User not found")
-    
+
     q = (
         session.query(UserEval, UserEvalResult, Participation)
         .join(UserEval.task)
         .join(UserEval.participation)
         .outerjoin(
-            UserEval.results.and_(
-                UserEvalResult.dataset_id == Task.active_dataset_id
-            )
+            UserEval.results.and_(UserEvalResult.dataset_id == Task.active_dataset_id)
         )
         .options(
             Load(UserEval).load_only(
@@ -816,9 +957,11 @@ def get_all_user_evals():
 
     if user_id is not None:
         q = q.filter(Participation.user_id == user_id)
-    
+
     page = paginate(q)
-    user_evals: List[Tuple[UserEval, Optional[UserEvalResult], Participation]] = page.items
+    user_evals: List[
+        Tuple[UserEval, Optional[UserEvalResult], Participation]
+    ] = page.items
 
     data = {
         "page": page.page,
@@ -882,9 +1025,7 @@ def get_user_eval(user_eval_uuid):
         .filter(UserEval.uuid == user_eval_uuid)
         .join(UserEval.task)
         .outerjoin(
-            UserEval.results.and_(
-                UserEvalResult.dataset_id == Task.active_dataset_id
-            )
+            UserEval.results.and_(UserEvalResult.dataset_id == Task.active_dataset_id)
         )
         .options(
             joinedload(UserEval.task),
@@ -918,11 +1059,7 @@ def get_digest(digest):
 @admin_required
 @json_api()
 def get_memes():
-    memes: List[Meme] = (
-        session.query(Meme)
-        .options(joinedload(Meme.task))
-        .all()
-    )
+    memes: List[Meme] = session.query(Meme).options(joinedload(Meme.task)).all()
     return [_dump_meme(meme) for meme in memes]
 
 
@@ -964,7 +1101,7 @@ def get_users():
                     "contest": _dump_contest_short(part.contest),
                 }
                 for part in user.participations
-            ]
+            ],
         }
         for user in users
     ]
@@ -994,7 +1131,7 @@ def get_user(user_id: int):
                 "contest": _dump_contest_short(part.contest),
             }
             for part in user.participations
-        ]
+        ],
     }
 
 
@@ -1008,7 +1145,9 @@ def get_tasks():
             "id": task.id,
             "name": task.name,
             "title": task.title,
-            "contest": _dump_contest_short(task.contest) if task.contest is not None else None,
+            "contest": _dump_contest_short(task.contest)
+            if task.contest is not None
+            else None,
         }
         for task in tasks
     ]

@@ -38,17 +38,14 @@ from aoiportal.cmsmirror.db import (  # type: ignore
 from aoiportal.cmsmirror.util import (  # type: ignore
     STATIC_FILES_CACHE,
     USER_CACHE,
-    ScoreInput,
     ScoreInputSingle,
-    ScoreTaskPart,
     create_file,
     open_digest,
-    score_calculation,
     score_calculation_single,
     send_sub_to_evaluation_service,
     send_user_eval_to_evaluation_service,
-    MaxAgeCache,
 )
+from aoiportal.cmsmirror import scores
 from aoiportal.const import (
     KEY_CONTENT,
     KEY_FILENAME,
@@ -65,7 +62,6 @@ from aoiportal.web_utils import json_api
 
 _LOGGER = logging.getLogger(__name__)
 cmsmirror_bp = Blueprint("cmsmirror", __name__)
-CONTEST_SCORES_CACHE: MaxAgeCache[int, Dict[int, Dict[int, float]]] = MaxAgeCache(datetime.timedelta(minutes=5))
 
 
 def _get_participation() -> Participation:
@@ -202,56 +198,6 @@ def get_contest(contest_name: str):
     return ret
 
 
-def _get_contest_scores(contest_id: int) -> Dict[int, Dict[int, float]]:
-    cached = CONTEST_SCORES_CACHE.get(contest_id)
-    if cached is not None:
-        return cached
-    q = (
-        session.query(
-            Task.id,
-            Participation.id,
-            Task.score_mode,
-            Task.score_precision,
-            SubmissionResult.score,
-            SubmissionResult.score_details,
-        )
-        .join(Submission.task)
-        .join(Submission.results)
-        .join(Submission.participation)
-        .join(Participation.user)
-        .filter(Task.contest_id == contest_id)
-        .filter(SubmissionResult.dataset_id == Task.active_dataset_id)
-        .filter(Submission.official)
-        .filter(Participation.hidden == False)
-        .all()
-    )
-    part_ids = [
-        x[0] for x in
-        session.query(Participation.id)
-        .filter(Participation.contest_id == contest_id)
-        .all()
-    ]
-    task_precs: Dict[int, int] = {row[0]: row[3] for row in q}
-
-    rows = [
-        ScoreInput(
-            task_id=task_id,
-            part_id=part_id,
-            score_mode=score_mode,
-            score=score,
-            score_details=score_details,
-        )
-        for task_id, part_id, score_mode, _, score, score_details in q
-    ]
-    res = score_calculation(rows)
-    contest_scores = {part_id: {} for part_id in part_ids}
-    for (task_id, part_id), score in res.items():
-        part_cache = contest_scores.setdefault(part_id, {})
-        part_cache[task_id] = round(score.score, task_precs[task_id])
-    CONTEST_SCORES_CACHE.put(contest_id, contest_scores)
-    return contest_scores
-
-
 @cmsmirror_bp.route("/api/cms/contest/<contest_name>/scores")
 @login_required
 @active_contest_required
@@ -259,106 +205,47 @@ def _get_contest_scores(contest_id: int) -> Dict[int, Dict[int, float]]:
 def get_contest_scores(contest_name: str):
     part = current_participation
     contest = current_contest
-    tasks: List[Task] = (
-        session.query(Task)
-        .filter(Task.contest_id == contest.id)
-        .options(
-            joinedload(Task.active_dataset)
-        )
-        .all()
+
+    contest_data = scores.get_contest_scores(contest.id)
+    part_res = (
+        contest_data.results[current_participation.id] 
+        or scores.ParticipationResult(hidden=False, score=0.0, task_scores={})
     )
-    rows: List[Tuple[SubmissionResult, Submission]] = (
-        session.query(SubmissionResult, Submission)
-        .join(SubmissionResult.submission)
-        .join(Submission.participation)
-        .join(Submission.task)
-        .filter(Participation.id == part.id)
-        .filter(SubmissionResult.score > 0)
-        .filter(Submission.official)
-        .options(
-            Load(SubmissionResult).load_only(
-                SubmissionResult.submission_id,
-                SubmissionResult.dataset_id,
-                SubmissionResult.compilation_outcome,
-                SubmissionResult.score,
-                SubmissionResult.score_details,
-                SubmissionResult.compilation_outcome,
-                SubmissionResult.evaluation_outcome,
-            ),
-            joinedload(SubmissionResult.submission),
-            Load(Submission).load_only(
-                Submission.id,
-                Submission.uuid,
-                Submission.timestamp,
-                Submission.language,
-                Submission.official,
-            ),
-            selectinload(Submission.task),
-            Load(Task).load_only(
-                Task.id,
-                Task.name,
-                Task.title,
-                Task.score_precision,
-                Task.score_mode,
-            ),
-        )
-        .order_by(Submission.timestamp.desc())
-        .all()
-    )
-
-    score_input_by_task: Dict[str, List[ScoreInputSingle]] = collections.defaultdict(list)
-    for r,s in rows:
-        score_input_by_task[s.task.name].append(
-            ScoreInputSingle(r.score, r.score_details)
-        )
-
-    contest_cache = CONTEST_SCORES_CACHE.get(contest.id)
-    part_cache = None if contest_cache is None or part.hidden else contest_cache.setdefault(part.id, {})
-
     tasks_res = []
-    score = 0
-    for task in tasks:
-        ds: Dataset = task.active_dataset
-        if ds.score_type == "Sum":
-            max_score = ds.score_type_parameters * len(ds.testcases)
-        else:
-            max_score = sum(p for p, _ in ds.score_type_parameters)
-        calc = score_calculation_single(score_input_by_task[task.name], task.score_mode)
+    for tid, task in contest_data.tasks.items():
+        tres = part_res.task_scores.get(tid, scores.TaskResult(0.0, None, 0))
         tasks_res.append(
             {
                 "task": task.name,
-                "score": round(calc.score, task.score_precision),
-                "subtasks": [
+                "max_score": task.max_score,
+                "score_precision": task.score_precision,
+                "score": tres.score,
+                "subtasks":
+                [
                     {
                         "fraction": st.fraction,
                         "score": st.score,
                         "max_score": st.max_score,
                     }
-                    for st in calc.subtasks
+                    for st in tres.subtasks
                 ]
-                if calc.subtasks is not None
+                if tres.subtasks is not None
                 else None,
-                "max_score": max_score,
-                "score_precision": task.score_precision,
             }
         )
-        score += round(calc.score, task.score_precision)
-
-        if part_cache is not None:
-            part_cache[task.id] = round(calc.score, task.score_precision)
-
     res = {
-        "score": round(score, contest.score_precision),
-        "max_score": sum(t["max_score"] for t in tasks_res),
+        "score": part_res.score,
+        "max_score": sum((t.max_score for t in contest_data.tasks.values()), 0.0),
         "score_precision": contest.score_precision,
         "tasks": tasks_res,
     }
 
     if contest.show_global_rank or contest.show_points_to_next_rank:
-        contest_scores = _get_contest_scores(contest.id)
+        contest_scores = contest_data.results
         part_to_score = {
-            part_id: round(sum(task_scores.values()), contest.score_precision)
-            for part_id, task_scores in contest_scores.items()
+            part_id: round(sum((x.score for x in part_result.task_scores.values()), 0.0), contest.score_precision)
+            for part_id, part_result in contest_scores.items()
+            if not part_result.hidden
         }
         part_to_score.setdefault(part.id, 0.0)  # if the participation has been added since the last refresh
         my_score = part_to_score[part.id]
@@ -553,12 +440,6 @@ def get_task(contest_name: str, task_name: str):
             for st in score_res.subtasks
         ]
 
-    contest_cache = CONTEST_SCORES_CACHE.get(current_contest.id)
-    if contest_cache is not None and not part.hidden:
-        part_cache = contest_cache.setdefault(part.id, {})
-        part_cache[task.id] = round(score, task.score_precision)
-
-
     return {
         "name": task.name,
         "title": task.title,
@@ -597,7 +478,7 @@ def get_task(contest_name: str, task_name: str):
         "submissions": [
             dump_submission(sub, res, detailed=False) for sub, res in submissions
         ],
-        "score": score,
+        "score": round(score, task.score_precision),
         "max_score": max_score,
         "score_precision": task.score_precision,
         "score_mode": task.score_mode,

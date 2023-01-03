@@ -12,6 +12,7 @@ export interface AdminUserShort {
 export interface AdminParticipationShort {
   id: number;
   user: AdminUserShort;
+  hidden: boolean;
 }
 export interface AdminContestShort {
   id: number;
@@ -411,4 +412,56 @@ export interface AdminUserEvalDetailed extends AdminUserEvalBase {
     filename: string;
     digest: string;
   }[];
+}
+
+export interface AdminContestRanking {
+  tasks: {
+    id: number;
+    name: string;
+    title: string;
+    max_score: number;
+    score_precision: number;
+  }[];
+  score_precision: number,
+  results: {
+    id: number;
+    hidden: boolean;
+    score: number;
+    rank: number;
+    task_scores: {
+      id: number,
+      score: number;
+      subtasks: {
+        score: number;
+        fraction: number;
+        max_score: number;
+      }[] | null;
+      num_submissions: number;
+    }[];
+  }[];
+}
+
+
+export interface AdminParticipationScore {
+  tasks: {
+    id: number;
+    name: string;
+    title: string;
+    max_score: number;
+    score_precision: number;
+  }[];
+  score_precision: number,
+  score: number;
+  rank: number;
+  task_scores: {
+    id: number,
+    score: number;
+    subtasks: {
+      score: number;
+      fraction: number;
+      max_score: number;
+    }[] | null;
+    num_submissions: number;
+  }[];
+  hidden: boolean;
 }

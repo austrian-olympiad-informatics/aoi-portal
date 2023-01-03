@@ -87,16 +87,13 @@
       <div class="block">
         <h2 class="title is-4">Participations</h2>
         <ul>
-          <li v-for="part in user.participations" :key="part.id">
-            <router-link
-              :to="{
-                name: 'CMSAdminContest',
-                params: { contestId: part.contest.id },
-              }"
-            >
-              {{ part.contest.name }}
-            </router-link>
-          </li>
+          <div v-for="part in user.participations" :key="part.id">
+            <UserContest
+              :part-id="part.id"
+              :user-id="userId"
+              :contest="part.contest"
+            />
+          </div>
         </ul>
       </div>
     </section>
@@ -113,8 +110,13 @@ import {
 } from "@/types/cmsadmin";
 import { AdminUser as AdminRegisterUser } from "@/types/admin";
 import { Component, Vue } from "vue-property-decorator";
+import UserContest from "./UserContestComponent.vue";
 
-@Component
+@Component({
+  components: {
+    UserContest,
+  },
+})
 export default class AdminUserView extends Vue {
   get userId(): number {
     return +this.$route.params.userId;

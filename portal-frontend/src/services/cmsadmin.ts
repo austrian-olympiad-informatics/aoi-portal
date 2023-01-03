@@ -9,6 +9,7 @@ import {
   AdminMemes,
   AdminMessage,
   AdminParticipation,
+  AdminParticipationScore,
   AdminQuestion,
   AdminSubmissionDetailed,
   AdminSubmissionsPaginated,
@@ -17,6 +18,7 @@ import {
   AdminUserEvalDetailed,
   AdminUserEvalsPaginated,
   AdminUsers,
+  AdminContestRanking,
 } from "@/types/cmsadmin";
 import http from "./common";
 
@@ -71,6 +73,14 @@ class CMSAdminService {
     );
     return resp.data;
   }
+  async getContestRanking(
+    contestId: number
+  ): Promise<AdminContestRanking> {
+    const resp = await http.get(
+      `/api/cms/admin/contest/${encodeURIComponent(contestId)}/ranking`
+    );
+    return resp.data;
+  }
   async getParticipation(
     participationId: number
   ): Promise<AdminParticipation> {
@@ -92,6 +102,14 @@ class CMSAdminService {
   ): Promise<AdminMessage[]> {
     const resp = await http.get(
       `/api/cms/admin/participation/${encodeURIComponent(participationId)}/messages`
+    );
+    return resp.data;
+  }
+  async getParticipationScore(
+    participationId: number
+  ): Promise<AdminParticipationScore> {
+    const resp = await http.get(
+      `/api/cms/admin/participation/${encodeURIComponent(participationId)}/score`
     );
     return resp.data;
   }

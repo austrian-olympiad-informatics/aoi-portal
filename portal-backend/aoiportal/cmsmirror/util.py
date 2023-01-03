@@ -144,12 +144,16 @@ class ScoreTaskPart:
     subtasks: Optional[List[SubtaskResult]] = None
 
 
-def score_calculation_single(rows: List[ScoreInputSingle], score_mode: str) -> ScoreTaskPart:
+def score_calculation_single(
+    rows: List[ScoreInputSingle], score_mode: str
+) -> ScoreTaskPart:
     if score_mode == "max":
         return ScoreTaskPart(score=max((r.score for r in rows), default=0.0))
     if score_mode == "max_subtask":
         subtasks: Dict[int, SubtaskResult] = {}
         for r in rows:
+            if r.score <= 0:
+                continue
             details = r.score_details
             if not details or "max_score" not in details[0]:
                 continue
@@ -162,7 +166,7 @@ def score_calculation_single(rows: List[ScoreInputSingle], score_mode: str) -> S
                     score=max(prev.score, st["score_fraction"] * st["max_score"]),
                 )
         return ScoreTaskPart(
-            score=sum((v.score for v in subtasks.values()), start=0.0),
+            score=sum((v.score for v in subtasks.values()), 0.0),
             subtasks=[subtasks[k] for k in sorted(subtasks.keys())],
         )
     raise ValueError(f"Unsupported score mode {score_mode}")
@@ -173,7 +177,9 @@ def score_calculation(rows: List[ScoreInput]) -> Dict[Tuple[int, int], ScoreTask
     by_task_part = collections.defaultdict(list)
     for row in rows:
         task_score_mode[row.task_id] = row.score_mode
-        by_task_part[(row.task_id, row.part_id)].append(ScoreInputSingle(row.score, row.score_details))
+        by_task_part[(row.task_id, row.part_id)].append(
+            ScoreInputSingle(row.score, row.score_details)
+        )
 
     result = {}
     for k, v in by_task_part.items():
@@ -239,4 +245,6 @@ class MaxAgeCache(Generic[K, V]):
         return entry.data
 
     def put(self, key: K, value: V):
-        self._cache[key] = _CachedEntry(data=value, timestamp=datetime.datetime.utcnow())
+        self._cache[key] = _CachedEntry(
+            data=value, timestamp=datetime.datetime.utcnow()
+        )

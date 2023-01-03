@@ -149,7 +149,11 @@
               </template>
 
               <div class="panel-block">
-                <b-table :data="st.testcases" class="subt-table" :mobile-cards="false">
+                <b-table
+                  :data="st.testcases"
+                  class="subt-table"
+                  :mobile-cards="false"
+                >
                   <b-table-column label="#" numeric v-slot="props">
                     {{ props.index + 1 }}
                   </b-table-column>
@@ -204,7 +208,11 @@
         </div>
 
         <div class="block" v-if="submission.result.testcases">
-          <b-table :data="submission.result.testcases" class="subt-table" :mobile-cards="false">
+          <b-table
+            :data="submission.result.testcases"
+            class="subt-table"
+            :mobile-cards="false"
+          >
             <b-table-column label="#" numeric v-slot="props">
               {{ props.index + 1 }}
             </b-table-column>
@@ -253,6 +261,19 @@
             loading="lazy"
             class="meme-img"
           />
+        </div>
+
+        <div class="block" v-if="scores !== null">
+          <h3 class="title is-4 mb-2">Current User Score</h3>
+          <div class="pr-1 pl-1">
+            <PointsBar
+              :score="scoreTaskScore.score"
+              :max-score="scoreTaskInfo.max_score"
+              :score-precision="scoreTaskInfo.score_precision"
+              :show-max-score="true"
+              :subtasks="scoreTaskScore.subtasks"
+            />
+          </div>
         </div>
 
         <div class="block" v-if="submission.result.compilation_text">
@@ -306,7 +327,12 @@
         v-if="submission.result.evaluations"
       >
         <h2 class="title is-4">Evaluations</h2>
-        <b-table :data="submission.result.evaluations" narrowed scrollable :mobile-cards="false">
+        <b-table
+          :data="submission.result.evaluations"
+          narrowed
+          scrollable
+          :mobile-cards="false"
+        >
           <b-table-column label="Testcase" v-slot="props">
             {{ props.row.testcase.codename }}
           </b-table-column>
@@ -362,11 +388,14 @@ import {
   AdminSubmissionDetailed,
   AdminSubmissionResultScoredShort,
   AdminUserShort,
+  AdminParticipationScore,
 } from "@/types/cmsadmin";
+import PointsBar from "../PointsBar.vue";
 
 @Component({
   components: {
     CodeMirror,
+    PointsBar,
   },
 })
 export default class AdminSubmissionDetailsPanel extends Vue {
@@ -377,6 +406,7 @@ export default class AdminSubmissionDetailsPanel extends Vue {
   submission: AdminSubmissionDetailed | null = null;
   files: Record<string, string> | null = null;
   memeUrl: string | null = null;
+  scores: AdminParticipationScore | null = null;
 
   async loadMeme() {
     if (this.submission!.result.meme_digest === null) return;
@@ -386,7 +416,18 @@ export default class AdminSubmissionDetailsPanel extends Vue {
 
   async loadSubmission() {
     this.submission = await cmsadmin.getSubmission(this.submissionUuid);
-    await Promise.all([this.loadMeme(), this.loadFiles()]);
+    await Promise.all([this.loadMeme(), this.loadFiles(), this.loadScores()]);
+  }
+  async loadScores() {
+    this.scores = await cmsadmin.getParticipationScore(
+      this.submission!.participation.id
+    );
+  }
+  get scoreTaskScore() {
+    return this.scores?.task_scores.find((task) => task.id === this.submission!.task.id);
+  }
+  get scoreTaskInfo() {
+    return this.scores?.tasks.find((task) => task.id === this.submission!.task.id);
   }
   memeUrlLoaded() {
     if (this.memeUrl !== null) URL.revokeObjectURL(this.memeUrl);
