@@ -73,8 +73,8 @@ export default class PointsBar extends Vue {
       const posEnd = cumw + posWidth;
       if (
         (posWidth > 0 && posEnd >= 45 && posEnd <= 55) ||
-        (posStart >= 45 && posStart <= 55) ||
-        (posStart <= 45 && posEnd >= 55)
+        (posWidth > 0 && posStart >= 45 && posStart <= 55) ||
+        (posWidth > 0 && posStart <= 45 && posEnd >= 55)
       ) {
         isMoreThanHalf.push(posClass);
       }
