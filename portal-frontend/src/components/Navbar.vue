@@ -10,7 +10,7 @@
           height="48"
           loading="lazy"
         />
-        <span class="aoi-logo-text"></span>
+        <span class="aoi-logo-text">Informatikolympiade</span>
       </b-navbar-item>
     </template>
     <template #start> </template>
