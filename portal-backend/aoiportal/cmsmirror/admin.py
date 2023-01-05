@@ -1,8 +1,10 @@
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, cast, Dict
+import collections
 
 from flask import Blueprint, g, request, send_file, jsonify
 from sqlalchemy.orm import joinedload, Load, selectinload, Query
+from sqlalchemy import func
 from werkzeug.local import LocalProxy
 import voluptuous as vol
 
@@ -16,6 +18,7 @@ from aoiportal.cmsmirror.db import (
     Dataset,
     UserEval,
     UserEvalResult,
+    SubtaskScore,
 )
 from aoiportal.cmsmirror.db.contest import Announcement
 from aoiportal.cmsmirror.db.submission import Meme, Submission, SubmissionResult
@@ -665,6 +668,7 @@ def get_contest_ranking(contest_id: int):
                 "name": task.name,
                 "title": task.title,
                 "max_score": task.max_score,
+                "subtask_max_scores": task.subtask_max_scores,
                 "score_precision": task.score_precision,
             }
             for tid, task in contest_data.tasks.items()
@@ -679,16 +683,7 @@ def get_contest_ranking(contest_id: int):
                     {
                         "id": tid,
                         "score": task.score,
-                        "subtasks": [
-                            {
-                                "score": st.score,
-                                "fraction": st.fraction,
-                                "max_score": st.max_score,
-                            }
-                            for st in task.subtasks
-                        ]
-                        if task.subtasks is not None
-                        else None,
+                        "subtask_scores": task.subtask_scores,
                         "num_submissions": task.num_submissions,
                     }
                     for tid, task in part.task_scores.items()
@@ -749,30 +744,15 @@ def get_participation_score(participation_id: int):
     )
     if part is None:
         raise AOINotFound("Participation not found")
-    scores.invalidate_part_score(part.id)
     contest_data = scores.get_contest_scores(part.contest_id)
-    if participation_id not in contest_data.results:
-        return {}
-    part_res = contest_data.results.get(
-        participation_id,
-        scores.ParticipationResult(hidden=False, score=0.0, task_scores={}),
-    )
+    part_res = contest_data.results[participation_id]
     return {
         "score": part_res.score,
         "task_scores": [
             {
                 "id": task_id,
                 "score": task_res.score,
-                "subtasks": [
-                    {
-                        "score": st.score,
-                        "fraction": st.fraction,
-                        "max_score": st.max_score,
-                    }
-                    for st in task_res.subtasks
-                ]
-                if task_res.subtasks is not None
-                else None,
+                "subtask_scores": task_res.subtask_scores,
                 "num_submissions": task_res.num_submissions,
             }
             for task_id, task_res in part_res.task_scores.items()
@@ -784,6 +764,7 @@ def get_participation_score(participation_id: int):
                 "name": task.name,
                 "title": task.title,
                 "max_score": task.max_score,
+                "subtask_max_scores": task.subtask_max_scores,
                 "score_precision": task.score_precision,
             }
             for tid, task in contest_data.tasks.items()

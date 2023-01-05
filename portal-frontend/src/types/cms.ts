@@ -310,11 +310,8 @@ export interface CheckNotificationsResult {
 export interface ContestTaskScore {
   task: string;
   score: number;
-  subtasks: {
-    fraction: number;
-    score: number;
-    max_score: number;
-  } | null;
+  subtask_scores: number[] | null;
+  subtask_max_scores: number[] | null;
   max_score: number;
   score_precision: number;
 }

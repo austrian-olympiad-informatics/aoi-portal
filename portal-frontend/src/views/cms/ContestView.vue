@@ -21,7 +21,8 @@
           Du bist derzeit auf Rang #{{ scores.global_rank }}.
         </p>
         <p v-if="scores.points_to_next_rank !== undefined">
-          Mit {{ scores.points_to_next_rank }} zusätzlichen Punkten erreichst du den nächsten Platz.
+          Mit {{ scores.points_to_next_rank }} zusätzlichen Punkten erreichst du
+          den nächsten Platz.
         </p>
       </div>
 
@@ -29,32 +30,36 @@
         <h2 class="title is-3">Aufgaben</h2>
 
         <div class="columns is-multiline">
-          <div class="column is-4" v-for="row in tasksWithScores" :key="row.task.name">
+          <div
+            class="column is-4"
+            v-for="row in tasksWithScores"
+            :key="row.task.name"
+          >
             <div class="card">
-            <router-link
-              :to="{
-                name: 'CMSTask',
-                params: {
-                  contestName: contestName,
-                  taskName: row.task.name,
-                },
-              }"
-            >
-              <div class="card-content">
-                <div class="content">
-                  {{ row.task.name }} - {{ row.task.title }}
+              <router-link
+                :to="{
+                  name: 'CMSTask',
+                  params: {
+                    contestName: contestName,
+                    taskName: row.task.name,
+                  },
+                }"
+              >
+                <div class="card-content">
+                  <div class="content">
+                    {{ row.task.name }} - {{ row.task.title }}
 
-                  <PointsBar
-                    v-if="row.score !== null"
-                    :score="row.score.score"
-                    :max-score="row.score.max_score"
-                    :score-precision="row.score.score_precision"
-                    :show-max-score="true"
-                    :subtasks="row.score.subtasks"
-                  />
+                    <PointsBar
+                      v-if="row.score !== null"
+                      :score="row.score.score"
+                      :max-score="row.score.max_score"
+                      :score-precision="row.score.score_precision"
+                      :show-max-score="true"
+                      :subtasks="getSubtasks(row)"
+                    />
+                  </div>
                 </div>
-              </div>
-            </router-link>
+              </router-link>
             </div>
           </div>
         </div>
@@ -121,6 +126,15 @@ export default class ContestView extends Vue {
       return {
         task: t,
         score: scoreByTask.get(t.name) || null,
+      };
+    });
+  }
+
+  getSubtasks(row: ContestTaskScore) {
+    return row.subtask_max_scores?.map((x, i) => {
+      return {
+        max_score: x,
+        score: row.subtask_scores?.[i] || 0.0,
       };
     });
   }

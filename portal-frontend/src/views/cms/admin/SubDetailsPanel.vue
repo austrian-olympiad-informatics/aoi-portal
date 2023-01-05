@@ -271,7 +271,7 @@
               :max-score="scoreTaskInfo.max_score"
               :score-precision="scoreTaskInfo.score_precision"
               :show-max-score="true"
-              :subtasks="scoreTaskScore.subtasks"
+              :subtasks="scoreSubtasks"
             />
           </div>
         </div>
@@ -428,6 +428,14 @@ export default class AdminSubmissionDetailsPanel extends Vue {
   }
   get scoreTaskInfo() {
     return this.scores?.tasks.find((task) => task.id === this.submission!.task.id);
+  }
+  get scoreSubtasks() {
+    return this.scoreTaskInfo?.subtask_max_scores?.map((x,i) => {
+      return {
+        max_score: x,
+        score: this.scoreTaskScore?.subtask_scores?.[i] || 0.0
+      };
+    });
   }
   memeUrlLoaded() {
     if (this.memeUrl !== null) URL.revokeObjectURL(this.memeUrl);

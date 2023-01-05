@@ -43,6 +43,7 @@ from .submission import (
     Meme,
     Submission,
     SubmissionResult,
+    SubtaskScore,
     Token,
 )
 from .task import (
@@ -123,6 +124,7 @@ __all__ = [
     "Executable",
     "Evaluation",
     "Meme",
+    "SubtaskScore",
     # usertest
     "UserTest",
     "UserTestFile",

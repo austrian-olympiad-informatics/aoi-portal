@@ -47,17 +47,16 @@
         </b-table-column>
         <b-table-column label="Hidden" v-slot="props" centered>
           <b-icon icon="eye-off" v-if="props.row.hidden" />
-          <b-icon icon="eye" v-else />
         </b-table-column>
         <b-table-column label="Warning" v-slot="props">
-          <b-tooltip label="User has bad birthday" v-if="warnBadBirthday(props.row)">
-            <b-icon icon="alert" class="has-text-warning" />
-          </b-tooltip>
-          <b-tooltip label="User should be hidden" v-else-if="warnShouldBeHidden(props.row)">
+          <b-tooltip label="User should be hidden" v-if="warnShouldBeHidden(props.row)">
             <b-icon icon="alert-octagon" class="has-text-danger" />
           </b-tooltip>
           <b-tooltip label="User should not be hidden" v-else-if="warnShouldNotBeHidden(props.row)">
             <b-icon icon="alert-octagon" class="has-text-info" />
+          </b-tooltip>
+          <b-tooltip label="User has bad birthday" v-else-if="warnBadBirthday(props.row)">
+            <b-icon icon="alert" class="has-text-warning" />
           </b-tooltip>
           <b-tooltip label="No corresponding portal account" v-else-if="props.row.portal_id === undefined">
             <b-icon icon="alert" />

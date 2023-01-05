@@ -206,32 +206,19 @@ def get_contest_scores(contest_name: str):
     part = current_participation
     contest = current_contest
 
-    scores.invalidate_part_score(part.id)
     contest_data = scores.get_contest_scores(contest.id)
-    part_res = (
-        contest_data.results[current_participation.id] 
-        or scores.ParticipationResult(hidden=False, score=0.0, task_scores={})
-    )
+    part_res = contest_data.results[current_participation.id]
     tasks_res = []
     for tid, task in contest_data.tasks.items():
-        tres = part_res.task_scores.get(tid, scores.TaskResult(0.0, None, 0))
+        tres = part_res.task_scores[tid]
         tasks_res.append(
             {
                 "task": task.name,
                 "max_score": task.max_score,
                 "score_precision": task.score_precision,
                 "score": tres.score,
-                "subtasks":
-                [
-                    {
-                        "fraction": st.fraction,
-                        "score": st.score,
-                        "max_score": st.max_score,
-                    }
-                    for st in tres.subtasks
-                ]
-                if tres.subtasks is not None
-                else None,
+                "subtask_scores": tres.subtask_scores,
+                "subtask_max_scores": task.subtask_max_scores,
             }
         )
     res = {
@@ -440,7 +427,6 @@ def get_task(contest_name: str, task_name: str):
             }
             for st in score_res.subtasks
         ]
-    scores.invalidate_part_score(current_participation.id)
 
     return {
         "name": task.name,

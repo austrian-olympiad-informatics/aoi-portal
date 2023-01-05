@@ -48,7 +48,7 @@
                     :max-score="getTask(row.id).max_score"
                     :score-precision="getTask(row.id).score_precision"
                     :show-max-score="true"
-                    :subtasks="row.subtasks"
+                    :subtasks="getSubtasks(row)"
                   />
                 </div>
               </div>
@@ -99,6 +99,17 @@ export default class AdminUserContest extends Vue {
     if (this.scores === null) return null;
 
     return this.scores.tasks.find((task) => task.id === id);
+  }
+  getSubtasks(row: {
+    id: number;
+    subtask_scores: number[] | null;
+  }) {
+    return this.getTask(row.id)?.subtask_max_scores?.map((x, i) => {
+      return {
+        max_score: x,
+        score: row.subtask_scores?.[i] || 0.0,
+      };
+    });
   }
 }
 </script>
