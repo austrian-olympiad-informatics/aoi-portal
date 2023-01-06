@@ -93,6 +93,7 @@ def get_contest_scores(contest_id: int) -> ContestData:
         .filter(Participation.contest_id == contest.id)
         .filter(Task.contest_id == contest.id)
         .group_by(Submission.participation_id, Submission.task_id)
+        .having(func.count(Submission.id) > 0)
         .all()
     )
     num_subs_by_part_task_dict: Dict[Tuple[int, int], int] = {
@@ -109,8 +110,52 @@ def get_contest_scores(contest_id: int) -> ContestData:
             task_scores={},
         )
 
-    for task in contest.tasks:
-        task = cast(Task, task)
+    tasks: List[Task] = (
+        session.query(Task)
+        .filter(Task.contest == contest)
+        .options(
+            joinedload(Task.active_dataset),
+        )
+        .all()
+    )
+
+    rows = (
+        session.query(Task.id, Participation.id, func.max(SubmissionResult.score))
+        .join(SubmissionResult.submission)
+        .join(Submission.participation)
+        .join(Submission.task)
+        .filter(Task.contest == contest)
+        .filter(Task.score_mode == "max")
+        .filter(Submission.official)
+        .filter(SubmissionResult.dataset_id == Task.active_dataset_id)
+        .group_by(Task.id, Participation.id)
+        .having(func.max(SubmissionResult.score) > 0)
+        .all()
+    )
+    max_task_part_scores: Dict[int, Dict[int, float]] = collections.defaultdict(dict)
+    for tid, pid, score in rows:
+        max_task_part_scores[tid][pid] = score
+    
+    rows = (
+        session.query(Task.id, Participation.id, SubtaskScore.subtask_idx, func.max(SubtaskScore.score))
+        .join(SubtaskScore.submission_result)
+        .join(SubmissionResult.submission)
+        .join(Submission.participation)
+        .join(Submission.task)
+        .filter(Task.contest == contest)
+        .filter(Task.score_mode == "max_subtask")
+        .filter(Submission.official)
+        .filter(SubmissionResult.dataset_id == Task.active_dataset_id)
+        .group_by(Task.id, Participation.id, SubtaskScore.subtask_idx)
+        .having(func.max(SubtaskScore.score) > 0)
+        .all()
+    )
+    max_subtask_task_part_subtask_max_scores: Dict[int, Dict[int, Dict[int, float]]] = collections.defaultdict(dict)
+    for tid, pid, stidx, score in rows:
+        max_subtask_task_part_subtask_max_scores[tid].setdefault(pid, {})[stidx] = score
+
+
+    for task in tasks:
         dataset: Dataset = task.active_dataset
         if dataset.score_type == "Sum":
             max_score = dataset.score_type_parameters * len(dataset.testcases)
@@ -124,40 +169,17 @@ def get_contest_scores(contest_id: int) -> ContestData:
             raise ValueError(f"Unknown score type {dataset.score_type}")
 
         if task.score_mode == "max":
-            part_scores = (
-                session.query(Participation.id, func.max(SubmissionResult.score))
-                .join(SubmissionResult.submission)
-                .join(Submission.participation)
-                .filter(Submission.task == task)
-                .filter(Submission.official)
-                .filter(SubmissionResult.dataset == task.active_dataset)
-                .group_by(Participation.id)
-                .all()
-            )
-            part_scores: Dict[int, float] = dict(part_scores)
+            by_pid = max_task_part_scores[task.id]
             for part in contest.participations:
                 part = cast(Participation, part)
-                score = round(part_scores.get(part.id, 0.0), task.score_precision)
+                score = round(by_pid.get(part.id, 0.0), task.score_precision)
                 results[part.id].task_scores[task.id] = TaskResult(
                     score=score, subtask_scores=None,
                     num_submissions=num_subs_by_part_task_dict.get((part.id, task.id), 0),
                 )
 
         elif task.score_mode == "max_subtask":
-            part_subtask_max_scores = (
-                session.query(Participation.id, SubtaskScore.subtask_idx, func.max(SubtaskScore.score))
-                .join(SubtaskScore.submission_result)
-                .join(SubmissionResult.submission)
-                .join(Submission.participation)
-                .filter(Submission.task == task)
-                .filter(Submission.official)
-                .filter(SubmissionResult.dataset == task.active_dataset)
-                .group_by(Participation.id, SubtaskScore.subtask_idx)
-                .all()
-            )
-            by_pid = collections.defaultdict(dict)
-            for pid, stidx, stscore in part_subtask_max_scores:
-                by_pid[pid][stidx] = stscore
+            by_pid = max_subtask_task_part_subtask_max_scores[task.id]
             for part in contest.participations:
                 part = cast(Participation, part)
                 st_max_scores = by_pid.get(part.id, {})
