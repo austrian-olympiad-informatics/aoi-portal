@@ -122,9 +122,13 @@ export default class CodePanel extends Vue {
       return this.testEval.result.compilation_stderr + '\n' + this.testEval.result.compilation_stdout;
     if (this.testEval.result.status !== "evaluated")
       return "Wird ausgeführt...";
+    const translatedEvalText = translateText(this.testEval.result.evaluation_text);
     if (this.testEval.result.output === undefined)
-      return translateText(this.testEval.result.evaluation_text);
-    return b64DecodeUnicode(this.testEval.result.output);
+      return translatedEvalText;
+    const decodedOutput = b64DecodeUnicode(this.testEval.result.output);
+    if (this.testEval.result.evaluation_text[0] === "Execution completed successfully")
+      return decodedOutput;
+    return `(${translatedEvalText})\n\n${decodedOutput}`;
   }
   get testOutputItalic(): boolean {
     if (this.testEval === null) return true;

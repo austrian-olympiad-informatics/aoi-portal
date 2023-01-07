@@ -99,7 +99,6 @@ const fontTheme = EditorView.theme({
 });
 
 function italicAll(view: EditorView) {
-  addItalic.of;
   let effects: StateEffect<unknown>[] = [
     addItalic.of({ from: 0, to: view.state.doc.length }),
   ];
