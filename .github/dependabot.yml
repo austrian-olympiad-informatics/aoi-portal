@@ -4,6 +4,9 @@ updates:
     directory: "/portal-frontend/"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "vue"
+        versions: ["3.x"]
   - package-ecosystem: "pip"
     directory: "/portal-backend/"
     schedule:
