@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.2.0",
-    "@codemirror/commands": "^6.1.0",
+    "@codemirror/commands": "^6.2.0",
     "@codemirror/lang-cpp": "^6.0.2",
     "@codemirror/lang-java": "^6.0.0",
     "@codemirror/lang-javascript": "^6.1.2",
