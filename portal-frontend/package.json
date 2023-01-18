@@ -35,7 +35,7 @@
     "canvas-confetti": "^1.5.1",
     "core-js": "^3.8.3",
     "dayjs": "^1.11.2",
-    "katex": "^0.16.3",
+    "katex": "^0.16.4",
     "node-sass": "^7.0.1",
     "sass-loader": "^13.0.2",
     "vue": "^2.6.14",
