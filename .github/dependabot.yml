@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/portal-frontend/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/portal-backend/"
+    schedule:
+      interval: "weekly"
