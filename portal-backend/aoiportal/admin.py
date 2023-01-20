@@ -437,37 +437,6 @@ def get_contest(contest_uuid: str):
     }
 
 
-@admin_bp.route("/api/admin/contests/<contest_uuid>/ranking")
-@admin_required
-@json_api()
-def get_contest_ranking(contest_uuid: str):
-    c: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()
-    if c is None:
-        raise AOINotFound("Contest not found")
-    res = cms_bridge.get_contest_ranking(c.cms_id)
-
-    cmsid_to_uid = {
-        part.user.cms_id: part.user_id
-        for part in db.session.query(Participation).filter(
-            Participation.contest_id == c.id
-        )
-    }
-
-    return {
-        "success": True,
-        "tasks": res.tasks,
-        "ranking": [
-            {
-                "user_id": cmsid_to_uid[r.user_id],
-                "task_scores": r.task_scores,
-                "total_score": r.total_score,
-            }
-            for r in res.ranking
-            if r.user_id in cmsid_to_uid
-        ],
-    }
-
-
 @admin_bp.route("/api/admin/contests/<contest_uuid>/delete", methods=["DELETE"])
 @admin_required
 @json_api()

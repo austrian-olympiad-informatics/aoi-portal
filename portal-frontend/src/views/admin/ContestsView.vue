@@ -68,10 +68,10 @@
                 tag="router-link"
                 icon-left="medal"
                 :to="{
-                  name: 'AdminContestRanking',
-                  params: { contestUuid: contest.uuid },
+                  name: 'CMSAdminContest',
+                  params: { contestId: contest.cms_id },
                 }"
-                >Ranking</b-button
+                >Info</b-button
               >
               <b-button
                 tag="router-link"

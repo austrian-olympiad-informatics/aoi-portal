@@ -23,6 +23,14 @@
           }"
         >
           {{ submissions.total }} submissions
+        </router-link><br>
+        <router-link
+          :to="{
+            name: 'CMSAdminValidityHelper',
+            params: { contestId: contestId },
+          }"
+        >
+          Ranking
         </router-link>
       </div>
       <div class="block" v-if="userEvals !== null">

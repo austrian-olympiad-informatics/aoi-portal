@@ -208,14 +208,6 @@ const routes: Array<RouteConfig> = [
           ),
       },
       {
-        path: "contests/:contestUuid/ranking",
-        name: "AdminContestRanking",
-        component: () =>
-          import(
-            /* webpackChunkName: "admin" */ "../views/admin/ContestRankingView.vue"
-          ),
-      },
-      {
         path: "groups",
         name: "AdminGroups",
         component: () =>

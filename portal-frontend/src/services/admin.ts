@@ -5,7 +5,6 @@ import {
   AdminContestImportGroupParams,
   AdminContestParticipation,
   AdminContestParticipationUpdateParams,
-  AdminContestRanking,
   AdminContests,
   AdminContestUpdateParams,
   AdminGroupCreateParams,
@@ -57,12 +56,6 @@ class AdminService {
   async getContest(contestUuid: string): Promise<AdminContestDetail> {
     const resp = await http.get(
       `/api/admin/contests/${encodeURIComponent(contestUuid)}`
-    );
-    return resp.data;
-  }
-  async getContestRanking(contestUuid: string): Promise<AdminContestRanking> {
-    const resp = await http.get(
-      `/api/admin/contests/${encodeURIComponent(contestUuid)}/ranking`
     );
     return resp.data;
   }

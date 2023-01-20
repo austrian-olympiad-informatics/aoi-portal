@@ -7,13 +7,23 @@
         </b-breadcrumb-item>
         <b-breadcrumb-item
           tag="router-link"
+          :to="{ name: 'CMSAdminContest', params: { contestId } }"
+        >
+          {{ contest.description }}
+        </b-breadcrumb-item>
+        <b-breadcrumb-item
+          tag="router-link"
           :to="{ name: 'CMSAdminValidityHelper', params: { contestId } }"
           active
         >
-          Validity {{ contest.description }}
+          Ranking
         </b-breadcrumb-item>
       </b-breadcrumb>
-      <h1 class="title is-2">Admin - Validity {{ contest.description }}</h1>
+      <h1 class="title is-2">Admin - Ranking {{ contest.description }}</h1>
+
+      <b-button @click="downloadCSV" type="is-primary">
+        Download as CSV
+      </b-button>
 
       <b-table
         :data="tableData"
@@ -293,6 +303,68 @@ export default class AdminValidityHelperView extends Vue {
       this.loadRegisterData(),
       this.loadScores(),
     ]);
+  }
+
+  downloadCSV() {
+    // https://stackoverflow.com/a/20623188
+    const encodeRow = (row: string[]): string => {
+      return row
+        .map((s) => {
+          s = s.replace(/"/g, '""');
+          if (s.search(/("|,|\n)/g) >= 0) s = `"${s}"`;
+          return s;
+        })
+        .join(",");
+    };
+    const header = [
+      "Rank",
+      "First Name",
+      "Last Name",
+      "Email",
+      "Created At",
+      "Birthday",
+      "Phone Nr",
+      "Address Street",
+      "Address Zip",
+      "Address Town",
+      "School Name",
+      "School Address",
+      "Username",
+      "Score",
+      ...this.scores!.tasks.map((x) => x.name)
+    ];
+    const rows = [header];
+    for (const row of this.tableData) {
+      if (row.hidden || row.created_at === undefined)
+        continue;
+      rows.push([
+        row.rank.toString(),
+        row.first_name,
+        row.last_name,
+        row.email,
+        row.created_at,
+        row.birthday || "N/A",
+        row.phone_nr || "N/A",
+        row.address_street || "N/A",
+        row.address_zip || "N/A",
+        row.address_town || "N/A",
+        row.school_name || "N/A",
+        row.school_address || "N/A",
+        row.username,
+        row.score.toString(),
+        ...this.scores!.tasks.map((x) => {
+          return row.task_scores!.find((y: any) => x.id == y.id).score.toString();
+        }),
+      ]);
+    }
+    const csvContent = rows.map((r) => encodeRow(r)).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const anchor = document.createElement("a");
+    anchor.href = URL.createObjectURL(blob);
+    anchor.download = "ranking.csv";
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
   }
 }
 </script>
