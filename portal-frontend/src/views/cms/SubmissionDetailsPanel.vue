@@ -295,7 +295,7 @@ export default class SubmissionDetailsPanel extends Vue {
 
   scheduleCheckSubmissions(timeout: number) {
     if (this.checkSubTimeout !== null) clearTimeout(this.checkSubTimeout);
-    this.checkSubTimeout = setTimeout(
+    this.checkSubTimeout = window.setTimeout(
       () => this.checkSubmissions(timeout),
       timeout
     );

@@ -12,6 +12,23 @@
       </div>
     </footer>
 
+    <b-button 
+      class="discord-button"
+      type="is-link"
+      v-if="isAuthenticated && !isDiscordButtonHidden && !isDiscordLinked"
+      tag="router-link"
+      :to="{ name: 'DiscordOAuth' }"
+    >
+    <span class="icon">
+        <img src="./assets/discord-icon-white.svg" loading="lazy"/>
+    </span>
+    <span>
+       Mit Discord verbinden
+    </span>
+    </b-button>
+
+    
+
     <b-button
       class="admin-button"
       v-if="isAdmin && !isAdminButtonHidden"
@@ -22,6 +39,8 @@
     >
       Admin
     </b-button>
+
+
   </div>
 </template>
 
@@ -46,6 +65,18 @@ export default class AppComponent extends Vue {
   }
   get isAdminButtonHidden(): boolean {
     return this.$route.matched.some((x) => x.meta.isAdminButtonHidden);
+  }
+  get isDiscordButtonHidden(): boolean {
+    return this.$route.matched.some((x) => x.meta.isDiscordButtonHidden);
+  }
+  get isAuthenticated(): boolean {
+    return this.$store.getters.isAuthenticated;
+  }
+  get isDiscordLinked(): boolean {
+    return !!this.$store.getters.discordUsername;
+  }
+  get getDiscordUsername(): string {
+    return this.$store.getters.discordUsername;;
   }
   async mounted(): Promise<void> {
     await this.$store.dispatch("checkStatus");
@@ -80,4 +111,33 @@ footer {
   bottom: 40px;
   opacity: 0.8;
 }
+
+.discord-tag {
+  position: fixed;
+  right: 180px;
+  bottom: 40px;
+  opacity: 1.0;
+}
+
+.discord-button {
+  position: fixed;
+  right: 180px;
+  bottom: 40px;
+  opacity: 1.0;
+}
+
+.discord-button span {
+   vertical-align: middle;
+   display: inline-block;
+}
+
+.button .icon {
+  margin-right: 0.5em !important;
+  vertical-align: middle;
+}
+.button .icon img {
+  height: 1.5em;
+  display: inline-block;
+}
+
 </style>

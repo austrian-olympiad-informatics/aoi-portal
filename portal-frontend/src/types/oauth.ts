@@ -1,3 +1,5 @@
+import exp from "constants";
+
 export interface GitHubAuthorizeURLResponse {
   url: string;
 }
@@ -8,6 +10,20 @@ export interface GitHubAuthorizeParams {
 
 export interface GitHubAuthorizeResponse {
   token: string;
+}
+
+export interface DiscordAuthorizeURLResponse {
+  url: string;
+}
+
+export interface DiscordAuthorizeParams {
+  code: string;
+  redirect_uri: string;
+}
+
+export interface DiscordAuthorizeResponse {
+  user_id: string;
+  username: string;
 }
 
 export interface GoogleAuthorizeURLResponse {

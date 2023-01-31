@@ -136,6 +136,18 @@ class UserGitHubOAuth(Base):
     user = relationship(User, back_populates="github_oauths")
     extra_data = Column(String, nullable=False)
 
+class UserDiscordOAuth(Base):
+    __tablename__ = "user_discord_oauth"
+
+    id = Column(Integer, primary_key=True)
+    discord_id = Column(String, nullable=False)
+    user_id = Column(Integer, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    access_token = Column(String, nullable=False, unique=True, index=True)
+    token_type = Column(String, nullable=False)
+    durationInSeconds = Column(Integer, nullable=False)
+    extra_data = Column(String, nullable=False)
+
 
 class UserGoogleOAuth(Base):
     __tablename__ = "user_google_oauth"

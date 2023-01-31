@@ -33,6 +33,13 @@
         </div>
       </b-navbar-item>
 
+      <b-field class="discord-tag" v-if="isDiscordLinked">
+          <span class="icon">
+              <img src="./../assets/discord-icon.svg" loading="lazy"/>
+          </span>
+          <b-tag class="username">{{ getDiscordUsername }}</b-tag>
+      </b-field>
+
       <b-navbar-dropdown v-if="isAuthenticated">
         <template slot="label">
           <span class="icon-text ml-1">
@@ -46,11 +53,12 @@
             <span>Profil</span>
           </span>
         </b-navbar-item>
-        <b-navbar-item tag="router-link" :to="isCMS ? { name: 'CMSAdminIndex' } : { name: 'AdminContests' }">
+        <b-navbar-item v-if="isAdmin" tag="router-link" :to="isCMS ? { name: 'CMSAdminIndex' } : { name: 'AdminContests' }">
           <span class="icon-text">
             <b-icon class="mr-2" icon="cog" />
             <span>Admin</span>
           </span>
+        </b-navbar-item>
         </b-navbar-item>
         <b-navbar-item @click="logout">
           <span class="icon-text">
@@ -80,6 +88,12 @@ export default class Navbar extends Vue {
   }
   get isNavbarSmall(): boolean {
     return this.$route.matched.some((x) => x.meta.navbarSmall);
+  }
+  get isDiscordLinked(): boolean {
+    return !!this.$store.getters.discordUsername;
+  }
+  get getDiscordUsername(): string {
+    return this.$store.getters.discordUsername;;
   }
 
   get name(): string {
@@ -113,6 +127,17 @@ export default class Navbar extends Vue {
   font-size: 1.125rem;
   min-height: initial !important;
 }
+
+.discord-tag {
+  position: relative;
+  top: 20px;
+}
+
+.discord-tag .username {
+  
+  margin-left: 5px;
+}
+
 @media screen and (max-width: 768px) {
   .aoi-logo-text {
     font-size: 1.35rem !important;

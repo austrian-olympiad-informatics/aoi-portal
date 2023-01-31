@@ -1,5 +1,7 @@
 import hmac
 import secrets
+import json
+import sys
 from datetime import timedelta
 from typing import Optional
 from uuid import uuid4
@@ -48,6 +50,7 @@ from aoiportal.models import (  # type: ignore
     UserEmailChangeRequest,
     UserPasswordResetRequest,
     UserRegisterRequest,
+    UserDiscordOAuth,
     db,
 )
 from aoiportal.utils import as_utc, utcnow
@@ -90,11 +93,26 @@ def auth_status():
     u = get_current_user()
     if u is None:
         return {"authenticated": False, "admin": False}
+
+    obj: Optional[UserDiscordOAuth] = UserDiscordOAuth.query.filter_by(
+        user_id=get_current_user().id
+    ).first()
+
+    print(u.id, sys.stdout)
+
+    discord_user = ""
+
+    if obj is not None:
+        print("TEST", sys.stdout)
+        data = json.loads(obj.extra_data)
+        discord_user = data["user_info"]["username"] + "#" + data["user_info"]["discriminator"]
+
     return {
         "authenticated": True,
         "admin": u.is_admin,
         "first_name": u.first_name,
         "last_name": u.last_name,
+        "discord_user": discord_user,
     }
 
 

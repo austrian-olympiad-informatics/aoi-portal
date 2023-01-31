@@ -10,6 +10,7 @@ export interface AuthStatusResult {
   admin: boolean;
   first_name?: string;
   last_name?: string;
+  discord_user?: string;
 }
 export interface AuthRegisterParams {
   email: string;

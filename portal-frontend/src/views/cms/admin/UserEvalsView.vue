@@ -284,7 +284,7 @@ export default class AdminUserEvalsView extends Vue {
       this.filterByUserId = +this.$route.query.user_id;
     if (this.$route.params.userEvalUuid !== undefined)
       this.selectedUserEval = { uuid: this.$route.params.userEvalUuid };
-    this.reloadHandle = setInterval(async () => {
+    this.reloadHandle = window.setInterval(async () => {
       await this.loadUserEvals();
     }, 15000);
     await Promise.all([
