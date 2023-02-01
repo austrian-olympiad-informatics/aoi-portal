@@ -6,6 +6,9 @@ import {
   GoogleAuthorizeParams,
   GoogleAuthorizeResponse,
   GoogleAuthorizeURLResponse,
+  DiscordAuthorizeParams,
+  DiscordAuthorizeResponse,
+  DiscordAuthorizeURLResponse,
 } from "@/types/oauth";
 
 class OAuthService {
@@ -27,6 +30,17 @@ class OAuthService {
     data: GoogleAuthorizeParams
   ): Promise<GoogleAuthorizeResponse> {
     const resp = await http.post("/api/oauth/google/auth", data);
+    return resp.data;
+  }
+  async getDiscordAuthorizeURL(
+  ): Promise<DiscordAuthorizeURLResponse> {
+    const resp = await http.get("/api/auth/oauth/discord/authorize-url");
+    return resp.data;
+  }
+  async discordAuthorize(
+    data: DiscordAuthorizeParams
+  ): Promise<DiscordAuthorizeResponse> {
+    const resp = await http.post("/api/oauth/discord/auth", data);
     return resp.data;
   }
 }

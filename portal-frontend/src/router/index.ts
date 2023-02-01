@@ -15,6 +15,8 @@ import GitHubOAuthView from "../views/auth/GitHubOAuthView.vue";
 import GitHubOAuthCallbackView from "../views/auth/GitHubOAuthCallbackView.vue";
 import GoogleOAuthView from "../views/auth/GoogleOAuthView.vue";
 import GoogleOAuthCallbackView from "../views/auth/GoogleOAuthCallbackView.vue";
+import DiscordOAuthView from "../views/auth/DiscordOAuthView.vue";
+import DiscordOAuthCallbackView from "../views/auth/DiscordOAuthCallbackView.vue";
 import ErrorView from "../views/ErrorView.vue";
 import ContestView from "../views/ContestView.vue";
 import NewsletterSignUpView from "../views/NewsletterSignUpView.vue";
@@ -143,6 +145,22 @@ const routes: Array<RouteConfig> = [
     meta: {
       requiresAuth: false,
     },
+  },
+  {
+    path: "/auth/oauth/discord/authorize",
+    name: "DiscordOAuth",
+    component: DiscordOAuthView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/auth/oauth/discord/callback",
+    name: "DiscordOAuthCallback",
+    component: DiscordOAuthCallbackView,
+    meta: {
+      requiresAuth: true,
+    }
   },
   {
     path: "/newsletter/sign-up",

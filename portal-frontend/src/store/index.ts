@@ -15,6 +15,7 @@ interface LocalStorageState {
   changeEmailVerifyUuid: string;
   passwordResetVerifyEmail: string;
   passwordResetVerifyUuid: string;
+  discordUsername: string;
 }
 
 const store = new Vuex.Store({
@@ -30,6 +31,7 @@ const store = new Vuex.Store({
     changeEmailVerifyUuid: "",
     passwordResetVerifyEmail: "",
     passwordResetVerifyUuid: "",
+    discordUsername: "",
   },
   getters: {
     isAuthenticated: (state) => state.isAuthenticated,
@@ -43,6 +45,7 @@ const store = new Vuex.Store({
     passwordResetVerifyUuid: (state) => state.passwordResetVerifyUuid,
     firstName: (state) => state.firstName,
     lastName: (state) => state.lastName,
+    discordUsername: (state) => state.discordUsername,
   },
   mutations: {
     setFromAuthStatus(state, status: AuthStatusResult) {
@@ -50,6 +53,7 @@ const store = new Vuex.Store({
       state.isAdmin = status.admin;
       state.firstName = status.first_name || "";
       state.lastName = status.last_name || "";
+      state.discordUsername = status.discord_user || "";
     },
     setAuthToken(state, authToken: string) {
       state.authToken = authToken;
@@ -72,6 +76,9 @@ const store = new Vuex.Store({
       state.passwordResetVerifyEmail = passwordResetVerifyEmail;
       state.passwordResetVerifyUuid = passwordResetVerifyUuid;
     },
+    setDiscordUsername(state, discordUsername: string) {
+      state.discordUsername = discordUsername;
+    },
     restoreState(state, savedState: LocalStorageState) {
       state.isAuthenticated = savedState.isAuthenticated;
       state.isAdmin = savedState.isAdmin;
@@ -82,6 +89,7 @@ const store = new Vuex.Store({
       state.changeEmailVerifyUuid = savedState.changeEmailVerifyUuid;
       state.passwordResetVerifyEmail = savedState.passwordResetVerifyEmail;
       state.passwordResetVerifyUuid = savedState.passwordResetVerifyUuid;
+      state.discordUsername = savedState.discordUsername;
     },
   },
   actions: {
@@ -114,6 +122,7 @@ store.subscribe((mutation, state) => {
       changeEmailVerifyUuid: state.changeEmailVerifyUuid,
       passwordResetVerifyEmail: state.passwordResetVerifyEmail,
       passwordResetVerifyUuid: state.passwordResetVerifyUuid,
+      discordUsername: state.discordUsername,
     };
     localStorage.setItem("aoiState", JSON.stringify(val));
   }

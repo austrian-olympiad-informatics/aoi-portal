@@ -292,7 +292,7 @@ export default class AdminSubmissionsView extends Vue {
       this.filterByUserId = +this.$route.query.user_id;
     if (this.$route.params.submissionUuid !== undefined)
       this.selectedSub = { uuid: this.$route.params.submissionUuid };
-    this.reloadHandle = setInterval(async () => {
+    this.reloadHandle = window.setInterval(async () => {
       await this.loadSubmissions();
     }, 15000);
     await Promise.all([

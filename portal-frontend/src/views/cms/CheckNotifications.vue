@@ -81,7 +81,7 @@ export default class CheckNotifications extends Vue {
 
   async mounted() {
     await this.checkNotifications(false);
-    this.checkNotificationsHandle = setInterval(async () => {
+    this.checkNotificationsHandle = window.setInterval(async () => {
       await this.checkNotifications(true);
     }, 15000);
   }

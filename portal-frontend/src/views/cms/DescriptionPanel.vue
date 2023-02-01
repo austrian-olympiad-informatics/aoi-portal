@@ -269,8 +269,8 @@ export default class DescriptionPanel extends Vue {
         const macros = {};
         mathElems.forEach((elem) => {
           const displayMode = elem.classList.contains("display");
-          const text = elem.textContent;
-          katex.render(text, elem, {
+          const text = elem.textContent === null ? "" : elem.textContent;
+          katex.render(text, elem as HTMLElement, {
               throwOnError: false,
               displayMode: displayMode,
               macros
@@ -305,7 +305,7 @@ export default class DescriptionPanel extends Vue {
 
   scheduleCheckSubmissions(timeout: number) {
     if (this.checkSubTimeout !== null) clearTimeout(this.checkSubTimeout);
-    this.checkSubTimeout = setTimeout(
+    this.checkSubTimeout = window.setTimeout(
       () => this.checkSubmissions(timeout),
       timeout
     );

@@ -135,7 +135,7 @@ export default class ContestStartStop extends Vue {
   nowHandle: number | null = null;
 
   async mounted() {
-    this.nowHandle = setInterval(() => {
+    this.nowHandle = window.setInterval(() => {
       this.now = new Date();
     }, 1000);
   }

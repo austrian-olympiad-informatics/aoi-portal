@@ -323,7 +323,7 @@ export default class CodePanel extends Vue {
     this.testEvalLoading = true;
 
     const reschedule = (time: number) => {
-      this.testEvalTimeoutHandle = setTimeout(async () => {
+      this.testEvalTimeoutHandle = window.setTimeout(async () => {
         const resp = await cms.getUserEval(
           this.contestName,
           this.taskName,
