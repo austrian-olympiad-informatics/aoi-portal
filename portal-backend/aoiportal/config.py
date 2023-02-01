@@ -16,8 +16,6 @@ class DevelopmentDefaultConfig(DefaultConfig):
     AOI_SESSION_TOKEN_KEY = "UZb1zOeZtEw1fsWhRftFE0AqSVTLAouZzFwt5cwiqSo="
     CMSBRIDGE_BASE_URL = "http://localhost:5001"
     BASE_URL = "http://localhost:8080"
-    DISCORD_OAUTH_CLIENT_ID = "1069392790443790508"
-    DISCORD_OAUTH_CLIENT_SECRET = "RZ7Sckf4auRwAs0N0IRn_1HdUbKXAIOZ"
 
 
 class ProductionDefaultConfig(DefaultConfig):

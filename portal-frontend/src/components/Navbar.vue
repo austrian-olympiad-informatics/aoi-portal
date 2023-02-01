@@ -134,7 +134,6 @@ export default class Navbar extends Vue {
 }
 
 .discord-tag .username {
-  
   margin-left: 5px;
 }
 
