@@ -31,9 +31,9 @@ from dataclasses import dataclass
 
 import psycopg2
 from flask import Flask, current_app, g
-from sqlalchemy import create_engine
-from sqlalchemy.engine import Engine, make_url
-from sqlalchemy.orm import Session, scoped_session, sessionmaker
+from sqlalchemy import create_engine  # type: ignore
+from sqlalchemy.engine import Engine, make_url  # type: ignore
+from sqlalchemy.orm import Session, scoped_session, sessionmaker  # type: ignore
 from werkzeug.local import LocalProxy
 
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ def init_app(app: Flask) -> None:
             sess.close()
 
 
-def _get_session():
+def _get_session() -> Session:
     if not hasattr(g, KEY_CMS_SESSION):
         setattr(
             g, KEY_CMS_SESSION, current_app.extensions["cms"].scoped_session_factory()

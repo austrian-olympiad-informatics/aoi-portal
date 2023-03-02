@@ -9,9 +9,9 @@ from typing import Dict, Generic, List, Optional, Tuple, TypeVar
 from uuid import uuid4
 
 from flask import current_app, request
-from sqlalchemy.orm import Query
+from sqlalchemy.orm import Query  # type: ignore
 
-from aoiportal.cmsmirror.db import FSObject, LargeObject, session
+from aoiportal.cmsmirror.db import FSObject, LargeObject, session  # type: ignore
 from aoiportal.error import AOIBadRequest  # type: ignore
 
 

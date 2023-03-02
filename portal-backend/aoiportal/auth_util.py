@@ -8,7 +8,7 @@ import bcrypt
 import nacl.exceptions
 import nacl.secret
 from flask import current_app, g, request
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload  # type: ignore
 
 from aoiportal.error import (
     ERROR_ADMIN_REQUIRED,

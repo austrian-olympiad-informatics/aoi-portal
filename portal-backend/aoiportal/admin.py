@@ -7,7 +7,7 @@ import nacl.secret
 import nacl.utils
 import voluptuous as vol  # type: ignore
 from flask import Blueprint, current_app
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload  # type: ignore
 
 from aoiportal import cms_bridge
 from aoiportal.auth_util import admin_required, hash_password

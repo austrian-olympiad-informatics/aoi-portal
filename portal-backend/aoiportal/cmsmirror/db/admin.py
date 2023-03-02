@@ -20,8 +20,8 @@
 
 """
 
-from sqlalchemy.schema import Column
-from sqlalchemy.types import Boolean, Integer, Unicode
+from sqlalchemy.schema import Column  # type: ignore
+from sqlalchemy.types import Boolean, Integer, Unicode  # type: ignore
 
 from .base import Base  # type: ignore
 from .types import Codename  # type: ignore

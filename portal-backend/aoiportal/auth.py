@@ -8,7 +8,7 @@ from uuid import uuid4
 
 import voluptuous as vol  # type: ignore
 from flask import Blueprint, render_template
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError  # type: ignore
 
 from aoiportal.auth_util import (
     check_password,

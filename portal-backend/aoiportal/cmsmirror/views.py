@@ -9,7 +9,7 @@ from uuid import uuid4
 import dateutil.parser
 import voluptuous as vol  # type: ignore
 from flask import Blueprint, g, request, send_file
-from sqlalchemy.orm import Load, joinedload
+from sqlalchemy.orm import Load, joinedload  # type: ignore
 from werkzeug.local import LocalProxy
 
 from aoiportal.auth_util import get_current_user, login_required

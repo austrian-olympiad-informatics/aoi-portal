@@ -1,14 +1,14 @@
 from typing import List, Optional, Tuple
 
-import voluptuous as vol
+import voluptuous as vol  # type: ignore
 from flask import Blueprint, g, jsonify, request, send_file
-from sqlalchemy.orm import Load, joinedload, selectinload
+from sqlalchemy.orm import Load, joinedload, selectinload  # type: ignore
 from werkzeug.local import LocalProxy
 
 from aoiportal.auth_util import admin_required
 from aoiportal.cmsmirror import scores
 from aoiportal.cmsmirror.const import KEY_HIDDEN
-from aoiportal.cmsmirror.db import (
+from aoiportal.cmsmirror.db import (  # type: ignore
     Contest,
     Dataset,
     Participation,
@@ -18,9 +18,9 @@ from aoiportal.cmsmirror.db import (
     UserEvalResult,
     session,
 )
-from aoiportal.cmsmirror.db.contest import Announcement
-from aoiportal.cmsmirror.db.submission import Meme, Submission, SubmissionResult
-from aoiportal.cmsmirror.db.user import Message, Question
+from aoiportal.cmsmirror.db.contest import Announcement  # type: ignore
+from aoiportal.cmsmirror.db.submission import Meme, Submission, SubmissionResult  # type: ignore
+from aoiportal.cmsmirror.db.user import Message, Question  # type: ignore
 from aoiportal.cmsmirror.util import open_digest, paginate
 from aoiportal.error import AOIBadRequest, AOINotFound
 from aoiportal.utils import as_utc
@@ -404,6 +404,7 @@ def dump_user_eval(
             UserEvalResult.EVALUATING,
             UserEvalResult.EVALUATED,
         ]:
+            assert res is not None
             res_dct.update(
                 {
                     "compilation_text": res.compilation_text[0],  # COMPILATION_MESSAGES
@@ -427,6 +428,7 @@ def dump_user_eval(
             )
 
         if status in [UserEvalResult.EVALUATED]:
+            assert res is not None
             res_dct.update(
                 {
                     "evaluation_tries": res.evaluation_tries,

@@ -2,8 +2,8 @@ import collections
 from dataclasses import dataclass, replace
 from typing import Dict, List, Optional, Tuple, cast
 
-from sqlalchemy import func
-from sqlalchemy.orm import joinedload
+from sqlalchemy import func  # type: ignore
+from sqlalchemy.orm import joinedload  # type: ignore
 
 from aoiportal.cmsmirror.db import (  # type: ignore
     Contest,
@@ -187,10 +187,10 @@ def get_contest_scores(contest_id: int) -> ContestData:
                 )
 
         elif task.score_mode == "max_subtask":
-            by_pid = max_subtask_task_part_subtask_max_scores[task.id]
+            by_pid2 = max_subtask_task_part_subtask_max_scores[task.id]
             for part in contest.participations:
                 part = cast(Participation, part)
-                st_max_scores = by_pid.get(part.id, {})
+                st_max_scores = by_pid2.get(part.id, {})
                 subtask_scores = [
                     st_max_scores.get(i, 0.0) for i in range(1, len(max_scores) + 1)
                 ]
