@@ -295,14 +295,13 @@ class SubmissionResult(Base):
         """Return the status of this object."""
         if not self.compiled():
             return SubmissionResult.COMPILING
-        elif self.compilation_failed():
+        if self.compilation_failed():
             return SubmissionResult.COMPILATION_FAILED
-        elif not self.evaluated():
+        if not self.evaluated():
             return SubmissionResult.EVALUATING
-        elif not self.scored():
+        if not self.scored():
             return SubmissionResult.SCORING
-        else:
-            return SubmissionResult.SCORED
+        return SubmissionResult.SCORED
 
     def get_evaluation(self, testcase):
         """Return the Evaluation of this SR on the given Testcase, if any

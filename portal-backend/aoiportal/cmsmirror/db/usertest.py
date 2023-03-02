@@ -1,4 +1,5 @@
 # type: ignore
+# pylint: skip-file
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -147,6 +148,7 @@ class UserTestManager(Base):
     # Filename and digest of the submitted manager.
     filename = Column(Filename, nullable=False)
     digest = Column(Digest, nullable=False)
+
 
 
 class UserTestResult(Base):
