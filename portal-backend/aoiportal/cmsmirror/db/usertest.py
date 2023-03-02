@@ -150,7 +150,6 @@ class UserTestManager(Base):
     digest = Column(Digest, nullable=False)
 
 
-
 class UserTestResult(Base):
     """Class to store the execution results of a user_test."""
 
