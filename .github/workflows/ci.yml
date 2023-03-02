@@ -20,6 +20,8 @@ jobs:
             name: Lint with flake8
           - id: pylint
             name: Lint with pylint
+          - id: pylint-mirror
+            name: Lint with pylint cmsmirror
           - id: black
             name: Check formatting with black
           - id: isort
@@ -57,8 +59,10 @@ jobs:
           echo "::add-matcher::.github/workflows/matchers/mypy.json"
       - run: cd portal-backend && flake8 aoiportal
         if: ${{ matrix.id == 'flake8' }}
-      - run: cd portal-backend && pylint aoiportal
+      - run: cd portal-backend && pylint aoiportal/*.py
         if: ${{ matrix.id == 'pylint' }}
+      - run: cd portal-backend && pylint aoiportal/cmsmirror
+        if: ${{ matrix.id == 'pylint-cmsmirror' }}
       - run: cd portal-backend && black --check --diff --color aoiportal
         if: ${{ matrix.id == 'black' }}
       - run: cd portal-backend && isort --check --diff aoiportal

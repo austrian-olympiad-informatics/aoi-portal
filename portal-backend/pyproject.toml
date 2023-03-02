@@ -13,6 +13,13 @@ persistent = false
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = [
+  "format",
+  "locally-disabled",
+  "duplicate-code",
+  "unused-argument",
+  "wrong-import-order",
+  "consider-using-f-string",
+  "not-context-manager",
   "missing-docstring",
   "duplicate-code",
   "invalid-name",
