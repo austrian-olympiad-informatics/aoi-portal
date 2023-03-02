@@ -75,5 +75,8 @@ jobs:
           node-version: 16
       - name: Install dependencies
         run: cd portal-frontend && npm ci
-      - run: cd portal-frontend && npm run lint
+      - name: Run eslint
+        run: cd portal-frontend && npm run lint
+      - name: Run build
+        run: cd portal-frontend && npm run build
 
