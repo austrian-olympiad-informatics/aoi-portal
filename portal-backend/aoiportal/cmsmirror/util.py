@@ -1,4 +1,5 @@
 import collections
+import datetime
 import hashlib
 import io
 import json
@@ -6,9 +7,8 @@ import socket
 from dataclasses import dataclass, field
 from typing import Dict, Generic, List, Optional, Tuple, TypeVar
 from uuid import uuid4
-import datetime
 
-from flask import request, current_app
+from flask import current_app, request
 from sqlalchemy.orm import Query
 
 from aoiportal.cmsmirror.db import FSObject, LargeObject, session

@@ -1,20 +1,20 @@
-from typing import Dict, List, Tuple, Optional, cast
+import collections
 import datetime
 from dataclasses import dataclass, replace
-import collections
+from typing import Dict, List, Optional, Tuple, cast
 
-from sqlalchemy.orm import joinedload
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 from aoiportal.cmsmirror.db import (  # type: ignore
+    Contest,
+    Dataset,
     Participation,
     Submission,
     SubmissionResult,
-    Task,
-    Contest,
-    Dataset,
-    session,
     SubtaskScore,
+    Task,
+    session,
 )
 
 

@@ -9,7 +9,13 @@ from flask import Blueprint, current_app
 from aoiportal.auth_util import create_session, get_current_user
 from aoiportal.const import KEY_CODE, KEY_REDIRECT_URI
 from aoiportal.error import AOIBadRequest, AOIConflict, AOIUnauthorized
-from aoiportal.models import User, UserGitHubOAuth, UserDiscordOAuth, UserGoogleOAuth, db  # type: ignore
+from aoiportal.models import (  # type: ignore
+    User,
+    UserDiscordOAuth,
+    UserGitHubOAuth,
+    UserGoogleOAuth,
+    db,
+)
 from aoiportal.utils import utcnow
 from aoiportal.web_utils import json_api
 

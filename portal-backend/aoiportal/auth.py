@@ -1,6 +1,6 @@
 import hmac
-import secrets
 import json
+import secrets
 import sys
 from datetime import timedelta
 from typing import Optional
@@ -47,10 +47,10 @@ from aoiportal.error import (
 from aoiportal.mail import Address, send_email
 from aoiportal.models import (  # type: ignore
     User,
+    UserDiscordOAuth,
     UserEmailChangeRequest,
     UserPasswordResetRequest,
     UserRegisterRequest,
-    UserDiscordOAuth,
     db,
 )
 from aoiportal.utils import as_utc, utcnow

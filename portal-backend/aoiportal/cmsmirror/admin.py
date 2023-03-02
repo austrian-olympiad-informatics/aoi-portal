@@ -1,31 +1,31 @@
-from dataclasses import dataclass
-from typing import List, Optional, Tuple, cast, Dict
 import collections
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple, cast
 
-from flask import Blueprint, g, request, send_file, jsonify
-from sqlalchemy.orm import joinedload, Load, selectinload, Query
-from sqlalchemy import func
-from werkzeug.local import LocalProxy
 import voluptuous as vol
+from flask import Blueprint, g, jsonify, request, send_file
+from sqlalchemy import func
+from sqlalchemy.orm import Load, Query, joinedload, selectinload
+from werkzeug.local import LocalProxy
 
 from aoiportal.auth_util import admin_required, get_current_user
+from aoiportal.cmsmirror import scores
+from aoiportal.cmsmirror.const import KEY_HIDDEN
 from aoiportal.cmsmirror.db import (
     Contest,
-    session,
-    Participation,
-    User,
-    Task,
     Dataset,
+    Participation,
+    SubtaskScore,
+    Task,
+    User,
     UserEval,
     UserEvalResult,
-    SubtaskScore,
+    session,
 )
 from aoiportal.cmsmirror.db.contest import Announcement
 from aoiportal.cmsmirror.db.submission import Meme, Submission, SubmissionResult
 from aoiportal.cmsmirror.db.user import Message, Question
 from aoiportal.cmsmirror.util import open_digest, paginate
-from aoiportal.cmsmirror.const import KEY_HIDDEN
-from aoiportal.cmsmirror import scores
 from aoiportal.const import KEY_CONTEST_ID, KEY_PARTICIPATION_ID, KEY_TASK_ID
 from aoiportal.error import AOIBadRequest, AOINotFound
 from aoiportal.utils import as_utc

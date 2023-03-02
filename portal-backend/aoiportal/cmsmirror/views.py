@@ -14,6 +14,7 @@ from sqlalchemy.orm import Load, joinedload, selectinload
 from werkzeug.local import LocalProxy
 
 from aoiportal.auth_util import get_current_user, login_required
+from aoiportal.cmsmirror import scores
 from aoiportal.cmsmirror.db import (  # type: ignore
     Announcement,
     Attachment,
@@ -45,7 +46,6 @@ from aoiportal.cmsmirror.util import (  # type: ignore
     send_sub_to_evaluation_service,
     send_user_eval_to_evaluation_service,
 )
-from aoiportal.cmsmirror import scores
 from aoiportal.const import (
     KEY_CONTENT,
     KEY_FILENAME,

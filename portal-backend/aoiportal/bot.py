@@ -1,23 +1,14 @@
+import collections
 import json
 from typing import Optional
-import collections
 
 import voluptuous as vol  # type: ignore
 from flask import Blueprint, current_app
 
-from aoiportal.auth_util import (
-    get_current_user,
-)
+from aoiportal.auth_util import get_current_user
 from aoiportal.const import KEY_SECRET
-from aoiportal.error import (
-    AOIConflict,
-    AOIUnauthorized,
-)
-from aoiportal.models import (  # type: ignore
-    UserDiscordOAuth,
-    Group,
-    db,
-)
+from aoiportal.error import AOIConflict, AOIUnauthorized
+from aoiportal.models import Group, UserDiscordOAuth, db  # type: ignore
 from aoiportal.web_utils import json_api
 
 bot_bp = Blueprint("bot", __name__)
