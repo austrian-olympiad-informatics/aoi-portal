@@ -3,7 +3,7 @@ import datetime
 import functools
 import logging
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 from uuid import uuid4
 
 import dateutil.parser
@@ -72,7 +72,7 @@ def _get_participation() -> Participation:
     cu = get_current_user()
     assert cu is not None
     part = (
-        session.query(Participation)
+        session.query(Participation)  # type: ignore
         .join(Participation.contest)
         .filter(Contest.name == contest_name)
         .join(Participation.user)
@@ -96,7 +96,7 @@ def _get_task() -> Task:
     assert request.view_args is not None
     task_name = request.view_args["task_name"]
     task: Optional[Task] = (
-        session.query(Task)
+        session.query(Task)  # type: ignore
         .filter(Task.contest_id == current_contest.id)
         .filter(Task.name == task_name)
         .first()
@@ -229,7 +229,7 @@ def get_contest_scores(contest_name: str):
 
     if contest.show_global_rank or contest.show_points_to_next_rank:
         contest_scores = contest_data.results
-        part_to_score = {
+        part_to_score: Dict[int, float] = {
             part_id: round(
                 sum((x.score for x in part_result.task_scores.values()), 0.0),
                 contest.score_precision,
@@ -360,7 +360,7 @@ def get_task(contest_name: str, task_name: str):
     task = current_task
     ds: Dataset = task.active_dataset
     submissions: List[Tuple[Submission, Optional[SubmissionResult]]] = (
-        session.query(Submission, SubmissionResult)
+        session.query(Submission, SubmissionResult)  # type: ignore
         .filter(Submission.participation_id == part.id)
         .filter(Submission.task_id == task.id)
         .outerjoin(
@@ -506,7 +506,7 @@ def get_task(contest_name: str, task_name: str):
 @json_api()
 def get_submission(contest_name: str, task_name: str, submission_uuid: str):
     q: Optional[Tuple[Submission, Optional[SubmissionResult]]] = (
-        session.query(Submission, SubmissionResult)
+        session.query(Submission, SubmissionResult)  # type: ignore
         .filter(Submission.task_id == current_task.id)
         .filter(Submission.uuid == submission_uuid)
         .filter(Submission.participation_id == current_participation.id)
@@ -533,7 +533,7 @@ def get_submission(contest_name: str, task_name: str, submission_uuid: str):
 @json_api()
 def get_submission_short(contest_name: str, task_name: str, submission_uuid: str):
     q: Optional[Tuple[Submission, Optional[SubmissionResult]]] = (
-        session.query(Submission, SubmissionResult)
+        session.query(Submission, SubmissionResult)  # type: ignore
         .filter(Submission.task_id == current_task.id)
         .filter(Submission.uuid == submission_uuid)
         .filter(Submission.participation_id == current_participation.id)
@@ -558,7 +558,7 @@ def get_submission_short(contest_name: str, task_name: str, submission_uuid: str
 @active_contest_required
 def get_submission_meme(contest_name: str, task_name: str, submission_uuid: str):
     q: Optional[Meme] = (
-        session.query(Meme)
+        session.query(Meme)  # type: ignore
         .join(Meme.submission_results)
         .join(SubmissionResult.submission)
         .filter(Submission.task_id == current_task.id)
@@ -583,7 +583,7 @@ def get_submission_meme(contest_name: str, task_name: str, submission_uuid: str)
 @active_contest_required
 def get_statement(contest_name: str, task_name: str, language: str):
     stmt: Optional[Statement] = (
-        session.query(Statement)
+        session.query(Statement)  # type: ignore
         .filter(Statement.task_id == current_task.id)
         .filter(Statement.language == language)
         .first()
@@ -629,7 +629,7 @@ def get_default_input(contest_name: str, task_name: str):
 @active_contest_required
 def get_attachment(contest_name: str, task_name: str, filename: str):
     att: Optional[Attachment] = (
-        session.query(Attachment)
+        session.query(Attachment)  # type: ignore
         .filter(Attachment.task_id == current_task.id)
         .filter(Attachment.filename == filename)
         .first()
@@ -649,7 +649,7 @@ def get_attachment(contest_name: str, task_name: str, filename: str):
 @active_contest_required
 def get_language_template(contest_name: str, task_name: str, filename: str):
     lt: Optional[LanguageTemplate] = (
-        session.query(LanguageTemplate)
+        session.query(LanguageTemplate)  # type: ignore
         .filter(LanguageTemplate.dataset_id == current_task.active_dataset_id)
         .filter(LanguageTemplate.filename == filename)
         .first()
@@ -671,7 +671,7 @@ def get_submission_file(
     contest_name: str, task_name: str, submission_uuid: str, filename: str
 ):
     sub: Optional[Submission] = (
-        session.query(Submission)
+        session.query(Submission)  # type: ignore
         .filter(Submission.task_id == current_task.id)
         .filter(Submission.uuid == submission_uuid)
         .filter(Submission.participation_id == current_participation.id)
@@ -680,7 +680,7 @@ def get_submission_file(
     if sub is None:
         raise AOINotFound("Submission not found")
     file: Optional[File] = (
-        session.query(File)
+        session.query(File)  # type: ignore
         .filter(File.submission_id == sub.id)
         .filter(File.filename == filename)
         .first()
@@ -710,8 +710,8 @@ def post_question(data, contest_name: str):
         text=data[KEY_TEXT],
         participation_id=part.id,
     )
-    session.add(q)
-    session.commit()
+    session.add(q)  # type: ignore
+    session.commit()  # type: ignore
     return {"success": True}
 
 
@@ -735,8 +735,8 @@ def post_question_task(data, contest_name: str, task_name: str):
         participation_id=part.id,
         task_id=current_task.id,
     )
-    session.add(q)
-    session.commit()
+    session.add(q)  # type: ignore
+    session.commit()  # type: ignore
     return {"success": True}
 
 
@@ -777,7 +777,7 @@ def submit(data, contest_name: str, task_name: str):
 
     now = datetime.datetime.utcnow()
     q = (
-        session.query(Submission)
+        session.query(Submission)  # type: ignore
         .filter(Submission.participation_id == current_participation.id)
         .filter(Submission.timestamp >= now - datetime.timedelta(seconds=10))
     )
@@ -792,7 +792,7 @@ def submit(data, contest_name: str, task_name: str):
         language=data[KEY_LANGUAGE],
         official=current_contest.phase(now) == 0,
     )
-    session.add(sub)
+    session.add(sub)  # type: ignore
     for file in data[KEY_FILES]:
         fname = file[KEY_FILENAME]
         content = base64.b64decode(file[KEY_CONTENT])
@@ -802,8 +802,8 @@ def submit(data, contest_name: str, task_name: str):
             filename=fname,
             digest=create_file(content, descr),
         )
-        session.add(f)
-    session.commit()
+        session.add(f)  # type: ignore
+    session.commit()  # type: ignore
 
     try:
         send_sub_to_evaluation_service(sub.id)
@@ -839,7 +839,7 @@ def submit(data, contest_name: str, task_name: str):
 def user_eval(data, contest_name: str, task_name: str):
     now = datetime.datetime.utcnow()
     q = (
-        session.query(UserEval)
+        session.query(UserEval)  # type: ignore
         .filter(UserEval.participation_id == current_participation.id)
         .filter(UserEval.timestamp >= now - datetime.timedelta(seconds=10))
     )
@@ -856,7 +856,7 @@ def user_eval(data, contest_name: str, task_name: str):
             f"Input for user eval from {current_participation.user.username}",
         ),
     )
-    session.add(ueval)
+    session.add(ueval)  # type: ignore
     for file in data[KEY_FILES]:
         fname = file[KEY_FILENAME]
         content = base64.b64decode(file[KEY_CONTENT])
@@ -866,8 +866,8 @@ def user_eval(data, contest_name: str, task_name: str):
             filename=fname,
             digest=create_file(content, descr),
         )
-        session.add(f)
-    session.commit()
+        session.add(f)  # type: ignore
+    session.commit()  # type: ignore
 
     try:
         send_user_eval_to_evaluation_service(ueval.id)
@@ -890,7 +890,7 @@ def user_eval(data, contest_name: str, task_name: str):
 @json_api()
 def get_usereval(contest_name: str, task_name: str, user_eval_uuid: str):
     q: Optional[Tuple[UserEval, Optional[UserEvalResult]]] = (
-        session.query(UserEval, UserEvalResult)
+        session.query(UserEval, UserEvalResult)  # type: ignore
         .filter(UserEval.task_id == current_task.id)
         .filter(UserEval.uuid == user_eval_uuid)
         .filter(UserEval.participation_id == current_participation.id)
@@ -975,7 +975,7 @@ def check_notifications(data, contest_name: str):
     else:
         last_notification = as_utc(datetime.datetime.utcfromtimestamp(0))
     q = (
-        session.query(Contest.id, Announcement, Message, Question)
+        session.query(Contest.id, Announcement, Message, Question)  # type: ignore
         .join(Contest.participations)
         .filter(Participation.id == current_participation.id)
         .outerjoin(

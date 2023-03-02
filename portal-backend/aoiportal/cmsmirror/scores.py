@@ -69,7 +69,7 @@ def _calc_ranks(contest_data: ContestData) -> None:
 
 def get_contest_scores(contest_id: int) -> ContestData:
     contest: Optional[Contest] = (
-        session.query(Contest)
+        session.query(Contest)  # type: ignore
         .filter(Contest.id == contest_id)
         .options(
             joinedload(Contest.tasks),
@@ -81,7 +81,7 @@ def get_contest_scores(contest_id: int) -> ContestData:
         raise ValueError(f"Contest {contest_id} not found")
 
     num_subs_by_part_task: List[Tuple[int, int, int]] = (
-        session.query(
+        session.query(  # type: ignore
             Submission.participation_id,
             Submission.task_id,
             func.count(Submission.id),
@@ -110,7 +110,7 @@ def get_contest_scores(contest_id: int) -> ContestData:
         )
 
     tasks: List[Task] = (
-        session.query(Task)
+        session.query(Task)  # type: ignore
         .filter(Task.contest == contest)
         .options(
             joinedload(Task.active_dataset),
@@ -119,7 +119,7 @@ def get_contest_scores(contest_id: int) -> ContestData:
     )
 
     rows = (
-        session.query(Task.id, Participation.id, func.max(SubmissionResult.score))
+        session.query(Task.id, Participation.id, func.max(SubmissionResult.score))  # type: ignore
         .join(SubmissionResult.submission)
         .join(Submission.participation)
         .join(Submission.task)
@@ -136,7 +136,7 @@ def get_contest_scores(contest_id: int) -> ContestData:
         max_task_part_scores[tid][pid] = score
 
     rows = (
-        session.query(
+        session.query(  # type: ignore
             Task.id,
             Participation.id,
             SubtaskScore.subtask_idx,
