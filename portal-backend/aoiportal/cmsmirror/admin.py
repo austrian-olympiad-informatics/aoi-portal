@@ -19,7 +19,11 @@ from aoiportal.cmsmirror.db import (  # type: ignore
     session,
 )
 from aoiportal.cmsmirror.db.contest import Announcement  # type: ignore
-from aoiportal.cmsmirror.db.submission import Meme, Submission, SubmissionResult  # type: ignore
+from aoiportal.cmsmirror.db.submission import (  # type: ignore
+    Meme,
+    Submission,
+    SubmissionResult,
+)
 from aoiportal.cmsmirror.db.user import Message, Question  # type: ignore
 from aoiportal.cmsmirror.util import open_digest, paginate
 from aoiportal.error import AOIBadRequest, AOINotFound
