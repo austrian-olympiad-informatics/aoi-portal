@@ -11,7 +11,12 @@ from flask import Blueprint, current_app
 from sqlalchemy.orm import joinedload
 
 from aoiportal import cms_bridge
-from aoiportal.auth_util import admin_required, get_current_user, hash_password, login_required
+from aoiportal.auth_util import (
+    admin_required,
+    get_current_user,
+    hash_password,
+    login_required,
+)
 from aoiportal.cmsmirror.db import Contest as CMSContest  # type: ignore
 from aoiportal.cmsmirror.db import session as cms_session  # type: ignore
 from aoiportal.const import (
@@ -96,7 +101,11 @@ def _conv_user(user: User) -> dict:
 @admin_required
 @json_api()
 def get_users():
-    q = db.session.query(User).order_by(User.created_at.asc()).options(joinedload(User.groups))
+    q = (
+        db.session.query(User)
+        .order_by(User.created_at.asc())
+        .options(joinedload(User.groups))
+    )
     return [_conv_user(u) for u in q]
 
 

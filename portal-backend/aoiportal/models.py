@@ -136,6 +136,7 @@ class UserGitHubOAuth(Base):
     user = relationship(User, back_populates="github_oauths")
     extra_data = Column(String, nullable=False)
 
+
 class UserDiscordOAuth(Base):
     __tablename__ = "user_discord_oauth"
 

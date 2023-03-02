@@ -105,7 +105,9 @@ def auth_status():
     if obj is not None:
         print("TEST", sys.stdout)
         data = json.loads(obj.extra_data)
-        discord_user = data["user_info"]["username"] + "#" + data["user_info"]["discriminator"]
+        discord_user = (
+            data["user_info"]["username"] + "#" + data["user_info"]["discriminator"]
+        )
 
     return {
         "authenticated": True,

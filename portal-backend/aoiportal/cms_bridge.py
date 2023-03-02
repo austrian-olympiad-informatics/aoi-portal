@@ -131,8 +131,10 @@ def create_user(email: str, first_name: str, last_name: str) -> CreateUserResult
 
 
 def create_participation(
-    user_id: int, contest_id: int, manual_password: Optional[str] = None,
-    hidden: bool = False
+    user_id: int,
+    contest_id: int,
+    manual_password: Optional[str] = None,
+    hidden: bool = False,
 ) -> int:
     stored_password = None
     if manual_password is not None:

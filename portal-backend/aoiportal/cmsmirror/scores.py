@@ -135,9 +135,14 @@ def get_contest_scores(contest_id: int) -> ContestData:
     max_task_part_scores: Dict[int, Dict[int, float]] = collections.defaultdict(dict)
     for tid, pid, score in rows:
         max_task_part_scores[tid][pid] = score
-    
+
     rows = (
-        session.query(Task.id, Participation.id, SubtaskScore.subtask_idx, func.max(SubtaskScore.score))
+        session.query(
+            Task.id,
+            Participation.id,
+            SubtaskScore.subtask_idx,
+            func.max(SubtaskScore.score),
+        )
         .join(SubtaskScore.submission_result)
         .join(SubmissionResult.submission)
         .join(Submission.participation)
@@ -150,10 +155,11 @@ def get_contest_scores(contest_id: int) -> ContestData:
         .having(func.max(SubtaskScore.score) > 0)
         .all()
     )
-    max_subtask_task_part_subtask_max_scores: Dict[int, Dict[int, Dict[int, float]]] = collections.defaultdict(dict)
+    max_subtask_task_part_subtask_max_scores: Dict[
+        int, Dict[int, Dict[int, float]]
+    ] = collections.defaultdict(dict)
     for tid, pid, stidx, score in rows:
         max_subtask_task_part_subtask_max_scores[tid].setdefault(pid, {})[stidx] = score
-
 
     for task in tasks:
         dataset: Dataset = task.active_dataset
@@ -174,8 +180,11 @@ def get_contest_scores(contest_id: int) -> ContestData:
                 part = cast(Participation, part)
                 score = round(by_pid.get(part.id, 0.0), task.score_precision)
                 results[part.id].task_scores[task.id] = TaskResult(
-                    score=score, subtask_scores=None,
-                    num_submissions=num_subs_by_part_task_dict.get((part.id, task.id), 0),
+                    score=score,
+                    subtask_scores=None,
+                    num_submissions=num_subs_by_part_task_dict.get(
+                        (part.id, task.id), 0
+                    ),
                 )
 
         elif task.score_mode == "max_subtask":
@@ -183,19 +192,25 @@ def get_contest_scores(contest_id: int) -> ContestData:
             for part in contest.participations:
                 part = cast(Participation, part)
                 st_max_scores = by_pid.get(part.id, {})
-                subtask_scores = [st_max_scores.get(i, 0.0) for i in range(1, len(max_scores)+1)]
+                subtask_scores = [
+                    st_max_scores.get(i, 0.0) for i in range(1, len(max_scores) + 1)
+                ]
                 score = round(sum(subtask_scores), task.score_precision)
                 pres = results[part.id]
                 results[part.id].task_scores[task.id] = TaskResult(
                     score=score,
                     subtask_scores=subtask_scores,
-                    num_submissions=num_subs_by_part_task_dict.get((part.id, task.id), 0),
+                    num_submissions=num_subs_by_part_task_dict.get(
+                        (part.id, task.id), 0
+                    ),
                 )
         else:
             raise ValueError(f"Unknown score mode {task.score_mode}")
         score = round(score, task.score_precision)
         task_infos[task.id] = TaskData(
-            name=task.name, title=task.title, max_score=max_score,
+            name=task.name,
+            title=task.title,
+            max_score=max_score,
             subtask_max_scores=max_scores if has_subtasks else None,
             score_precision=task.score_precision,
         )
@@ -204,11 +219,14 @@ def get_contest_scores(contest_id: int) -> ContestData:
         part = cast(Participation, part)
         pres = results[part.id]
         results[part.id] = replace(
-            pres, 
-            score=round(sum((tsc.score for tsc in pres.task_scores.values()), 0.0), contest.score_precision)
+            pres,
+            score=round(
+                sum((tsc.score for tsc in pres.task_scores.values()), 0.0),
+                contest.score_precision,
+            ),
         )
-    
-    res =  ContestData(
+
+    res = ContestData(
         tasks=task_infos,
         results=results,
         score_precision=contest.score_precision,

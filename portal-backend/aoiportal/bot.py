@@ -12,9 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from aoiportal.auth_util import (
     get_current_user,
 )
-from aoiportal.const import (
-    KEY_SECRET
-)
+from aoiportal.const import KEY_SECRET
 from aoiportal.error import (
     AOIConflict,
     AOIUnauthorized,
@@ -52,28 +50,38 @@ def getData(data):
     ret = collections.defaultdict(int)
 
     for u in wien.users:
-        dis: Optional[UserDiscordOAuth] = UserDiscordOAuth.query.filter_by(user_id=u.id).first()
+        dis: Optional[UserDiscordOAuth] = UserDiscordOAuth.query.filter_by(
+            user_id=u.id
+        ).first()
         if dis is not None:
-            ret[dis.discord_id] += 16;
-    
+            ret[dis.discord_id] += 16
+
     for u in woergl.users:
-        dis: Optional[UserDiscordOAuth] = UserDiscordOAuth.query.filter_by(user_id=u.id).first()
+        dis: Optional[UserDiscordOAuth] = UserDiscordOAuth.query.filter_by(
+            user_id=u.id
+        ).first()
         if dis is not None:
-            ret[dis.discord_id] += 8;
+            ret[dis.discord_id] += 8
 
     for u in ioi.users:
-        dis: Optional[UserDiscordOAuth] = UserDiscordOAuth.query.filter_by(user_id=u.id).first()
+        dis: Optional[UserDiscordOAuth] = UserDiscordOAuth.query.filter_by(
+            user_id=u.id
+        ).first()
         if dis is not None:
-            ret[dis.discord_id] += 4;
+            ret[dis.discord_id] += 4
 
     for u in ceoi.users:
-        dis: Optional[UserDiscordOAuth] = UserDiscordOAuth.query.filter_by(user_id=u.id).first()
+        dis: Optional[UserDiscordOAuth] = UserDiscordOAuth.query.filter_by(
+            user_id=u.id
+        ).first()
         if dis is not None:
-            ret[dis.discord_id] += 2;
+            ret[dis.discord_id] += 2
 
     for u in egoi.users:
-        dis: Optional[UserDiscordOAuth] = UserDiscordOAuth.query.filter_by(user_id=u.id).first()
+        dis: Optional[UserDiscordOAuth] = UserDiscordOAuth.query.filter_by(
+            user_id=u.id
+        ).first()
         if dis is not None:
-            ret[dis.discord_id] += 1;
+            ret[dis.discord_id] += 1
 
     return json.dumps(ret)

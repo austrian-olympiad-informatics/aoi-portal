@@ -124,8 +124,8 @@ def get_contest(contest_uuid: str):
 def join_contest(contest_uuid: str):
     contest = Contest.query.filter_by(uuid=contest_uuid).first()
     can_join = (
-        contest is not None 
-        and (contest.open_signup or get_current_user().is_admin) 
+        contest is not None
+        and (contest.open_signup or get_current_user().is_admin)
         and not contest.deleted
     )
     if not can_join:

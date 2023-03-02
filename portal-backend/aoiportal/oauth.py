@@ -152,7 +152,7 @@ def discord_authorize_url():
     url = (
         uri
         + "?"
-       + urllib.parse.urlencode(
+        + urllib.parse.urlencode(
             {
                 "response_type": "code",
                 "client_id": current_app.config["DISCORD_OAUTH_CLIENT_ID"],
@@ -165,17 +165,13 @@ def discord_authorize_url():
         "url": url,
     }
 
+
 @oauth_bp.route("/api/oauth/discord/auth", methods=["POST"])
-@json_api(
-    {
-        vol.Required(KEY_CODE): str,
-        vol.Required(KEY_REDIRECT_URI): str
-    }
-)
+@json_api({vol.Required(KEY_CODE): str, vol.Required(KEY_REDIRECT_URI): str})
 def discord_auth(data):
     if get_current_user() is None:
         raise AOIUnauthorized("You are not logged in.")
-    
+
     access_token_url = "https://discord.com/api/oauth2/token"
     payload = {
         "client_id": current_app.config["DISCORD_OAUTH_CLIENT_ID"],
@@ -207,7 +203,9 @@ def discord_auth(data):
         return {
             "success": True,
             "user_id": obj.discord_id,
-            "username": data["user_info"]["username"] + "#" + data["user_info"]["discriminator"]
+            "username": data["user_info"]["username"]
+            + "#"
+            + data["user_info"]["discriminator"],
         }
 
     resp = rsess.get(
@@ -216,7 +214,7 @@ def discord_auth(data):
     )
     resp.raise_for_status()
     user_info = resp.json()
-    
+
     oauth = UserDiscordOAuth(
         discord_id=user_info["id"],
         user_id=get_current_user().id,
@@ -237,9 +235,8 @@ def discord_auth(data):
     return {
         "success": True,
         "user_id": user_info["id"],
-        "username": user_info["username"] + "#" + user_info["discriminator"] 
+        "username": user_info["username"] + "#" + user_info["discriminator"],
     }
-
 
 
 @oauth_bp.route("/api/auth/oauth/google/authorize-url")

@@ -231,11 +231,16 @@ def get_contest_scores(contest_name: str):
     if contest.show_global_rank or contest.show_points_to_next_rank:
         contest_scores = contest_data.results
         part_to_score = {
-            part_id: round(sum((x.score for x in part_result.task_scores.values()), 0.0), contest.score_precision)
+            part_id: round(
+                sum((x.score for x in part_result.task_scores.values()), 0.0),
+                contest.score_precision,
+            )
             for part_id, part_result in contest_scores.items()
             if not part_result.hidden
         }
-        part_to_score.setdefault(part.id, 0.0)  # if the participation has been added since the last refresh
+        part_to_score.setdefault(
+            part.id, 0.0
+        )  # if the participation has been added since the last refresh
         my_score = part_to_score[part.id]
         sorted_scores = sorted(part_to_score.values(), reverse=True)
         global_rank = sorted_scores.index(my_score) + 1
@@ -243,7 +248,9 @@ def get_contest_scores(contest_name: str):
             res["global_rank"] = global_rank
         if contest.show_points_to_next_rank and global_rank != 1 and my_score != 0:
             dedup_scores = sorted(set(sorted_scores), reverse=True)
-            res["points_to_next_rank"] = dedup_scores[dedup_scores.index(my_score) - 1] - my_score
+            res["points_to_next_rank"] = (
+                dedup_scores[dedup_scores.index(my_score) - 1] - my_score
+            )
 
     return res
 
@@ -412,9 +419,12 @@ def get_task(contest_name: str, task_name: str):
                 score_details=res.score_details,
             )
             for sub, res in submissions
-            if res is not None and sub.official and res.score is not None and res.score > 0
+            if res is not None
+            and sub.official
+            and res.score is not None
+            and res.score > 0
         ],
-        task.score_mode
+        task.score_mode,
     )
     score = score_res.score
     score_subtasks = None
@@ -587,9 +597,7 @@ def get_statement(contest_name: str, task_name: str, language: str):
     return resp
 
 
-@cmsmirror_bp.route(
-    "/api/cms/contest/<contest_name>/task/<task_name>/statement-html"
-)
+@cmsmirror_bp.route("/api/cms/contest/<contest_name>/task/<task_name>/statement-html")
 @login_required
 @active_contest_required
 def get_statement_html(contest_name: str, task_name: str):
@@ -602,9 +610,7 @@ def get_statement_html(contest_name: str, task_name: str):
     return resp
 
 
-@cmsmirror_bp.route(
-    "/api/cms/contest/<contest_name>/task/<task_name>/default-input"
-)
+@cmsmirror_bp.route("/api/cms/contest/<contest_name>/task/<task_name>/default-input")
 @login_required
 @active_contest_required
 def get_default_input(contest_name: str, task_name: str):
@@ -803,7 +809,9 @@ def submit(data, contest_name: str, task_name: str):
     try:
         send_sub_to_evaluation_service(sub.id)
     except Exception:
-        _LOGGER.warning("Failed to send submission to evaluation service", exc_info=True)
+        _LOGGER.warning(
+            "Failed to send submission to evaluation service", exc_info=True
+        )
 
     return {
         "success": True,
@@ -865,7 +873,9 @@ def user_eval(data, contest_name: str, task_name: str):
     try:
         send_user_eval_to_evaluation_service(ueval.id)
     except Exception:
-        _LOGGER.warning("Failed to send submission to evaluation service", exc_info=True)
+        _LOGGER.warning(
+            "Failed to send submission to evaluation service", exc_info=True
+        )
 
     return {
         "success": True,
