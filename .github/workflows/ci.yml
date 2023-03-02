@@ -48,7 +48,7 @@ jobs:
       - name: Set up Python environment
         run: |
           pip3 install -r portal-backend/requirements.txt -r portal-backend/requirements_test.txt
-          pip3 install -e .
+          pip3 install -e portal-backend
       - name: Register problem matchers
         run: |
           echo "::add-matcher::.github/workflows/matchers/flake8.json"
