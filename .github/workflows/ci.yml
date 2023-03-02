@@ -55,15 +55,15 @@ jobs:
           echo "::add-matcher::.github/workflows/matchers/pylint.json"
           echo "::add-matcher::.github/workflows/matchers/isort.json"
           echo "::add-matcher::.github/workflows/matchers/mypy.json"
-      - run: flake8 portal-backend/aoiportal
+      - run: cd portal-backend && flake8 aoiportal
         if: ${{ matrix.id == 'flake8' }}
-      - run: pylint portal-backend/aoiportal
+      - run: cd portal-backend && pylint aoiportal
         if: ${{ matrix.id == 'pylint' }}
-      - run: black --check --diff --color portal-backend/aoiportal
+      - run: cd portal-backend && black --check --diff --color aoiportal
         if: ${{ matrix.id == 'black' }}
-      - run: isort --check --diff portal-backend/aoiportal
+      - run: cd portal-backend && isort --check --diff aoiportal
         if: ${{ matrix.id == 'isort' }}
-      - run: mypy portal-backend/aoiportal
+      - run: cd portal-backend && mypy aoiportal
         if: ${{ matrix.id == 'mypy' }}
   ci-frontend:
     runs-on: ubuntu-latest
