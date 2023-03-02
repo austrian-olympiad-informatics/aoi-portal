@@ -14,8 +14,8 @@
           v-if="contest.quali_round && !profileComplete"
         >
           Dein Profil ist noch nicht fertig ausgefüllt. Damit du dich für
-          Trainingscamps und den Bundesbewerb qualifizieren kannst, musst du diese
-          in den
+          Trainingscamps und den Bundesbewerb qualifizieren kannst, musst du
+          diese in den
           <router-link :to="{ name: 'Profile' }"
             >Profileinstellungen</router-link
           >
@@ -87,21 +87,22 @@
               </b-checkbox>
               <b-checkbox class="mb-3" required>
                 Ich verstehe, dass diese Qualifikation eine Einzelarbeit ist.
-                Gruppenarbeiten sowie das Teilen von Lösungen sind nicht erlaubt.
+                Gruppenarbeiten sowie das Teilen von Lösungen sind nicht
+                erlaubt.
               </b-checkbox>
             </div>
-            <b-button 
-              expanded 
-              native-type="submit"
-              type="is-primary"
-            >
+            <b-button expanded native-type="submit" type="is-primary">
               Teilnehmen / Bei diesem Bewerb registrieren
             </b-button>
             <p class="mt-4" v-if="contest.quali_round">
               <em>Hinweis:</em> Wir veröffentlichen nach dem Wettbewerb eine
               Ergebnisliste der besten Teilnehmer:innen auf unserer Webseite.
-              Wenn dein Name auf dieser Liste anonymisiert (Vor- und Nachname mit N., N. ersetzt) aufscheinen soll, kannst du uns eine E-Mail mit deinem
-              Wunsch an <a href="mailto:orga@informatikolympiade.at">orga@informatikolympiade.at</a>
+              Wenn dein Name auf dieser Liste anonymisiert (Vor- und Nachname
+              mit N., N. ersetzt) aufscheinen soll, kannst du uns eine E-Mail
+              mit deinem Wunsch an
+              <a href="mailto:orga@informatikolympiade.at"
+                >orga@informatikolympiade.at</a
+              >
               schicken.
             </p>
           </form>
@@ -156,8 +157,7 @@ export default class ContestView extends Vue {
   async doJoinContest() {
     await contests.joinContest(this.contestUuid);
     this.$buefy.toast.open({
-      message:
-        "Erfolgreich bei Wettbewerb registriert!",
+      message: "Erfolgreich bei Wettbewerb registriert!",
       type: "is-success",
     });
     await this.loadContest();

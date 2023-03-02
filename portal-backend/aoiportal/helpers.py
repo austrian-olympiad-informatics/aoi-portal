@@ -18,7 +18,10 @@ def create_cms_user(user: User) -> int:
 
 
 def create_participation(
-    user: User, contest: Contest, *, manual_password: Optional[str] = None,
+    user: User,
+    contest: Contest,
+    *,
+    manual_password: Optional[str] = None,
     hidden: bool = False,
 ) -> Participation:
     if user.cms_id is None:

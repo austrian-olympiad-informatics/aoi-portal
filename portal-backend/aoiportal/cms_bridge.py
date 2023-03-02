@@ -1,20 +1,14 @@
 import datetime
 import secrets
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from slugify import slugify
 
 from aoiportal.cmsmirror.db import Contest as CMSContest  # type: ignore
 from aoiportal.cmsmirror.db import Participation as CMSParticipation  # type: ignore
-from aoiportal.cmsmirror.db import Submission as CMSSubmission  # type: ignore
-from aoiportal.cmsmirror.db import (
-    SubmissionResult as CMSSubmissionResult,  # type: ignore
-)
-from aoiportal.cmsmirror.db import Task as CMSTask  # type: ignore
 from aoiportal.cmsmirror.db import User as CMSUser  # type: ignore
 from aoiportal.cmsmirror.db import session as cms_session
-from aoiportal.cmsmirror.util import ScoreInput, score_calculation  # type: ignore
 
 
 @dataclass
@@ -64,26 +58,26 @@ def update_contest(
     sso_secret_key: str,
     sso_redirect_url: str,
 ) -> None:
-    contest = cms_session.query(CMSContest).filter(CMSContest.id == contest_id).first()
+    contest = cms_session.query(CMSContest).filter(CMSContest.id == contest_id).first()  # type: ignore
     contest.name = name
     contest.description = description
     contest.allow_sso_authentication = allow_sso_authentication
     contest.sso_secret_key = sso_secret_key
     contest.sso_redirect_url = sso_redirect_url
-    cms_session.commit()
+    cms_session.commit()  # type: ignore
 
 
 def set_participation_password(
     contest_id: int, participation_id: int, manual_password: Optional[str]
 ) -> None:
     part = (
-        cms_session.query(CMSParticipation)
+        cms_session.query(CMSParticipation)  # type: ignore
         .filter(CMSParticipation.id == participation_id)
         .filter(CMSParticipation.contest_id == contest_id)
         .first()
     )
     part.password = f"plaintext:{manual_password}"
-    cms_session.commit()
+    cms_session.commit()  # type: ignore
 
 
 def _gen_username(first_name: str, last_name: str) -> str:
@@ -122,8 +116,8 @@ def create_user(email: str, first_name: str, last_name: str) -> CreateUserResult
         timezone=None,
         preferred_languages=[],
     )
-    cms_session.add(user)
-    cms_session.commit()
+    cms_session.add(user)  # type: ignore
+    cms_session.commit()  # type: ignore
     return CreateUserResult(
         cms_id=user.id,
         cms_username=user.username,
@@ -131,14 +125,16 @@ def create_user(email: str, first_name: str, last_name: str) -> CreateUserResult
 
 
 def create_participation(
-    user_id: int, contest_id: int, manual_password: Optional[str] = None,
-    hidden: bool = False
+    user_id: int,
+    contest_id: int,
+    manual_password: Optional[str] = None,
+    hidden: bool = False,
 ) -> int:
     stored_password = None
     if manual_password is not None:
         stored_password = f"plaintext:{manual_password}"
-    user = cms_session.query(CMSUser).filter(CMSUser.id == user_id).first()
-    contest = cms_session.query(CMSContest).filter(CMSContest.id == contest_id).first()
+    user = cms_session.query(CMSUser).filter(CMSUser.id == user_id).first()  # type: ignore
+    contest = cms_session.query(CMSContest).filter(CMSContest.id == contest_id).first()  # type: ignore
     part = CMSParticipation(
         user=user,
         contest=contest,
@@ -150,6 +146,6 @@ def create_participation(
         hidden=hidden,
         unrestricted=False,
     )
-    cms_session.add(part)
-    cms_session.commit()
+    cms_session.add(part)  # type: ignore
+    cms_session.commit()  # type: ignore
     return part.id

@@ -38,7 +38,10 @@ const langToCMSLangsMap: Map<Language, string[]> = new Map([
   [Language.Java, ["Java / JDK"]],
   [Language.Javascript, ["Javascript"]],
   [Language.Kotlin, ["Kotlin"]],
-  [Language.Python, ["Python 3 / PyPy", "Python 3 / CPython", "Python 2 / CPython"]],
+  [
+    Language.Python,
+    ["Python 3 / PyPy", "Python 3 / CPython", "Python 2 / CPython"],
+  ],
   [Language.Rust, ["Rust"]],
   [Language.Typescript, ["Typescript"]],
   [Language.Swift, ["Swift"]],
@@ -46,29 +49,21 @@ const langToCMSLangsMap: Map<Language, string[]> = new Map([
 
 export function lookupCMSLang(cmsLang: string): Language {
   for (const [k, v] of langToCMSLangsMap)
-    for (const x of v)
-      if (x === cmsLang)
-        return k;
+    for (const x of v) if (x === cmsLang) return k;
   return Language.None;
 }
 
 export function langToCMSLang(lang: Language, cmsLangs: string[]): string {
-  if (!cmsLangs.length)
-    return "";
+  if (!cmsLangs.length) return "";
   const order = langToCMSLangsMap.get(lang);
-  if (order === undefined)
-    return cmsLangs[0];
-  for (const ord of order)
-    if (cmsLangs.includes(ord))
-      return ord;
+  if (order === undefined) return cmsLangs[0];
+  for (const ord of order) if (cmsLangs.includes(ord)) return ord;
   return "";
 }
 
 export function extToLang(extension: string): Language {
   for (const [k, v] of langToExtsMap)
-    for (const x of v)
-      if (x === extension)
-        return k;
+    for (const x of v) if (x === extension) return k;
   return Language.None;
 }
 export function langToExt(lang: Language): string {

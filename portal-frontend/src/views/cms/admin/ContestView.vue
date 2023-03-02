@@ -22,8 +22,8 @@
             query: { contest_id: contestId },
           }"
         >
-          {{ submissions.total }} submissions
-        </router-link><br>
+          {{ submissions.total }} submissions </router-link
+        ><br />
         <router-link
           :to="{
             name: 'CMSAdminValidityHelper',

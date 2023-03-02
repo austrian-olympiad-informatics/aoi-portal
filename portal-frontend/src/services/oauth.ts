@@ -32,8 +32,7 @@ class OAuthService {
     const resp = await http.post("/api/oauth/google/auth", data);
     return resp.data;
   }
-  async getDiscordAuthorizeURL(
-  ): Promise<DiscordAuthorizeURLResponse> {
+  async getDiscordAuthorizeURL(): Promise<DiscordAuthorizeURLResponse> {
     const resp = await http.get("/api/auth/oauth/discord/authorize-url");
     return resp.data;
   }

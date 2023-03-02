@@ -2,7 +2,12 @@
   <div>
     <div class="block">
       <h2 class="title is-3">Ankündigungen</h2>
-      <b-switch class="mb-3" v-if="showNotificationSwitch" @input="askNotificationPermission">Benachrichtigung bei neuen Ankündigungen</b-switch>
+      <b-switch
+        class="mb-3"
+        v-if="showNotificationSwitch"
+        @input="askNotificationPermission"
+        >Benachrichtigung bei neuen Ankündigungen</b-switch
+      >
       <div v-if="!announcements.length">
         <i>Noch keine Ankündigungen</i>
       </div>
@@ -110,21 +115,26 @@ export default class NotificationsSection extends Vue {
   showNotificationSwitch = false;
 
   updateShowNotificationSwitch() {
-    this.showNotificationSwitch = "Notification" in window && window.Notification.permission === "default";
+    this.showNotificationSwitch =
+      "Notification" in window && window.Notification.permission === "default";
   }
 
   askNotificationPermission() {
-    window.Notification.requestPermission().then(() => {
-      this.updateShowNotificationSwitch();
-      if (window.Notification.permission === "granted")
-        this.$buefy.toast.open({
-          message: "Du erhälst jetzt bei neuen Ankündigungen eine Benachrichtigung",
-          type: "is-success",
-          duration: 5000,
-        });
-    }, () => {
-      this.updateShowNotificationSwitch();
-    });
+    window.Notification.requestPermission().then(
+      () => {
+        this.updateShowNotificationSwitch();
+        if (window.Notification.permission === "granted")
+          this.$buefy.toast.open({
+            message:
+              "Du erhälst jetzt bei neuen Ankündigungen eine Benachrichtigung",
+            type: "is-success",
+            duration: 5000,
+          });
+      },
+      () => {
+        this.updateShowNotificationSwitch();
+      }
+    );
   }
 
   mounted() {

@@ -34,10 +34,10 @@
       </b-navbar-item>
 
       <b-field class="discord-tag" v-if="isDiscordLinked">
-          <span class="icon">
-              <img src="./../assets/discord-icon.svg" loading="lazy"/>
-          </span>
-          <b-tag class="username">{{ getDiscordUsername }}</b-tag>
+        <span class="icon">
+          <img src="./../assets/discord-icon.svg" loading="lazy" />
+        </span>
+        <b-tag class="username">{{ getDiscordUsername }}</b-tag>
       </b-field>
 
       <b-navbar-dropdown v-if="isAuthenticated">
@@ -53,12 +53,15 @@
             <span>Profil</span>
           </span>
         </b-navbar-item>
-        <b-navbar-item v-if="isAdmin" tag="router-link" :to="isCMS ? { name: 'CMSAdminIndex' } : { name: 'AdminContests' }">
+        <b-navbar-item
+          v-if="isAdmin"
+          tag="router-link"
+          :to="isCMS ? { name: 'CMSAdminIndex' } : { name: 'AdminContests' }"
+        >
           <span class="icon-text">
             <b-icon class="mr-2" icon="cog" />
             <span>Admin</span>
           </span>
-        </b-navbar-item>
         </b-navbar-item>
         <b-navbar-item @click="logout">
           <span class="icon-text">
@@ -93,7 +96,7 @@ export default class Navbar extends Vue {
     return !!this.$store.getters.discordUsername;
   }
   get getDiscordUsername(): string {
-    return this.$store.getters.discordUsername;;
+    return this.$store.getters.discordUsername;
   }
 
   get name(): string {

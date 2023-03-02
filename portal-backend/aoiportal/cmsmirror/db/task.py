@@ -244,15 +244,9 @@ class Task(Base):
 
     # The HTML source to display on the left column of the task page
     # in frontendv2.
-    statement_html_digest = Column(
-        Digest,
-        default=None,
-        nullable=True)
+    statement_html_digest = Column(Digest, default=None, nullable=True)
     # The default input to prepopulate in test mode in frontendv2.
-    default_input_digest = Column(
-        Digest,
-        default=None,
-        nullable=True)
+    default_input_digest = Column(Digest, default=None, nullable=True)
 
     # These one-to-many relationships are the reversed directions of
     # the ones defined in the "child" classes using foreign keys.

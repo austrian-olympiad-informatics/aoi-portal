@@ -1,4 +1,5 @@
 # type: ignore
+# pylint: skip-file
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -116,7 +117,7 @@ class LargeObject(io.RawIOBase):
         self._fd = self._execute(
             "SELECT lo_open(%(loid)s, %(mode)s);",
             {"loid": self.loid, "mode": open_mode},
-            "Couldn't open large object with LOID " "%s." % self.loid,
+            f"Couldn't open large object with LOID {self.loid}.",
             cursor,
         )
 

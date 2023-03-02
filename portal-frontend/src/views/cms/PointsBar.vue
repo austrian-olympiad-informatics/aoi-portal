@@ -63,16 +63,15 @@ export default class PointsBar extends Vue {
       ];
     else subtasks = this.subtasks;
     let cumw = 0;
-    let res = [];
+    const res = [];
     const mul = 100 / this.maxScore;
-    let isMoreThanHalf = [];
+    const isMoreThanHalf = [];
     for (const st of subtasks) {
       let fraction = st.fraction;
       if (st.fraction === undefined && st.score !== undefined) {
         fraction = st.score / st.max_score;
       }
-      if (fraction === undefined)
-        fraction = 0.0;
+      if (fraction === undefined) fraction = 0.0;
       const posWidth = fraction * st.max_score * mul;
       const negWidth = (1 - fraction) * st.max_score * mul;
       const posClass = "is-success";

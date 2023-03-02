@@ -285,7 +285,8 @@ class SubmissionResult(Base):
         "SubtaskScore",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="submission_result")
+        back_populates="submission_result",
+    )
 
     meme_id = Column(Integer, ForeignKey("memes.id"), nullable=True, default=None)
     meme = relationship("Meme", back_populates="submission_results")
@@ -294,14 +295,13 @@ class SubmissionResult(Base):
         """Return the status of this object."""
         if not self.compiled():
             return SubmissionResult.COMPILING
-        elif self.compilation_failed():
+        if self.compilation_failed():
             return SubmissionResult.COMPILATION_FAILED
-        elif not self.evaluated():
+        if not self.evaluated():
             return SubmissionResult.EVALUATING
-        elif not self.scored():
+        if not self.scored():
             return SubmissionResult.SCORING
-        else:
-            return SubmissionResult.SCORED
+        return SubmissionResult.SCORED
 
     def get_evaluation(self, testcase):
         """Return the Evaluation of this SR on the given Testcase, if any
@@ -475,46 +475,39 @@ class SubmissionResult(Base):
 
 
 class SubtaskScore(Base):
-    __tablename__ = 'subtask_score'
+    __tablename__ = "subtask_score"
     __table_args__ = (
         ForeignKeyConstraint(
-            ('submission_id', 'dataset_id'),
+            ("submission_id", "dataset_id"),
             (SubmissionResult.submission_id, SubmissionResult.dataset_id),
-            onupdate="CASCADE", ondelete="CASCADE"),
-        UniqueConstraint('submission_id', 'dataset_id', 'subtask_idx'),
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+        ),
+        UniqueConstraint("submission_id", "dataset_id", "subtask_idx"),
     )
 
-    id = Column(
-        Integer,
-        primary_key=True
-    )
+    id = Column(Integer, primary_key=True)
 
     # Submission (id and object) owning the executable.
     submission_id = Column(
         Integer,
-        ForeignKey(Submission.id,
-                   onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Submission.id, onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True)
-    submission = relationship(
-        Submission,
-        viewonly=True)
+        index=True,
+    )
+    submission = relationship(Submission, viewonly=True)
 
     # Dataset (id and object) owning the executable.
     dataset_id = Column(
         Integer,
-        ForeignKey(Dataset.id,
-                   onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Dataset.id, onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True)
-    dataset = relationship(
-        Dataset,
-        viewonly=True)
+        index=True,
+    )
+    dataset = relationship(Dataset, viewonly=True)
 
     # SubmissionResult owning the executable.
-    submission_result = relationship(
-        SubmissionResult,
-        back_populates="subtask_scores")
+    submission_result = relationship(SubmissionResult, back_populates="subtask_scores")
 
     subtask_idx = Column(Integer, nullable=False)
     score = Column(Float, nullable=False)

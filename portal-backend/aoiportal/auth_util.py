@@ -8,9 +8,14 @@ import bcrypt
 import nacl.exceptions
 import nacl.secret
 from flask import current_app, g, request
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload  # type: ignore
 
-from aoiportal.error import ERROR_ADMIN_REQUIRED, ERROR_LOGIN_REQUIRED, AOIForbidden, AOIUnauthorized
+from aoiportal.error import (
+    ERROR_ADMIN_REQUIRED,
+    ERROR_LOGIN_REQUIRED,
+    AOIForbidden,
+    AOIUnauthorized,
+)
 from aoiportal.models import User, UserSession, db  # type: ignore
 from aoiportal.utils import as_utc, utcnow
 

@@ -1,4 +1,5 @@
 # type: ignore
+# pylint: skip-file
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2013 Stefano Maggiolo <s.maggiolo@gmail.com>
@@ -165,6 +166,7 @@ event.listen(metadata, "before_create", FilenameSchema.get_create_command())
 event.listen(metadata, "after_drop", FilenameSchema.get_drop_command())
 
 
+# pylint: disable=abstract-method
 class FilenameSchemaArray(TypeDecorator):
     """Check that the column is an array of filename schemas (as above).
 
@@ -216,6 +218,7 @@ def compile_filename_schema_array(element, compiler, **kw):
     return FilenameSchemaArray.domain_name
 
 
+# pylint: ignore=abstract-method
 class Digest(TypeDecorator):
     """Check that the column is a valid SHA1 hex digest.
 

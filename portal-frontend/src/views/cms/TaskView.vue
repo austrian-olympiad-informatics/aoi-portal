@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts">
-import { ScoringGroup, SubmissionShort, Task } from "@/types/cms";
+import { SubmissionShort, Task } from "@/types/cms";
 import cms from "@/services/cms";
 import { Component, Vue } from "vue-property-decorator";
 import DescriptionPanel from "./DescriptionPanel.vue";
@@ -76,7 +76,7 @@ export default class TaskView extends Vue {
       }
     } else {
       const calcScoreFractions = () => {
-        return this.task!.score_subtasks!.map(x => x.fraction);
+        return this.task!.score_subtasks!.map((x) => x.fraction);
       };
       const stBefore = calcScoreFractions();
       await this.loadTask();
@@ -85,8 +85,7 @@ export default class TaskView extends Vue {
       for (let i = 0; i < stAfter.length; i++) {
         const x = stAfter[i];
         const y = i >= stBefore.length ? 0 : stBefore[i];
-        if (x >= 1 && y < 1)
-          stSolved.push(i+1);
+        if (x >= 1 && y < 1) stSolved.push(i + 1);
       }
       if (stSolved.length > 0) {
         successModalText = `Teilaufgabe ${stSolved.join(", ")} gelöst! 🎉`;

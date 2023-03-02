@@ -7,13 +7,13 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from aoiportal import error
 from aoiportal.admin import admin_bp
 from aoiportal.auth import auth_bp
+from aoiportal.bot import bot_bp
 from aoiportal.contests import contests_bp
 from aoiportal.mail import mail
 from aoiportal.models import db  # type: ignore
 from aoiportal.newsletter import newsletter_bp
 from aoiportal.oauth import oauth_bp
 from aoiportal.profile import profile_bp
-from aoiportal.bot import bot_bp
 
 
 def create_app(base_config_obj, config_file):
@@ -35,9 +35,9 @@ def create_app(base_config_obj, config_file):
     app.register_blueprint(bot_bp)
     error.init_app(app)
 
+    from aoiportal.cmsmirror.admin import cmsadmin_bp  # type: ignore
     from aoiportal.cmsmirror.db import init_app as cmsmirror_init_app  # type: ignore
-    from aoiportal.cmsmirror.views import cmsmirror_bp
-    from aoiportal.cmsmirror.admin import cmsadmin_bp
+    from aoiportal.cmsmirror.views import cmsmirror_bp  # type: ignore
 
     cmsmirror_init_app(app)
     app.register_blueprint(cmsmirror_bp)

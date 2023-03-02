@@ -23,7 +23,9 @@
 
       <p class="mt-5" v-if="showHelpText">
         Keine Mail erhalten? Kontaktiere uns unter
-        <a href="mailto:orga@informatikolympiade.at">orga@informatikolympiade.at</a>
+        <a href="mailto:orga@informatikolympiade.at"
+          >orga@informatikolympiade.at</a
+        >
       </p>
     </form>
   </center-box-layout>

@@ -1,4 +1,5 @@
 import collections
+import datetime
 import hashlib
 import io
 import json
@@ -6,12 +7,11 @@ import socket
 from dataclasses import dataclass, field
 from typing import Dict, Generic, List, Optional, Tuple, TypeVar
 from uuid import uuid4
-import datetime
 
-from flask import request, current_app
-from sqlalchemy.orm import Query
+from flask import current_app, request
+from sqlalchemy.orm import Query  # type: ignore
 
-from aoiportal.cmsmirror.db import FSObject, LargeObject, session
+from aoiportal.cmsmirror.db import FSObject, LargeObject, session  # type: ignore
 from aoiportal.error import AOIBadRequest  # type: ignore
 
 
@@ -53,7 +53,7 @@ def open_digest(digest: str, cache: Optional[Cache] = None) -> io.BytesIO:
         cached = get_digest_cache(cache, digest)
         if cached is not None:
             return io.BytesIO(cached)
-    fso = session.query(FSObject).filter(FSObject.digest == digest).first()
+    fso = session.query(FSObject).filter(FSObject.digest == digest).first()  # type: ignore
     if fso is None:
         raise KeyError("File not found.")
     lo = fso.get_lobject(mode="rb")
@@ -75,7 +75,7 @@ def open_digest(digest: str, cache: Optional[Cache] = None) -> io.BytesIO:
 
 def create_file(content: bytes, description: str) -> str:
     digest = calc_digest(content)
-    fso = session.query(FSObject).filter(FSObject.digest == digest).first()
+    fso = session.query(FSObject).filter(FSObject.digest == digest).first()  # type: ignore
     if fso is not None:
         return digest
     lo = LargeObject(0, mode="wb")
@@ -85,7 +85,7 @@ def create_file(content: bytes, description: str) -> str:
     fso = FSObject(description=description)
     fso.digest = digest
     fso.loid = lo.loid
-    session.add(fso)
+    session.add(fso)  # type: ignore
     return digest
 
 

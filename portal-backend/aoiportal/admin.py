@@ -1,6 +1,5 @@
 import base64
 import datetime
-import functools
 import uuid
 from typing import List, Optional
 
@@ -8,10 +7,10 @@ import nacl.secret
 import nacl.utils
 import voluptuous as vol  # type: ignore
 from flask import Blueprint, current_app
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload  # type: ignore
 
 from aoiportal import cms_bridge
-from aoiportal.auth_util import admin_required, get_current_user, hash_password, login_required
+from aoiportal.auth_util import admin_required, hash_password
 from aoiportal.cmsmirror.db import Contest as CMSContest  # type: ignore
 from aoiportal.cmsmirror.db import session as cms_session  # type: ignore
 from aoiportal.const import (
@@ -49,7 +48,7 @@ from aoiportal.const import (
     KEY_USER_ID,
     KEY_USERS,
 )
-from aoiportal.error import ERROR_ADMIN_REQUIRED, AOIForbidden, AOINotFound
+from aoiportal.error import AOINotFound
 from aoiportal.mail import Address, encode_email, send_mass
 from aoiportal.models import (  # type: ignore
     Contest,
@@ -96,7 +95,11 @@ def _conv_user(user: User) -> dict:
 @admin_required
 @json_api()
 def get_users():
-    q = db.session.query(User).order_by(User.created_at.asc()).options(joinedload(User.groups))
+    q = (
+        db.session.query(User)
+        .order_by(User.created_at.asc())
+        .options(joinedload(User.groups))
+    )
     return [_conv_user(u) for u in q]
 
 

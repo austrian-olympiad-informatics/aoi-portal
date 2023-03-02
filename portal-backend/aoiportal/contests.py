@@ -5,8 +5,8 @@ from typing import Optional
 
 import nacl.secret
 from flask import Blueprint
-from sqlalchemy import and_
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import and_  # type: ignore
+from sqlalchemy.exc import IntegrityError  # type: ignore
 
 from aoiportal.auth_util import get_current_user, login_required
 from aoiportal.error import AOIConflict, AOINotFound
@@ -123,9 +123,11 @@ def get_contest(contest_uuid: str):
 @json_api()
 def join_contest(contest_uuid: str):
     contest = Contest.query.filter_by(uuid=contest_uuid).first()
+    current_user = get_current_user()
+    assert current_user is not None
     can_join = (
-        contest is not None 
-        and (contest.open_signup or get_current_user().is_admin) 
+        contest is not None
+        and (contest.open_signup or current_user.is_admin)
         and not contest.deleted
     )
     if not can_join:

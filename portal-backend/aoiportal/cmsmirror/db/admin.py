@@ -20,8 +20,8 @@
 
 """
 
-from sqlalchemy.schema import Column
-from sqlalchemy.types import Boolean, Integer, Unicode
+from sqlalchemy.schema import Column  # type: ignore
+from sqlalchemy.types import Boolean, Integer, Unicode  # type: ignore
 
 from .base import Base  # type: ignore
 from .types import Codename  # type: ignore
@@ -45,7 +45,7 @@ class Admin(Base):
     name = Column(Unicode, nullable=False)
 
     # Username used to log in in AWS.
-    username = Column(Codename, nullable=False, unique=True)
+    username = Column(Codename, nullable=False, unique=True)  # type: ignore
 
     # String used to authenticate the user, in the format
     # <authentication type>:<authentication_string>

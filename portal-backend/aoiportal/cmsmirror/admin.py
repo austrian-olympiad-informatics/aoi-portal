@@ -1,32 +1,31 @@
-from dataclasses import dataclass
-from typing import List, Optional, Tuple, cast, Dict
-import collections
+from typing import List, Optional, Tuple
 
-from flask import Blueprint, g, request, send_file, jsonify
-from sqlalchemy.orm import joinedload, Load, selectinload, Query
-from sqlalchemy import func
+import voluptuous as vol  # type: ignore
+from flask import Blueprint, g, jsonify, request, send_file
+from sqlalchemy.orm import Load, joinedload, selectinload  # type: ignore
 from werkzeug.local import LocalProxy
-import voluptuous as vol
 
-from aoiportal.auth_util import admin_required, get_current_user
-from aoiportal.cmsmirror.db import (
+from aoiportal.auth_util import admin_required
+from aoiportal.cmsmirror import scores
+from aoiportal.cmsmirror.const import KEY_HIDDEN
+from aoiportal.cmsmirror.db import (  # type: ignore
     Contest,
-    session,
-    Participation,
-    User,
-    Task,
     Dataset,
+    Participation,
+    Task,
+    User,
     UserEval,
     UserEvalResult,
-    SubtaskScore,
+    session,
 )
-from aoiportal.cmsmirror.db.contest import Announcement
-from aoiportal.cmsmirror.db.submission import Meme, Submission, SubmissionResult
-from aoiportal.cmsmirror.db.user import Message, Question
+from aoiportal.cmsmirror.db.contest import Announcement  # type: ignore
+from aoiportal.cmsmirror.db.submission import (  # type: ignore
+    Meme,
+    Submission,
+    SubmissionResult,
+)
+from aoiportal.cmsmirror.db.user import Message, Question  # type: ignore
 from aoiportal.cmsmirror.util import open_digest, paginate
-from aoiportal.cmsmirror.const import KEY_HIDDEN
-from aoiportal.cmsmirror import scores
-from aoiportal.const import KEY_CONTEST_ID, KEY_PARTICIPATION_ID, KEY_TASK_ID
 from aoiportal.error import AOIBadRequest, AOINotFound
 from aoiportal.utils import as_utc
 from aoiportal.web_utils import json_api
@@ -40,7 +39,7 @@ def _get_contest() -> Contest:
         return getattr(g, key)
     assert request.view_args is not None
     contest_id = request.view_args["contest_id"]
-    contest = session.query(Contest).filter(Contest.id == contest_id).first()
+    contest = session.query(Contest).filter(Contest.id == contest_id).first()  # type: ignore
     if contest is None:
         raise AOINotFound("Contest not found")
     setattr(g, key, contest)
@@ -178,7 +177,7 @@ def _dump_message(msg: Message):
 @json_api()
 def get_contest_questions(contest_id: int):
     questions: List[Question] = (
-        session.query(Question)
+        session.query(Question)  # type: ignore
         .join(Question.participation)
         .filter(Participation.contest_id == current_contest.id)
         .order_by(Question.question_timestamp.desc())
@@ -193,7 +192,7 @@ def get_contest_questions(contest_id: int):
 @json_api()
 def get_contest_messages(contest_id: int):
     messages: List[Message] = (
-        session.query(Message)
+        session.query(Message)  # type: ignore
         .join(Message.participation)
         .filter(Participation.contest_id == current_contest.id)
         .order_by(Message.timestamp.desc())
@@ -409,6 +408,7 @@ def dump_user_eval(
             UserEvalResult.EVALUATING,
             UserEvalResult.EVALUATED,
         ]:
+            assert res is not None
             res_dct.update(
                 {
                     "compilation_text": res.compilation_text[0],  # COMPILATION_MESSAGES
@@ -432,6 +432,7 @@ def dump_user_eval(
             )
 
         if status in [UserEvalResult.EVALUATED]:
+            assert res is not None
             res_dct.update(
                 {
                     "evaluation_tries": res.evaluation_tries,
@@ -453,7 +454,7 @@ def _get_submissions(
     user_id: Optional[int] = None,
 ):
     q = (
-        session.query(Submission, SubmissionResult, Participation)
+        session.query(Submission, SubmissionResult, Participation)  # type: ignore
         .join(Submission.task)
         .join(Submission.participation)
         .outerjoin(
@@ -636,7 +637,7 @@ def get_contest_tasks(contest_id: int):
 @admin_required
 @json_api()
 def get_task(task_id: int):
-    task = session.query(Task).filter(Task.id == task_id).first()
+    task = session.query(Task).filter(Task.id == task_id).first()  # type: ignore
     if task is None:
         raise AOINotFound("Task not found")
     return _dump_task(task, detailed=True)
@@ -647,7 +648,7 @@ def get_task(task_id: int):
 @json_api()
 def get_contest_participations(contest_id: int):
     parts: List[Participation] = (
-        session.query(Participation)
+        session.query(Participation)  # type: ignore
         .filter(Participation.contest_id == current_contest.id)
         .order_by(Participation.id.asc())
         .options(joinedload(Participation.user))
@@ -700,7 +701,7 @@ def get_contest_ranking(contest_id: int):
 @json_api()
 def get_participation(participation_id: int):
     part: Optional[Participation] = (
-        session.query(Participation)
+        session.query(Participation)  # type: ignore
         .filter(Participation.id == participation_id)
         .options(joinedload(Participation.user))
         .first()
@@ -721,7 +722,7 @@ def get_participation(participation_id: int):
 )
 def update_participation(data, participation_id: int):
     part: Optional[Participation] = (
-        session.query(Participation)
+        session.query(Participation)  # type: ignore
         .filter(Participation.id == participation_id)
         .first()
     )
@@ -729,7 +730,7 @@ def update_participation(data, participation_id: int):
         raise AOINotFound("Participation not found")
     if KEY_HIDDEN in data:
         part.hidden = data[KEY_HIDDEN]
-    session.commit()
+    session.commit()  # type: ignore
     return {"success": True}
 
 
@@ -738,7 +739,7 @@ def update_participation(data, participation_id: int):
 @json_api()
 def get_participation_score(participation_id: int):
     part: Optional[Participation] = (
-        session.query(Participation)
+        session.query(Participation)  # type: ignore
         .filter(Participation.id == participation_id)
         .first()
     )
@@ -779,7 +780,7 @@ def get_participation_score(participation_id: int):
 @json_api()
 def get_participation_questions(participation_id: int):
     questions: List[Question] = (
-        session.query(Question)
+        session.query(Question)  # type: ignore
         .join(Question.participation)
         .filter(Participation.id == participation_id)
         .order_by(Question.question_timestamp.desc())
@@ -794,7 +795,7 @@ def get_participation_questions(participation_id: int):
 @json_api()
 def get_participation_messages(participation_id: int):
     questions: List[Message] = (
-        session.query(Message)
+        session.query(Message)  # type: ignore
         .join(Message.participation)
         .filter(Message.id == participation_id)
         .order_by(Message.timestamp.desc())
@@ -1032,7 +1033,7 @@ def get_user_eval(user_eval_uuid):
 @json_api()
 def get_digest(digest):
     fh = open_digest(digest)
-    resp = send_file(fh, download_name=f"data.bin")
+    resp = send_file(fh, download_name="data.bin")
     resp.headers["Cache-Control"] = "private, max-age=604800"
     return resp
 
@@ -1050,7 +1051,7 @@ def get_memes():
 @json_api()
 def get_meme(meme_id: int):
     meme: Optional[Meme] = (
-        session.query(Meme)
+        session.query(Meme)  # type: ignore
         .filter(Meme.id == meme_id)
         .options(joinedload(Meme.task))
         .first()
@@ -1094,7 +1095,7 @@ def get_users():
 @json_api()
 def get_user(user_id: int):
     user: Optional[User] = (
-        session.query(User)
+        session.query(User)  # type: ignore
         .filter(User.id == user_id)
         .options(joinedload(User.participations))
         .options(selectinload("participations.contest"))

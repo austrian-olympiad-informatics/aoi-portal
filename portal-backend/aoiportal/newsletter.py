@@ -5,7 +5,7 @@ from typing import Optional
 
 import voluptuous as vol  # type: ignore
 from flask import Blueprint, current_app, render_template
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError  # type: ignore
 
 from aoiportal.const import KEY_EMAIL, KEY_TOKEN
 from aoiportal.error import AOIBadRequest, AOIConflict

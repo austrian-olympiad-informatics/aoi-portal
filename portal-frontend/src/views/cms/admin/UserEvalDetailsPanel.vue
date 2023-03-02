@@ -165,7 +165,14 @@
                     <span><b>Execution Memory</b></span>
                   </span>
                 </td>
-                <td>{{ (userEval.result.execution_memory / (1024 * 1024)).toFixed(2) }} MiB</td>
+                <td>
+                  {{
+                    (userEval.result.execution_memory / (1024 * 1024)).toFixed(
+                      2
+                    )
+                  }}
+                  MiB
+                </td>
               </tr>
               <tr>
                 <td class="pr-5">
@@ -174,13 +181,19 @@
                     <span><b>Sandbox</b></span>
                   </span>
                 </td>
-                <td><code>{{ userEval.result.evaluation_sandbox }}</code> (shard #{{ userEval.result.evaluation_shard }})</td>
+                <td>
+                  <code>{{ userEval.result.evaluation_sandbox }}</code> (shard
+                  #{{ userEval.result.evaluation_shard }})
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div class="block" v-if="userEval.result.status === 'compilation_failed'">
+        <div
+          class="block"
+          v-if="userEval.result.status === 'compilation_failed'"
+        >
           <b>Compilation failed, no output</b>
         </div>
 
@@ -206,11 +219,7 @@
 
         <div
           class="block score-loader"
-          v-if="
-            ['compiling', 'evaluating'].includes(
-              userEval.result.status
-            )
-          "
+          v-if="['compiling', 'evaluating'].includes(userEval.result.status)"
         >
           <b-loading :is-full-page="false" :active="true" />
         </div>
@@ -232,9 +241,7 @@
             <li>
               <strong>Speichernutzung:</strong>
               {{
-                (userEval.result.compilation_memory / (1024 * 1024)).toFixed(
-                  1
-                )
+                (userEval.result.compilation_memory / (1024 * 1024)).toFixed(1)
               }}
               MiB
             </li>
@@ -268,10 +275,7 @@
 </template>
 
 <script lang="ts">
-import { Submission, Task } from "@/types/cms";
-import { PropType } from "vue";
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import cms from "@/services/cms";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import { formatDateShort } from "@/util/dt";
 import { langToExt, lookupCMSLang } from "@/util/lang-table";
 import CodeMirror from "@/components/CodeMirror.vue";
@@ -280,10 +284,7 @@ import { translateText } from "@/util/cms";
 import cmsadmin from "@/services/cmsadmin";
 import {
   AdminExecutable,
-  AdminSubmissionDetailed,
-  AdminSubmissionResultScoredShort,
   AdminUserEvalDetailed,
-  AdminUserEvalResultEvaluatedShort,
   AdminUserShort,
 } from "@/types/cmsadmin";
 
@@ -304,11 +305,7 @@ export default class AdminUserEvalDetailsPanel extends Vue {
 
   async loadUserEval() {
     this.userEval = await cmsadmin.getUserEval(this.userEvalUuid);
-    await Promise.all([
-      this.loadFiles(),
-      this.loadInput(),
-      this.loadOutput(),
-    ]);
+    await Promise.all([this.loadFiles(), this.loadInput(), this.loadOutput()]);
   }
   async loadFiles() {
     if (this.files !== null) return;
@@ -322,14 +319,12 @@ export default class AdminUserEvalDetailsPanel extends Vue {
     );
   }
   async loadInput() {
-    if (this.inputFile !== null)
-      return;
+    if (this.inputFile !== null) return;
     const resp = await cmsadmin.getDigest(this.userEval!.input_digest);
     this.inputFile = await resp.text();
   }
   async loadOutput() {
-    if (this.outputFile !== null)
-      return;
+    if (this.outputFile !== null) return;
     const res = this.userEval!.result;
     if (res.status === "evaluated") {
       const resp = await cmsadmin.getDigest(res.output_digest);

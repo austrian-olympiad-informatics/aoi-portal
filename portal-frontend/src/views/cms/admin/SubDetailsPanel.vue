@@ -373,10 +373,7 @@
 </template>
 
 <script lang="ts">
-import { Submission, Task } from "@/types/cms";
-import { PropType } from "vue";
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import cms from "@/services/cms";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import { formatDateShort } from "@/util/dt";
 import { langToExt, lookupCMSLang } from "@/util/lang-table";
 import CodeMirror from "@/components/CodeMirror.vue";
@@ -424,16 +421,20 @@ export default class AdminSubmissionDetailsPanel extends Vue {
     );
   }
   get scoreTaskScore() {
-    return this.scores?.task_scores.find((task) => task.id === this.submission!.task.id);
+    return this.scores?.task_scores.find(
+      (task) => task.id === this.submission!.task.id
+    );
   }
   get scoreTaskInfo() {
-    return this.scores?.tasks.find((task) => task.id === this.submission!.task.id);
+    return this.scores?.tasks.find(
+      (task) => task.id === this.submission!.task.id
+    );
   }
   get scoreSubtasks() {
-    return this.scoreTaskInfo?.subtask_max_scores?.map((x,i) => {
+    return this.scoreTaskInfo?.subtask_max_scores?.map((x, i) => {
       return {
         max_score: x,
-        score: this.scoreTaskScore?.subtask_scores?.[i] || 0.0
+        score: this.scoreTaskScore?.subtask_scores?.[i] || 0.0,
       };
     });
   }

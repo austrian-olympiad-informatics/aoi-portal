@@ -4,9 +4,15 @@
       <h1 class="title is-3 mb-3">Anmelden</h1>
       <LoginInput v-model="data" />
       <p class="mb-3" v-if="unsuccessfulAttempts >= 2">
-        Probleme beim Anmelden? Du kannst dein 
-        <router-link :to="{ name: 'PasswordReset' }">Passwort zurücksetzen</router-link> oder
-        uns unter <a href="mailto:orga@informatikolympiade.at">orga@informatikolympiade.at</a> erreichen.
+        Probleme beim Anmelden? Du kannst dein
+        <router-link :to="{ name: 'PasswordReset' }"
+          >Passwort zurücksetzen</router-link
+        >
+        oder uns unter
+        <a href="mailto:orga@informatikolympiade.at"
+          >orga@informatikolympiade.at</a
+        >
+        erreichen.
       </p>
       <b-button type="is-primary" native-type="submit" expanded
         >Anmelden</b-button
@@ -15,15 +21,11 @@
 
     <p class="mt-5">
       Kein Konto?
-      <router-link :to="{ name: 'Register' }"
-        >Hier registrieren</router-link
-      >
+      <router-link :to="{ name: 'Register' }">Hier registrieren</router-link>
     </p>
     <p class="mt-2">
       Passwort vergessen?
-      <router-link :to="{ name: 'PasswordReset' }"
-        >Zurücksetzen</router-link
-      >
+      <router-link :to="{ name: 'PasswordReset' }">Zurücksetzen</router-link>
     </p>
     <div class="is-divider" data-content="ODER"></div>
     <router-link

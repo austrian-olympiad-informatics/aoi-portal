@@ -268,9 +268,7 @@ class CMSService {
     );
     return resp.data;
   }
-  async getContestScores(
-    contestName: string
-  ): Promise<ContestTaskScores> {
+  async getContestScores(contestName: string): Promise<ContestTaskScores> {
     const resp = await http.get(
       `/api/cms/contest/${encodeURIComponent(contestName)}/scores`
     );

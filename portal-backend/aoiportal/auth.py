@@ -1,6 +1,6 @@
 import hmac
-import secrets
 import json
+import secrets
 import sys
 from datetime import timedelta
 from typing import Optional
@@ -8,7 +8,7 @@ from uuid import uuid4
 
 import voluptuous as vol  # type: ignore
 from flask import Blueprint, render_template
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError  # type: ignore
 
 from aoiportal.auth_util import (
     check_password,
@@ -47,10 +47,10 @@ from aoiportal.error import (
 from aoiportal.mail import Address, send_email
 from aoiportal.models import (  # type: ignore
     User,
+    UserDiscordOAuth,
     UserEmailChangeRequest,
     UserPasswordResetRequest,
     UserRegisterRequest,
-    UserDiscordOAuth,
     db,
 )
 from aoiportal.utils import as_utc, utcnow
@@ -105,7 +105,9 @@ def auth_status():
     if obj is not None:
         print("TEST", sys.stdout)
         data = json.loads(obj.extra_data)
-        discord_user = data["user_info"]["username"] + "#" + data["user_info"]["discriminator"]
+        discord_user = (
+            data["user_info"]["username"] + "#" + data["user_info"]["discriminator"]
+        )
 
     return {
         "authenticated": True,
