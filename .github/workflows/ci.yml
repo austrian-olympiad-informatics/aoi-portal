@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ci-backend:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: flake8
+            name: Lint with flake8
+          - id: pylint
+            name: Lint with pylint
+          - id: black
+            name: Check formatting with black
+          - id: isort
+            name: Check import order with isort
+          - id: mypy
+            name: Check typing with mypy
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        id: python
+        with:
+          python-version: '3.9'
+
+      - name: Get pip cache dir
+        id: pip-cache
+        run: |
+          echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
+      - name: Restore PIP cache
+        uses: actions/cache@v3.2.5
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: pip-${{ steps.python.outputs.python-version }}-${{ hashFiles('portal-backend/requirements.txt', 'portal-backend/requirements_test.txt') }}
+          restore-keys: |
+            pip-${{ steps.python.outputs.python-version }}-
+      - name: Set up Python environment
+        run: |
+          pip3 install -r portal-backend/requirements.txt -r portal-backend/requirements_test.txt
+          pip3 install -e .
+      - name: Register problem matchers
+        run: |
+          echo "::add-matcher::.github/workflows/matchers/flake8.json"
+          echo "::add-matcher::.github/workflows/matchers/pylint.json"
+          echo "::add-matcher::.github/workflows/matchers/isort.json"
+          echo "::add-matcher::.github/workflows/matchers/mypy.json"
+      - run: flake8 portal-backend/aoiportal
+        if: ${{ matrix.id == 'flake8' }}
+      - run: pylint portal-backend/aoiportal
+        if: ${{ matrix.id == 'pylint' }}
+      - run: black --check --diff --color portal-backend/aoiportal
+        if: ${{ matrix.id == 'black' }}
+      - run: isort --check --diff portal-backend/aoiportal
+        if: ${{ matrix.id == 'isort' }}
+      - run: mypy portal-backend/aoiportal
+        if: ${{ matrix.id == 'mypy' }}
+  ci-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - name: Use Node.js
+        uses: actions/setup-node@v3.6.0
+        with:
+          node-version: 16
+      - name: Install dependencies
+        run: cd portal-frontend && npm ci
+      - run: cd portal-frontend && npm run lint
+
