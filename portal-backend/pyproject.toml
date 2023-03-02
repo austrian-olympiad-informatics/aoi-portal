@@ -7,6 +7,7 @@ target-version = ['py37']
 
 [tool.pylint.MASTER]
 reports = 'no'
+ignore-patterns = '.*cmsmirror/db/.*'
 disable = [
   "missing-docstring",
   "duplicate-code",
