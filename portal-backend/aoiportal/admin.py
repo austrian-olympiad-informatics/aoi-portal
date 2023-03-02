@@ -10,10 +10,7 @@ from flask import Blueprint, current_app
 from sqlalchemy.orm import joinedload
 
 from aoiportal import cms_bridge
-from aoiportal.auth_util import (
-    admin_required,
-    hash_password,
-)
+from aoiportal.auth_util import admin_required, hash_password
 from aoiportal.cmsmirror.db import Contest as CMSContest  # type: ignore
 from aoiportal.cmsmirror.db import session as cms_session  # type: ignore
 from aoiportal.const import (
