@@ -5,9 +5,13 @@ multi_line_output = 3
 [tool.black]
 target-version = ['py37']
 
-[tool.pylint.MASTER]
+[tool.pylint.MAIN]
 reports = 'no'
 ignore-patterns = '.*cmsmirror/db/.*'
+jobs = 2
+persistent = false
+
+[tool.pylint."MESSAGES CONTROL"]
 disable = [
   "missing-docstring",
   "duplicate-code",
@@ -35,3 +39,6 @@ disable = [
   "no-value-for-parameter",
   "raise-missing-from",
 ]
+
+[tool.pylint.REPORTS]
+score = false
