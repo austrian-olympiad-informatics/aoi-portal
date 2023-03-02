@@ -1,21 +1,17 @@
-import collections
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, cast
+from typing import List, Optional, Tuple
 
 import voluptuous as vol
 from flask import Blueprint, g, jsonify, request, send_file
-from sqlalchemy import func
-from sqlalchemy.orm import Load, Query, joinedload, selectinload
+from sqlalchemy.orm import Load, joinedload, selectinload
 from werkzeug.local import LocalProxy
 
-from aoiportal.auth_util import admin_required, get_current_user
+from aoiportal.auth_util import admin_required
 from aoiportal.cmsmirror import scores
 from aoiportal.cmsmirror.const import KEY_HIDDEN
 from aoiportal.cmsmirror.db import (
     Contest,
     Dataset,
     Participation,
-    SubtaskScore,
     Task,
     User,
     UserEval,
@@ -26,7 +22,6 @@ from aoiportal.cmsmirror.db.contest import Announcement
 from aoiportal.cmsmirror.db.submission import Meme, Submission, SubmissionResult
 from aoiportal.cmsmirror.db.user import Message, Question
 from aoiportal.cmsmirror.util import open_digest, paginate
-from aoiportal.const import KEY_CONTEST_ID, KEY_PARTICIPATION_ID, KEY_TASK_ID
 from aoiportal.error import AOIBadRequest, AOINotFound
 from aoiportal.utils import as_utc
 from aoiportal.web_utils import json_api
@@ -1032,7 +1027,7 @@ def get_user_eval(user_eval_uuid):
 @json_api()
 def get_digest(digest):
     fh = open_digest(digest)
-    resp = send_file(fh, download_name=f"data.bin")
+    resp = send_file(fh, download_name="data.bin")
     resp.headers["Cache-Control"] = "private, max-age=604800"
     return resp
 

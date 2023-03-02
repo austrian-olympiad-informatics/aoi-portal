@@ -1,16 +1,15 @@
 import base64
-import collections
 import datetime
 import functools
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 from uuid import uuid4
 
 import dateutil.parser
 import voluptuous as vol  # type: ignore
 from flask import Blueprint, g, request, send_file
-from sqlalchemy.orm import Load, joinedload, selectinload
+from sqlalchemy.orm import Load, joinedload
 from werkzeug.local import LocalProxy
 
 from aoiportal.auth_util import get_current_user, login_required
