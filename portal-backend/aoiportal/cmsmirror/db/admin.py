@@ -45,7 +45,7 @@ class Admin(Base):
     name = Column(Unicode, nullable=False)
 
     # Username used to log in in AWS.
-    username = Column(Codename, nullable=False, unique=True)
+    username: str = Column(Codename, nullable=False, unique=True)
 
     # String used to authenticate the user, in the format
     # <authentication type>:<authentication_string>
