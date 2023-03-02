@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts">
-import { ScoringGroup, SubmissionShort, Task } from "@/types/cms";
+import { SubmissionShort, Task } from "@/types/cms";
 import cms from "@/services/cms";
 import { Component, Vue } from "vue-property-decorator";
 import DescriptionPanel from "./DescriptionPanel.vue";

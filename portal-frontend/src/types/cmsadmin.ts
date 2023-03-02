@@ -271,9 +271,9 @@ export interface AdminDataset {
   time_limit: number | null;
   memory_limit: number | null;
   task_type: string;
-  task_type_parameters: any[];
+  task_type_parameters: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
   score_type: string;
-  score_type_parameters: any[];
+  score_type_parameters: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
   managers: AdminManager[];
   testcases: AdminTestcase[];
   language_templates: AdminLanguageTemplate[];

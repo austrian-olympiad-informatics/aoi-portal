@@ -290,6 +290,7 @@ export default class DescriptionPanel extends Vue {
     return formatDateShort(this.now!, date);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navgiateSubmission(event: any, navigate: any) {
     navigate(event);
     this.$emit("show-submission");

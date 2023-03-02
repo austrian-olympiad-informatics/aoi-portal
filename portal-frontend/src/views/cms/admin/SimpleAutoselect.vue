@@ -21,10 +21,10 @@ export default class SimpleAutoselect extends Vue {
     type: Array,
     default: () => [],
   })
-  readonly data!: any[] | null;
+  readonly data!: any[] | null; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   @Prop()
-  readonly value!: any;
+  readonly value!: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   @Prop({
     type: Boolean,
@@ -39,17 +39,18 @@ export default class SimpleAutoselect extends Vue {
   readonly required!: boolean;
 
   @Prop({
-    default: (x: any) => x,
+    default: (x: any) => x, // eslint-disable-line @typescript-eslint/no-explicit-any
   })
-  readonly valueFunc!: (val: any) => any;
+  readonly valueFunc!: (val: any) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   @Prop({
-    default: (x: any) => x,
+    default: (x: any) => x, // eslint-disable-line @typescript-eslint/no-explicit-any
   })
-  readonly formatter!: (val: any) => string;
+  readonly formatter!: (val: any) => string; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   bValue = "";
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   bSelect(newValue: any) {
     this.$emit("input", newValue === null ? null : this.valueFunc(newValue));
   }

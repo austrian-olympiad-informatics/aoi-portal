@@ -63,7 +63,6 @@ import { lintKeymap } from "@codemirror/lint";
 import { StreamLanguage } from "@codemirror/language";
 import { go } from "@codemirror/legacy-modes/mode/go";
 import { haskell } from "@codemirror/legacy-modes/mode/haskell";
-import { swift } from "@codemirror/legacy-modes/mode/swift";
 import { c, csharp, kotlin } from "@codemirror/legacy-modes/mode/clike";
 import { Language } from "@/util/lang-table";
 
