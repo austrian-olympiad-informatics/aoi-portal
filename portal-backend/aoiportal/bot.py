@@ -1,13 +1,9 @@
 import json
-from datetime import timedelta
 from typing import Optional
-from uuid import uuid4
-from typing import Dict
 import collections
 
 import voluptuous as vol  # type: ignore
-from flask import Blueprint, render_template, current_app
-from sqlalchemy.exc import IntegrityError
+from flask import Blueprint, current_app
 
 from aoiportal.auth_util import (
     get_current_user,
@@ -18,7 +14,6 @@ from aoiportal.error import (
     AOIUnauthorized,
 )
 from aoiportal.models import (  # type: ignore
-    User,
     UserDiscordOAuth,
     Group,
     db,
