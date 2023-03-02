@@ -8,7 +8,7 @@ from flask import Blueprint, current_app
 from aoiportal.auth_util import get_current_user
 from aoiportal.const import KEY_SECRET
 from aoiportal.error import AOIConflict, AOIUnauthorized
-from aoiportal.models import Group, UserDiscordOAuth, db  # type: ignore
+from aoiportal.models import Group, UserDiscordOAuth  # type: ignore
 from aoiportal.web_utils import json_api
 
 bot_bp = Blueprint("bot", __name__)

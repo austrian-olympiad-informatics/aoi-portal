@@ -1,6 +1,5 @@
 import base64
 import datetime
-import functools
 import uuid
 from typing import List, Optional
 
@@ -13,9 +12,7 @@ from sqlalchemy.orm import joinedload
 from aoiportal import cms_bridge
 from aoiportal.auth_util import (
     admin_required,
-    get_current_user,
     hash_password,
-    login_required,
 )
 from aoiportal.cmsmirror.db import Contest as CMSContest  # type: ignore
 from aoiportal.cmsmirror.db import session as cms_session  # type: ignore
@@ -54,7 +51,7 @@ from aoiportal.const import (
     KEY_USER_ID,
     KEY_USERS,
 )
-from aoiportal.error import ERROR_ADMIN_REQUIRED, AOIForbidden, AOINotFound
+from aoiportal.error import AOINotFound
 from aoiportal.mail import Address, encode_email, send_mass
 from aoiportal.models import (  # type: ignore
     Contest,

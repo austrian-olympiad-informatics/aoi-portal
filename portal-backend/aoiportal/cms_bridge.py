@@ -1,20 +1,14 @@
 import datetime
 import secrets
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from slugify import slugify
 
 from aoiportal.cmsmirror.db import Contest as CMSContest  # type: ignore
 from aoiportal.cmsmirror.db import Participation as CMSParticipation  # type: ignore
-from aoiportal.cmsmirror.db import Submission as CMSSubmission  # type: ignore
-from aoiportal.cmsmirror.db import (
-    SubmissionResult as CMSSubmissionResult,  # type: ignore
-)
-from aoiportal.cmsmirror.db import Task as CMSTask  # type: ignore
 from aoiportal.cmsmirror.db import User as CMSUser  # type: ignore
 from aoiportal.cmsmirror.db import session as cms_session
-from aoiportal.cmsmirror.util import ScoreInput, score_calculation  # type: ignore
 
 
 @dataclass
