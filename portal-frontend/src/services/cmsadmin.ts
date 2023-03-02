@@ -42,25 +42,19 @@ class CMSAdminService {
     );
     return resp.data;
   }
-  async getContestQuestions(
-    contestId: number
-  ): Promise<AdminQuestion> {
+  async getContestQuestions(contestId: number): Promise<AdminQuestion> {
     const resp = await http.get(
       `/api/cms/admin/contest/${encodeURIComponent(contestId)}/questions`
     );
     return resp.data;
   }
-  async getContestMessages(
-    contestId: number
-  ): Promise<AdminMessage> {
+  async getContestMessages(contestId: number): Promise<AdminMessage> {
     const resp = await http.get(
       `/api/cms/admin/contest/${encodeURIComponent(contestId)}/messages`
     );
     return resp.data;
   }
-  async getContestTasks(
-    contestId: number
-  ): Promise<AdminContestTasks> {
+  async getContestTasks(contestId: number): Promise<AdminContestTasks> {
     const resp = await http.get(
       `/api/cms/admin/contest/${encodeURIComponent(contestId)}/tasks`
     );
@@ -74,17 +68,13 @@ class CMSAdminService {
     );
     return resp.data;
   }
-  async getContestRanking(
-    contestId: number
-  ): Promise<AdminContestRanking> {
+  async getContestRanking(contestId: number): Promise<AdminContestRanking> {
     const resp = await http.get(
       `/api/cms/admin/contest/${encodeURIComponent(contestId)}/ranking`
     );
     return resp.data;
   }
-  async getParticipation(
-    participationId: number
-  ): Promise<AdminParticipation> {
+  async getParticipation(participationId: number): Promise<AdminParticipation> {
     const resp = await http.get(
       `/api/cms/admin/participation/${encodeURIComponent(participationId)}`
     );
@@ -94,7 +84,9 @@ class CMSAdminService {
     participationId: number
   ): Promise<AdminQuestion[]> {
     const resp = await http.get(
-      `/api/cms/admin/participation/${encodeURIComponent(participationId)}/questions`
+      `/api/cms/admin/participation/${encodeURIComponent(
+        participationId
+      )}/questions`
     );
     return resp.data;
   }
@@ -102,7 +94,9 @@ class CMSAdminService {
     participationId: number
   ): Promise<AdminMessage[]> {
     const resp = await http.get(
-      `/api/cms/admin/participation/${encodeURIComponent(participationId)}/messages`
+      `/api/cms/admin/participation/${encodeURIComponent(
+        participationId
+      )}/messages`
     );
     return resp.data;
   }
@@ -110,7 +104,9 @@ class CMSAdminService {
     participationId: number
   ): Promise<AdminParticipationScore> {
     const resp = await http.get(
-      `/api/cms/admin/participation/${encodeURIComponent(participationId)}/score`
+      `/api/cms/admin/participation/${encodeURIComponent(
+        participationId
+      )}/score`
     );
     return resp.data;
   }
@@ -119,19 +115,19 @@ class CMSAdminService {
     params: AdminParticipationUpdateParams
   ): Promise<void> {
     await http.put(
-      `/api/cms/admin/participation/${encodeURIComponent(participationId)}/update`,
+      `/api/cms/admin/participation/${encodeURIComponent(
+        participationId
+      )}/update`,
       params
     );
   }
-  async getSubmissions(
-    args?: {
-      contestId?: number;
-      taskId?: number;
-      userId?: number;
-      perPage?: number;
-      page?: number;
-    }
-  ): Promise<AdminSubmissionsPaginated> {
+  async getSubmissions(args?: {
+    contestId?: number;
+    taskId?: number;
+    userId?: number;
+    perPage?: number;
+    page?: number;
+  }): Promise<AdminSubmissionsPaginated> {
     const resp = await http.get("/api/cms/admin/submissions", {
       params: {
         contest_id: args?.contestId,
@@ -139,19 +135,17 @@ class CMSAdminService {
         user_id: args?.userId,
         per_page: args?.perPage,
         page: args?.page,
-      }
+      },
     });
     return resp.data;
   }
-  async getUserEvals(
-    args?: {
-      contestId?: number;
-      taskId?: number;
-      userId?: number;
-      perPage?: number;
-      page?: number;
-    }
-  ): Promise<AdminUserEvalsPaginated> {
+  async getUserEvals(args?: {
+    contestId?: number;
+    taskId?: number;
+    userId?: number;
+    perPage?: number;
+    page?: number;
+  }): Promise<AdminUserEvalsPaginated> {
     const resp = await http.get("/api/cms/admin/user-evals", {
       params: {
         contest_id: args?.contestId,
@@ -159,7 +153,7 @@ class CMSAdminService {
         user_id: args?.userId,
         per_page: args?.perPage,
         page: args?.page,
-      }
+      },
     });
     return resp.data;
   }
@@ -171,9 +165,7 @@ class CMSAdminService {
     );
     return resp.data;
   }
-  async getUserEval(
-    userEvalUuid: string
-  ): Promise<AdminUserEvalDetailed> {
+  async getUserEval(userEvalUuid: string): Promise<AdminUserEvalDetailed> {
     const resp = await http.get(
       `/api/cms/admin/user-eval/${encodeURIComponent(userEvalUuid)}`
     );
@@ -201,15 +193,21 @@ class CMSAdminService {
     return resp.data;
   }
   async getMeme(id: number): Promise<AdminMeme> {
-    const resp = await http.get(`/api/cms/admin/meme/${encodeURIComponent(id)}`);
+    const resp = await http.get(
+      `/api/cms/admin/meme/${encodeURIComponent(id)}`
+    );
     return resp.data;
   }
   async getTask(id: number): Promise<AdminTaskDetailed> {
-    const resp = await http.get(`/api/cms/admin/task/${encodeURIComponent(id)}`);
+    const resp = await http.get(
+      `/api/cms/admin/task/${encodeURIComponent(id)}`
+    );
     return resp.data;
   }
   async getUser(id: number): Promise<AdminUser> {
-    const resp = await http.get(`/api/cms/admin/user/${encodeURIComponent(id)}`);
+    const resp = await http.get(
+      `/api/cms/admin/user/${encodeURIComponent(id)}`
+    );
     return resp.data;
   }
 }

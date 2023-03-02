@@ -15,10 +15,10 @@ Vue.use(Buefy, {
   customIconPacks: {
     aoi: {
       sizes: {
-        'default': '24px',
-        'is-small': "16px",
-        'is-medium': '36px',
-        'is-large': '48px',
+        default: "24px",
+        "is-small": "16px",
+        "is-medium": "36px",
+        "is-large": "48px",
       },
       iconPrefix: "",
     },
@@ -26,9 +26,9 @@ Vue.use(Buefy, {
 });
 Vue.config.productionTip = false;
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === "production") {
   Vue.use(VueMatomo, {
-    host: 'https://matomo.informatikolympiade.at',
+    host: "https://matomo.informatikolympiade.at",
     siteId: 2,
     router: router,
     disableCookies: true,

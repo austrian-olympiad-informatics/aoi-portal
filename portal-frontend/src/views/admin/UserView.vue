@@ -76,7 +76,7 @@ export default class UserView extends Vue {
 
   async submit() {
     if (this.data === null) return;
-    let params: AdminUserUpdateParams = {
+    const params: AdminUserUpdateParams = {
       first_name: this.data.first_name,
       last_name: this.data.last_name,
       email: this.data.email,

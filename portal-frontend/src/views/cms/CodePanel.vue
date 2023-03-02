@@ -60,10 +60,20 @@
         </div>
       </div>
       <div class="code-bar-submit">
-        <b-button type="is-primary" @click="submitCode" v-if="!isTestMode" :loading="submitLoading">
+        <b-button
+          type="is-primary"
+          @click="submitCode"
+          v-if="!isTestMode"
+          :loading="submitLoading"
+        >
           Abschicken
         </b-button>
-        <b-button type="is-primary" @click="testCode" v-if="isTestMode" :loading="submitLoading">
+        <b-button
+          type="is-primary"
+          @click="testCode"
+          v-if="isTestMode"
+          :loading="submitLoading"
+        >
           Testen
         </b-button>
       </div>
@@ -72,7 +82,12 @@
 </template>
 
 <script lang="ts">
-import { SubmitResult, Task, UserEval, UserEvalSubmitResult } from "@/types/cms";
+import {
+  SubmitResult,
+  Task,
+  UserEval,
+  UserEvalSubmitResult,
+} from "@/types/cms";
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { PropType } from "vue";
 import CodeMirror from "@/components/CodeMirror.vue";
@@ -119,14 +134,22 @@ export default class CodePanel extends Vue {
   get testOutput(): string | null {
     if (this.testEval === null) return "Noch nicht ausgeführt";
     if (this.testEval.result.status === "compilation_failed")
-      return this.testEval.result.compilation_stderr + '\n' + this.testEval.result.compilation_stdout;
+      return (
+        this.testEval.result.compilation_stderr +
+        "\n" +
+        this.testEval.result.compilation_stdout
+      );
     if (this.testEval.result.status !== "evaluated")
       return "Wird ausgeführt...";
-    const translatedEvalText = translateText(this.testEval.result.evaluation_text);
-    if (this.testEval.result.output === undefined)
-      return translatedEvalText;
+    const translatedEvalText = translateText(
+      this.testEval.result.evaluation_text
+    );
+    if (this.testEval.result.output === undefined) return translatedEvalText;
     const decodedOutput = b64DecodeUnicode(this.testEval.result.output);
-    if (this.testEval.result.evaluation_text[0] === "Execution completed successfully")
+    if (
+      this.testEval.result.evaluation_text[0] ===
+      "Execution completed successfully"
+    )
       return decodedOutput;
     return `(${translatedEvalText})\n\n${decodedOutput}`;
   }
@@ -139,11 +162,16 @@ export default class CodePanel extends Vue {
   }
   isTestMode = false;
 
-  get languageTemplatesByCMSLang(): Map<string, { filename: string; digest: string; }> {
-    return new Map(this.task.language_templates.map((x) => {
-      const ext = x.filename.substr(x.filename.lastIndexOf("."));
-      return [langToCMSLang(extToLang(ext), this.task.languages), x];
-    }));
+  get languageTemplatesByCMSLang(): Map<
+    string,
+    { filename: string; digest: string }
+  > {
+    return new Map(
+      this.task.language_templates.map((x) => {
+        const ext = x.filename.substr(x.filename.lastIndexOf("."));
+        return [langToCMSLang(extToLang(ext), this.task.languages), x];
+      })
+    );
   }
 
   async setDefaults() {
@@ -211,8 +239,13 @@ export default class CodePanel extends Vue {
     this.loadDefaultInput();
   }
   async loadDefaultInput() {
-    if (this.testInput !== "" || this.task.default_input_digest === null) return;
-    const resp = await cms.getDefaultInput(this.contestName, this.taskName, this.task.default_input_digest);
+    if (this.testInput !== "" || this.task.default_input_digest === null)
+      return;
+    const resp = await cms.getDefaultInput(
+      this.contestName,
+      this.taskName,
+      this.task.default_input_digest
+    );
     this.testInput = await resp.text();
   }
   get codemirrorLang() {
@@ -294,7 +327,6 @@ export default class CodePanel extends Vue {
     if (this.testEvalTimeoutHandle !== null)
       clearTimeout(this.testEvalTimeoutHandle);
 
-    
     this.submitLoading = true;
     let resp: UserEvalSubmitResult;
     try {

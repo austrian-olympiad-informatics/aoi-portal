@@ -1,5 +1,8 @@
 <template>
-  <div class="wrap" :class="[selectedUserEval !== null ? 'has-selection' : undefined]">
+  <div
+    class="wrap"
+    :class="[selectedUserEval !== null ? 'has-selection' : undefined]"
+  >
     <div class="left-column">
       <div class="left-wrap">
         <h1 class="title is-3">User Evals</h1>
@@ -66,10 +69,7 @@
 
             <div class="level-right">
               <div class="level-item">
-                <b-button
-                  icon-left="reload"
-                  @click="reloadUserEvals"
-                >
+                <b-button icon-left="reload" @click="reloadUserEvals">
                   Reload
                 </b-button>
               </div>
@@ -336,8 +336,7 @@ export default class AdminUserEvalsView extends Vue {
   watchRoute() {
     if (this.$route.params.userEvalUuid !== undefined)
       this.selectedUserEval = { uuid: this.$route.params.userEvalUuid };
-    else
-      this.selectedUserEval = null;
+    else this.selectedUserEval = null;
   }
 }
 </script>

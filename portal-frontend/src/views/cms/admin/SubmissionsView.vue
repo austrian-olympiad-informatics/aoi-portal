@@ -1,5 +1,8 @@
 <template>
-  <div class="wrap" :class="[selectedSub !== null ? 'has-selection' : undefined]">
+  <div
+    class="wrap"
+    :class="[selectedSub !== null ? 'has-selection' : undefined]"
+  >
     <div class="left-column">
       <div class="left-wrap">
         <h1 class="title is-3">Einsendungen</h1>
@@ -66,10 +69,7 @@
 
             <div class="level-right">
               <div class="level-item">
-                <b-button
-                  icon-left="reload"
-                  @click="reloadSubmissions"
-                >
+                <b-button icon-left="reload" @click="reloadSubmissions">
                   Reload
                 </b-button>
               </div>
@@ -344,8 +344,7 @@ export default class AdminSubmissionsView extends Vue {
   watchRoute() {
     if (this.$route.params.submissionUuid !== undefined)
       this.selectedSub = { uuid: this.$route.params.submissionUuid };
-    else
-      this.selectedSub = null;
+    else this.selectedSub = null;
   }
 }
 </script>

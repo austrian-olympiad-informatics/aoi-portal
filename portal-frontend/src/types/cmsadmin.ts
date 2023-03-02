@@ -420,17 +420,17 @@ export interface AdminContestRanking {
     name: string;
     title: string;
     max_score: number;
-    subtask_max_scores: number[] | null,
+    subtask_max_scores: number[] | null;
     score_precision: number;
   }[];
-  score_precision: number,
+  score_precision: number;
   results: {
     id: number;
     hidden: boolean;
     score: number;
     rank: number;
     task_scores: {
-      id: number,
+      id: number;
       score: number;
       subtask_scores: number[] | null;
       num_submissions: number;
@@ -438,21 +438,20 @@ export interface AdminContestRanking {
   }[];
 }
 
-
 export interface AdminParticipationScore {
   tasks: {
     id: number;
     name: string;
     title: string;
     max_score: number;
-    subtask_max_scores: number[] | null,
+    subtask_max_scores: number[] | null;
     score_precision: number;
   }[];
-  score_precision: number,
+  score_precision: number;
   score: number;
   rank: number;
   task_scores: {
-    id: number,
+    id: number;
     score: number;
     subtask_scores: number[] | null;
     num_submissions: number;

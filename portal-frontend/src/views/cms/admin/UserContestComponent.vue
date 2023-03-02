@@ -100,10 +100,7 @@ export default class AdminUserContest extends Vue {
 
     return this.scores.tasks.find((task) => task.id === id);
   }
-  getSubtasks(row: {
-    id: number;
-    subtask_scores: number[] | null;
-  }) {
+  getSubtasks(row: { id: number; subtask_scores: number[] | null }) {
     return this.getTask(row.id)?.subtask_max_scores?.map((x, i) => {
       return {
         max_score: x,

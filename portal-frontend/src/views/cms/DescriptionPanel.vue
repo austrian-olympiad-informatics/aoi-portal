@@ -199,7 +199,7 @@ import { PropType } from "vue";
 import { downloadBlob } from "@/util/download";
 import PointsBar from "./PointsBar.vue";
 import NotificationsSection from "./NotificationsSection.vue";
-import katex from 'katex';
+import katex from "katex";
 
 @Component({
   components: {
@@ -262,7 +262,13 @@ export default class DescriptionPanel extends Vue {
     this.now = new Date();
     this.scheduleCheckSubmissions(1000);
     if (this.task.statement_html_digest !== null) {
-      this.statement_html = await (await cms.getStatementHTML(this.contestName!, this.taskName!, this.task.statement_html_digest)).text();
+      this.statement_html = await (
+        await cms.getStatementHTML(
+          this.contestName!,
+          this.taskName!,
+          this.task.statement_html_digest
+        )
+      ).text();
       this.$nextTick(() => {
         const root = this.$refs.statementHtml as Element;
         const mathElems = root.querySelectorAll(".math");
@@ -271,11 +277,11 @@ export default class DescriptionPanel extends Vue {
           const displayMode = elem.classList.contains("display");
           const text = elem.textContent === null ? "" : elem.textContent;
           katex.render(text, elem as HTMLElement, {
-              throwOnError: false,
-              displayMode: displayMode,
-              macros
+            throwOnError: false,
+            displayMode: displayMode,
+            macros,
           });
-        })
+        });
       });
     }
   }

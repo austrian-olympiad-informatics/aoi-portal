@@ -75,7 +75,7 @@ const italicField = StateField.define<DecorationSet>({
   },
   update(underlines, tr) {
     underlines = underlines.map(tr.changes);
-    for (let e of tr.effects)
+    for (const e of tr.effects)
       if (e.is(addItalic)) {
         underlines = underlines.update({
           add: [italicMark.range(e.value.from, e.value.to)],
@@ -99,7 +99,7 @@ const fontTheme = EditorView.theme({
 });
 
 function italicAll(view: EditorView) {
-  let effects: StateEffect<unknown>[] = [
+  const effects: StateEffect<unknown>[] = [
     addItalic.of({ from: 0, to: view.state.doc.length }),
   ];
   if (!view.state.field(italicField, false))

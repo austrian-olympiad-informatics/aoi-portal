@@ -59,16 +59,28 @@
           <b-icon icon="eye-off" v-if="props.row.hidden" />
         </b-table-column>
         <b-table-column label="Warning" v-slot="props">
-          <b-tooltip label="User should be hidden" v-if="warnShouldBeHidden(props.row)">
+          <b-tooltip
+            label="User should be hidden"
+            v-if="warnShouldBeHidden(props.row)"
+          >
             <b-icon icon="alert-octagon" class="has-text-danger" />
           </b-tooltip>
-          <b-tooltip label="User should not be hidden" v-else-if="warnShouldNotBeHidden(props.row)">
+          <b-tooltip
+            label="User should not be hidden"
+            v-else-if="warnShouldNotBeHidden(props.row)"
+          >
             <b-icon icon="alert-octagon" class="has-text-info" />
           </b-tooltip>
-          <b-tooltip label="User has bad birthday" v-else-if="warnBadBirthday(props.row)">
+          <b-tooltip
+            label="User has bad birthday"
+            v-else-if="warnBadBirthday(props.row)"
+          >
             <b-icon icon="alert" class="has-text-warning" />
           </b-tooltip>
-          <b-tooltip label="No corresponding portal account" v-else-if="props.row.portal_id === undefined">
+          <b-tooltip
+            label="No corresponding portal account"
+            v-else-if="props.row.portal_id === undefined"
+          >
             <b-icon icon="alert" />
           </b-tooltip>
         </b-table-column>
@@ -80,7 +92,11 @@
           <a :href="`mailto:${props.row.email}`"> {{ props.row.email }} </a>
           <br />
           <b-field>
-            <b-switch :value="props.row.hidden" @input="(v) => changeHidden(props.row.id, v)">Hidden</b-switch>
+            <b-switch
+              :value="props.row.hidden"
+              @input="(v) => changeHidden(props.row.id, v)"
+              >Hidden</b-switch
+            >
           </b-field>
           <div v-if="props.row.portal_id !== undefined">
             <b>Adresse:</b>
@@ -331,12 +347,11 @@ export default class AdminValidityHelperView extends Vue {
       "School Address",
       "Username",
       "Score",
-      ...this.scores!.tasks.map((x) => x.name)
+      ...this.scores!.tasks.map((x) => x.name),
     ];
     const rows = [header];
     for (const row of this.tableData) {
-      if (row.hidden || row.created_at === undefined)
-        continue;
+      if (row.hidden || row.created_at === undefined) continue;
       rows.push([
         row.rank.toString(),
         row.first_name,
@@ -353,7 +368,9 @@ export default class AdminValidityHelperView extends Vue {
         row.username,
         row.score.toString(),
         ...this.scores!.tasks.map((x) => {
-          return row.task_scores!.find((y: any) => x.id == y.id).score.toString();
+          return row
+            .task_scores!.find((y: any) => x.id == y.id)
+            .score.toString();
         }),
       ]);
     }

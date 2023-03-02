@@ -22,7 +22,7 @@ export default class SimpleAutoselect extends Vue {
     default: () => [],
   })
   readonly data!: any[] | null;
-  
+
   @Prop()
   readonly value!: any;
 
@@ -51,7 +51,7 @@ export default class SimpleAutoselect extends Vue {
   bValue = "";
 
   bSelect(newValue: any) {
-    this.$emit('input', newValue === null ? null : this.valueFunc(newValue));
+    this.$emit("input", newValue === null ? null : this.valueFunc(newValue));
   }
 
   resetBValueFromValue() {
@@ -59,8 +59,7 @@ export default class SimpleAutoselect extends Vue {
       this.bValue = "";
       return;
     }
-    if (this.filteredData === null)
-      return;
+    if (this.filteredData === null) return;
     for (const val of this.filteredData) {
       if (this.valueFunc(val) === this.value) {
         this.bValue = this.formatter(val);
@@ -83,14 +82,12 @@ export default class SimpleAutoselect extends Vue {
   }
 
   get filteredData() {
-    if (this.data === null)
-      return null;
-    return this.data
-      .filter((x) => {
-        return (
-            this.formatter(x).toLowerCase().indexOf(this.bValue.toLowerCase()) >= 0
-        );
-      });
+    if (this.data === null) return null;
+    return this.data.filter((x) => {
+      return (
+        this.formatter(x).toLowerCase().indexOf(this.bValue.toLowerCase()) >= 0
+      );
+    });
   }
 }
 </script>

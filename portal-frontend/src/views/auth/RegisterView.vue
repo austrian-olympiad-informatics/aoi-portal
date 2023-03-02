@@ -4,9 +4,9 @@
       <h1 class="title is-3 mb-3">Registrieren</h1>
       <b-message type="is-info">
         <small>
-          Hinweis: Du kannst dich hier auch als Lehrer:in oder Externe:r registrieren
-          (für Trainigsaufgaben etc). Die Anmeldung für die Qualifikationsrunde
-          erfolgt in einem nächsten Schritt.
+          Hinweis: Du kannst dich hier auch als Lehrer:in oder Externe:r
+          registrieren (für Trainigsaufgaben etc). Die Anmeldung für die
+          Qualifikationsrunde erfolgt in einem nächsten Schritt.
         </small>
       </b-message>
       <RegisterInput v-model="data" />

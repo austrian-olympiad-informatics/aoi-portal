@@ -46,7 +46,7 @@ export default class GroupView extends Vue {
   }
 
   async updateGroup(data: GroupFormData) {
-    let params: AdminGroupUpdateParams = {
+    const params: AdminGroupUpdateParams = {
       name: data.name,
       description: data.description,
       users: data.users,

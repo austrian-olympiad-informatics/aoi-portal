@@ -424,16 +424,20 @@ export default class AdminSubmissionDetailsPanel extends Vue {
     );
   }
   get scoreTaskScore() {
-    return this.scores?.task_scores.find((task) => task.id === this.submission!.task.id);
+    return this.scores?.task_scores.find(
+      (task) => task.id === this.submission!.task.id
+    );
   }
   get scoreTaskInfo() {
-    return this.scores?.tasks.find((task) => task.id === this.submission!.task.id);
+    return this.scores?.tasks.find(
+      (task) => task.id === this.submission!.task.id
+    );
   }
   get scoreSubtasks() {
-    return this.scoreTaskInfo?.subtask_max_scores?.map((x,i) => {
+    return this.scoreTaskInfo?.subtask_max_scores?.map((x, i) => {
       return {
         max_score: x,
-        score: this.scoreTaskScore?.subtask_scores?.[i] || 0.0
+        score: this.scoreTaskScore?.subtask_scores?.[i] || 0.0,
       };
     });
   }

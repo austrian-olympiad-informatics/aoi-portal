@@ -18,8 +18,9 @@
         </ul>
 
         <p>
-          Wir benötigen diese Informationen um deine Schule nach einer Freistellung vom Unterricht
-          für die Dauer der Trainingswochen und Wettbewerben zu fragen.
+          Wir benötigen diese Informationen um deine Schule nach einer
+          Freistellung vom Unterricht für die Dauer der Trainingswochen und
+          Wettbewerben zu fragen.
         </p>
       </b-message>
 
@@ -139,7 +140,9 @@ export default class ProfileView extends Vue {
   async submit() {
     let bstring = null;
     if (this.birthday !== null) {
-      bstring = `${this.birthday.getFullYear()}-${this.birthday.getMonth()+1}-${this.birthday.getDate()}`;
+      bstring = `${this.birthday.getFullYear()}-${
+        this.birthday.getMonth() + 1
+      }-${this.birthday.getDate()}`;
     }
     await profile.updateProfile({
       first_name: this.firstName,

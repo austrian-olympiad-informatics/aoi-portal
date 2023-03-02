@@ -31,7 +31,10 @@ export default class CheckNotifications extends Vue {
       hasIcon: true,
       indefinite: true,
     });
-    if ("Notification" in window && window.Notification.permission === "granted") {
+    if (
+      "Notification" in window &&
+      window.Notification.permission === "granted"
+    ) {
       new Notification(subject, {
         body: body,
         icon: require("@/assets/logo.png"),

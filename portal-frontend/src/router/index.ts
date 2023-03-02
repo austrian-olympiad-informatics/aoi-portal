@@ -160,7 +160,7 @@ const routes: Array<RouteConfig> = [
     component: DiscordOAuthCallbackView,
     meta: {
       requiresAuth: true,
-    }
+    },
   },
   {
     path: "/newsletter/sign-up",
@@ -321,7 +321,9 @@ const routes: Array<RouteConfig> = [
     path: "/cms/admin/submissions",
     name: "CMSAdminSubmissions",
     component: () =>
-      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/SubmissionsView.vue"),
+      import(
+        /* webpackChunkName: "cmsadmin" */ "../views/cms/admin/SubmissionsView.vue"
+      ),
     meta: CMS_META,
     children: [
       {
@@ -331,14 +333,16 @@ const routes: Array<RouteConfig> = [
           import(
             /* webpackChunkName: "cmsadmin" */ "../views/cms/admin/SubDetailsPanel.vue"
           ),
-      }
-    ]
+      },
+    ],
   },
   {
     path: "/cms/admin/user-evals",
     name: "CMSAdminUserEvals",
     component: () =>
-      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/UserEvalsView.vue"),
+      import(
+        /* webpackChunkName: "cmsadmin" */ "../views/cms/admin/UserEvalsView.vue"
+      ),
     meta: CMS_META,
     children: [
       {
@@ -348,42 +352,52 @@ const routes: Array<RouteConfig> = [
           import(
             /* webpackChunkName: "cmsadmin" */ "../views/cms/admin/UserEvalDetailsPanel.vue"
           ),
-      }
-    ]
+      },
+    ],
   },
   {
     path: "/cms/admin",
     name: "CMSAdminIndex",
     component: () =>
-      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/IndexView.vue"),
+      import(
+        /* webpackChunkName: "cmsadmin" */ "../views/cms/admin/IndexView.vue"
+      ),
     meta: CMS_META,
   },
   {
     path: "/cms/admin/contest/:contestId",
     name: "CMSAdminContest",
     component: () =>
-      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/ContestView.vue"),
+      import(
+        /* webpackChunkName: "cmsadmin" */ "../views/cms/admin/ContestView.vue"
+      ),
     meta: CMS_META,
   },
   {
     path: "/cms/admin/validity-helper/:contestId",
     name: "CMSAdminValidityHelper",
     component: () =>
-      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/ValidityHelperView.vue"),
+      import(
+        /* webpackChunkName: "cmsadmin" */ "../views/cms/admin/ValidityHelperView.vue"
+      ),
     meta: CMS_META,
   },
   {
     path: "/cms/admin/task/:taskId",
     name: "CMSAdminTask",
     component: () =>
-      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/TaskView.vue"),
+      import(
+        /* webpackChunkName: "cmsadmin" */ "../views/cms/admin/TaskView.vue"
+      ),
     meta: CMS_META,
   },
   {
     path: "/cms/admin/user/:userId",
     name: "CMSAdminUser",
     component: () =>
-      import(/* webpackChunkName: "cmsadmin" */ "../views/cms/admin/UserView.vue"),
+      import(
+        /* webpackChunkName: "cmsadmin" */ "../views/cms/admin/UserView.vue"
+      ),
     meta: CMS_META,
   },
 ];

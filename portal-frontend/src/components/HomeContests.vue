@@ -10,8 +10,8 @@
       <div v-if="profile !== null && contests !== null">
         <b-message type="is-warning" has-icon v-if="!profileComplete">
           Dein Profil ist noch nicht fertig ausgefüllt. Damit du dich für
-          Trainingscamps und den Bundesbewerb qualifizieren kannst, musst du diese
-          in den
+          Trainingscamps und den Bundesbewerb qualifizieren kannst, musst du
+          diese in den
           <router-link :to="{ name: 'Profile' }"
             >Profileinstellungen</router-link
           >

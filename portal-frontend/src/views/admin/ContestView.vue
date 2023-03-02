@@ -74,7 +74,12 @@
         </div>
       </nav>
 
-      <b-table :data="contest.participations" hoverable default-sort="id" :mobile-cards="false">
+      <b-table
+        :data="contest.participations"
+        hoverable
+        default-sort="id"
+        :mobile-cards="false"
+      >
         <b-table-column label="Name" v-slot="props">
           <router-link
             :to="{
@@ -161,7 +166,7 @@ export default class ContestView extends Vue {
   }
 
   async updateContest(data: ContestFormData) {
-    let params: AdminContestUpdateParams = {
+    const params: AdminContestUpdateParams = {
       open_signup: data.open_signup,
       auto_add_to_group_id: data.auto_add_to_group_id,
       url: data.url,

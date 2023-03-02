@@ -138,11 +138,13 @@ export interface Task {
   max_score: number;
   score_precision: number;
   score_mode: "max" | "max_subtask" | "max_tokened_last";
-  score_subtasks: null | {
-    fraction: number;
-    max_score: number;
-    score: number;
-  }[];
+  score_subtasks:
+    | null
+    | {
+        fraction: number;
+        max_score: number;
+        score: number;
+      }[];
   submission_format: string[];
   languages: string[];
   language_templates: {
