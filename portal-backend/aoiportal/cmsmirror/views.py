@@ -116,7 +116,7 @@ def active_contest_required(fn):
     @functools.wraps(fn)
     def wrapped(*args, **kwargs):
         now = datetime.datetime.utcnow()
-        if current_contest.phase(now) not in (0, 2):
+        if current_contest.phase(now) not in (0, 2) and not current_participation.unrestricted:
             raise AOIForbidden("Contest is not active")
         return fn(*args, **kwargs)
 
@@ -180,7 +180,7 @@ def get_contest(contest_name: str):
         "questions": [_conv_question(q) for q in part.questions],
     }
     now = datetime.datetime.utcnow()
-    if 0 <= contest.phase(now) <= 2:
+    if 0 <= contest.phase(now) <= 2 or part.unrestricted:
         ret.update(
             {
                 "tasks": [
@@ -790,7 +790,10 @@ def submit(data, contest_name: str, task_name: str):
         task_id=current_task.id,
         timestamp=now,
         language=data[KEY_LANGUAGE],
-        official=current_contest.phase(now) == 0,
+        official=(
+            current_contest.phase(now) == 0 or 
+            current_participation.unrestricted
+        ),
     )
     session.add(sub)  # type: ignore
     for file in data[KEY_FILES]:
