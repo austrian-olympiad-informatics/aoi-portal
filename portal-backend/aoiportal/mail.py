@@ -70,7 +70,7 @@ def send_mass(mails: List[Message]) -> List[Message]:
         for msg in mails:
             try:
                 conn.send(msg)
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 _LOGGER.error("Sending mail %s failed", msg, exc_info=True)
                 failed.append(msg)
 
