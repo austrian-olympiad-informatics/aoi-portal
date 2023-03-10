@@ -1,5 +1,4 @@
 # type: ignore
-# pylint: skip-file
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>

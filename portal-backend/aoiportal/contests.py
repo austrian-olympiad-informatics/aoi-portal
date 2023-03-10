@@ -32,7 +32,7 @@ def list_contests():
             ),
             isouter=True,
         )
-        .filter(Contest.deleted == False)  # pylint: disable=singleton-comparison
+        .filter(Contest.deleted == False)  # noqa: E712
         .order_by(Contest.order_priority.desc())
     )
     ret = []

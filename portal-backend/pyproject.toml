@@ -5,33 +5,5 @@ multi_line_output = 3
 [tool.black]
 target-version = ['py37']
 
-[tool.pylint.MASTER]
-reports = 'no'
-ignore-patterns = '.*cmsmirror/db/.*'
-disable = [
-  "missing-docstring",
-  "duplicate-code",
-  "invalid-name",
-  "line-too-long",
-  "unnecessary-pass",
-  "redefined-outer-name",
-  "too-few-public-methods",
-  "unspecified-encoding",
-  "too-many-branches",
-  "too-many-statements",
-  "too-many-locals",
-  "too-many-lines",
-  "too-many-instance-attributes",
-  "unnecessary-lambda",
-  "import-outside-toplevel",
-  "arguments-differ",
-  "unused-argument",
-  "too-many-return-statements",
-  "logging-fstring-interpolation",
-  "f-string-without-interpolation",
-  "fixme",
-  "too-many-arguments",
-  "no-member",
-  "no-value-for-parameter",
-  "raise-missing-from",
-]
+[tool.ruff]
+line-length = 9001

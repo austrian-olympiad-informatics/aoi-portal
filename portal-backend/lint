@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 set -euxo pipefail
 
 black aoiportal
-pylint aoiportal
+ruff aoiportal
 flake8 aoiportal
 isort aoiportal
 mypy aoiportal
