@@ -1,42 +1,40 @@
-import json
 from pathlib import Path
 
+import voluptuous as vol  # type: ignore
 from flask import Flask
-import voluptuous as vol
-from yaml import safe_load
+from yaml import safe_load  # type: ignore
 
 from aoiportal import error
 from aoiportal.admin import admin_bp
 from aoiportal.auth import auth_bp
 from aoiportal.bot import bot_bp
+from aoiportal.const import (
+    KEY_BASE_URL,
+    KEY_CLIENT_ID,
+    KEY_CLIENT_SECRET,
+    KEY_CMS,
+    KEY_DATABASE_URI,
+    KEY_DEBUG,
+    KEY_DEFAULT_SENDER,
+    KEY_DISCORD_OAUTH,
+    KEY_EVALUATION_SERVICE,
+    KEY_GITHUB_OAUTH,
+    KEY_GOOGLE_OAUTH,
+    KEY_HOST,
+    KEY_MAIL,
+    KEY_PASSWORD,
+    KEY_PORT,
+    KEY_SECRET_KEY,
+    KEY_SESSION_TOKEN_KEY,
+    KEY_USE_TLS,
+    KEY_USERNAME,
+)
 from aoiportal.contests import contests_bp
 from aoiportal.mail import mail
 from aoiportal.models import db  # type: ignore
 from aoiportal.newsletter import newsletter_bp
 from aoiportal.oauth import oauth_bp
 from aoiportal.profile import profile_bp
-from aoiportal.const import (
-    KEY_DATABASE_URI,
-    KEY_SECRET_KEY,
-    KEY_SESSION_TOKEN_KEY,
-    KEY_DEBUG,
-    KEY_BASE_URL,
-    KEY_MAIL,
-    KEY_HOST,
-    KEY_PORT,
-    KEY_USE_TLS,
-    KEY_USERNAME,
-    KEY_PASSWORD,
-    KEY_DEFAULT_SENDER,
-    KEY_GITHUB_OAUTH,
-    KEY_CLIENT_ID,
-    KEY_CLIENT_SECRET,
-    KEY_GOOGLE_OAUTH,
-    KEY_DISCORD_OAUTH,
-    KEY_CMS,
-    KEY_EVALUATION_SERVICE,
-)
-
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -114,23 +112,33 @@ def create_app(config_file: Path):
         app.config["MAIL_USERNAME"] = conf[KEY_MAIL][KEY_USERNAME]
         app.config["MAIL_PASSWORD"] = conf[KEY_MAIL][KEY_PASSWORD]
         app.config["MAIL_DEFAULT_SENDER"] = conf[KEY_MAIL][KEY_DEFAULT_SENDER]
-    
+
     if KEY_GITHUB_OAUTH in conf:
         app.config["GITHUB_OAUTH_CLIENT_ID"] = conf[KEY_GITHUB_OAUTH][KEY_CLIENT_ID]
-        app.config["GITHUB_OAUTH_CLIENT_SECRET"] = conf[KEY_GITHUB_OAUTH][KEY_CLIENT_SECRET]
+        app.config["GITHUB_OAUTH_CLIENT_SECRET"] = conf[KEY_GITHUB_OAUTH][
+            KEY_CLIENT_SECRET
+        ]
 
     if KEY_GOOGLE_OAUTH in conf:
         app.config["GOOGLE_OAUTH_CLIENT_ID"] = conf[KEY_GOOGLE_OAUTH][KEY_CLIENT_ID]
-        app.config["GOOGLE_OAUTH_CLIENT_SECRET"] = conf[KEY_GOOGLE_OAUTH][KEY_CLIENT_SECRET]
+        app.config["GOOGLE_OAUTH_CLIENT_SECRET"] = conf[KEY_GOOGLE_OAUTH][
+            KEY_CLIENT_SECRET
+        ]
 
     if KEY_DISCORD_OAUTH in conf:
         app.config["DISCORD_OAUTH_CLIENT_ID"] = conf[KEY_DISCORD_OAUTH][KEY_CLIENT_ID]
-        app.config["DISCORD_OAUTH_CLIENT_SECRET"] = conf[KEY_DISCORD_OAUTH][KEY_CLIENT_SECRET]
+        app.config["DISCORD_OAUTH_CLIENT_SECRET"] = conf[KEY_DISCORD_OAUTH][
+            KEY_CLIENT_SECRET
+        ]
 
     if KEY_CMS in conf:
         app.config["CMS_DATABASE_URI"] = conf[KEY_CMS][KEY_DATABASE_URI]
-        app.config["CMS_EVALUATION_SERVICE_HOST"] = conf[KEY_CMS][KEY_EVALUATION_SERVICE][KEY_HOST]
-        app.config["CMS_EVALUATION_SERVICE_PORT"] = conf[KEY_CMS][KEY_EVALUATION_SERVICE][KEY_PORT]
+        app.config["CMS_EVALUATION_SERVICE_HOST"] = conf[KEY_CMS][
+            KEY_EVALUATION_SERVICE
+        ][KEY_HOST]
+        app.config["CMS_EVALUATION_SERVICE_PORT"] = conf[KEY_CMS][
+            KEY_EVALUATION_SERVICE
+        ][KEY_PORT]
 
     db.init_app(app)
     mail.init_app(app)
@@ -145,10 +153,10 @@ def create_app(config_file: Path):
 
     if KEY_CMS in conf:
         from aoiportal.cmsmirror.admin import cmsadmin_bp  # type: ignore
-        from aoiportal.cmsmirror.db import init_app as cmsmirror_init_app  # type: ignore
+        from aoiportal.cmsmirror.db import init_app as cmsia  # type: ignore
         from aoiportal.cmsmirror.views import cmsmirror_bp  # type: ignore
 
-        cmsmirror_init_app(app)
+        cmsia(app)
         app.register_blueprint(cmsmirror_bp)
         app.register_blueprint(cmsadmin_bp)
 
