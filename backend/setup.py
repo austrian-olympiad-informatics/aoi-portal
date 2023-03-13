@@ -11,4 +11,9 @@ setup(
     packages=['aoiportal'],
     include_package_data=True,
     install_requires=REQUIRES,
+    entry_points={
+        'console_scripts': [
+            'aoiportal=aoiportal.cli:cli'
+        ],
+    },
 )

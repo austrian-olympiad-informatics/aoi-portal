@@ -160,5 +160,6 @@ cython_debug/
 #.idea/
 
 /dev.db
-/config/
+/config/config.yaml
 /.vscode/settings.json
+/.ruff_cache/
