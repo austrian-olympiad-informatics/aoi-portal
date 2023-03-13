@@ -42,12 +42,12 @@ jobs:
         uses: actions/cache@v3.2.5
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: pip-${{ steps.python.outputs.python-version }}-${{ hashFiles('portal-backend/requirements.txt', 'portal-backend/requirements_test.txt') }}
+          key: pip-${{ steps.python.outputs.python-version }}-${{ hashFiles('portal-backend/requirements.txt', 'portal-backend/requirements_dev.txt') }}
           restore-keys: |
             pip-${{ steps.python.outputs.python-version }}-
       - name: Set up Python environment
         run: |
-          pip3 install -r portal-backend/requirements.txt -r portal-backend/requirements_test.txt
+          pip3 install -r portal-backend/requirements.txt -r portal-backend/requirements_dev.txt
           pip3 install -e portal-backend
       - name: Register problem matchers
         run: |

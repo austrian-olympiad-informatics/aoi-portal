@@ -1,0 +1,114 @@
+version: '3'
+
+services:
+  frontend:
+    build:
+      context: ./portal-frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./portal-frontend:/app:rw
+    networks:
+      - proxy
+
+  db:
+    image: postgres:15
+    volumes:
+      - ./data/db:/var/lib/postgresql/data:rw
+    environment:
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal
+      POSTGRES_DB: portal
+    networks:
+      - backend
+  backend:
+    build:
+      context: ./portal-backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./portal-backend:/app
+      - ./docker/config.yaml:/config.yaml:ro
+    networks:
+      - backend
+      - proxy
+      - cms
+
+  console:
+    build:
+      context: ./portal-backend
+      dockerfile: Dockerfile.dev
+    command: bash -c 'pip3 install -e . && tail -f /dev/null'
+    volumes:
+      - ./portal-backend:/app
+      - ./docker/config.yaml:/config.yaml:ro
+    networks:
+      - cms
+      - backend
+  
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./docker/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - proxy
+
+  cmsdb:
+    image: postgres:15
+    volumes:
+      - ./data/cmsdb:/var/lib/postgresql/data:rw
+    environment:
+      POSTGRES_PASSWORD: cms
+      POSTGRES_USER: cmsuser
+      POSTGRES_DB: cmsdb
+    networks:
+      - cms
+
+  cms-console:
+    build:
+      context: ../cms
+    command: tail -f /dev/null
+    volumes:
+      - "./docker/cms.docker.conf:/usr/local/etc/cms.conf:ro"
+    networks:
+      - cms
+  cms-admin-web-server:
+    build:
+      context: ../cms
+    command: cmsAdminWebServer 0
+    volumes:
+      - "./docker/cms.docker.conf:/usr/local/etc/cms.conf:ro"
+    ports:
+      - 8889:8889
+    networks:
+      - cms
+  cms-evaluation-service:
+    build:
+      context: ../cms
+    command: cmsEvaluationService -c ALL 0
+    volumes:
+      - "./docker/cms.docker.conf:/usr/local/etc/cms.conf:ro"
+    networks:
+      - cms
+  cms-scoring-service:
+    build:
+      context: ../cms
+    command: cmsScoringService -c ALL 0
+    volumes:
+      - "./docker/cms.docker.conf:/usr/local/etc/cms.conf:ro"
+    networks:
+      - cms
+  cms-worker-0:
+    build:
+      context: ../cms
+    command: cmsWorker 0
+    volumes:
+      - "./docker/cms.docker.conf:/usr/local/etc/cms.conf:ro"
+      - "/sys/fs/cgroup:/sys/fs/cgroup:rw"
+    networks:
+      - cms
+
+networks:
+  backend:
+  cms:
+  proxy:

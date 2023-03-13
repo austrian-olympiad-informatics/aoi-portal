@@ -1,0 +1,8 @@
+FROM python:3.10
+
+COPY requirements.txt requirements_dev.txt dev_entrypoint.sh /
+RUN pip3 install --no-cache-dir -r /requirements.txt -r /requirements_dev.txt
+
+WORKDIR /app
+VOLUME ["/app"]
+CMD ["/dev_entrypoint.sh"]

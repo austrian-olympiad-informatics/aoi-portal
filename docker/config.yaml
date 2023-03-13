@@ -1,0 +1,29 @@
+---
+
+database_uri: 'postgresql+psycopg2://portal:portal@db:5432/portal'
+secret_key: "Please change me"
+session_token_key: "UZb1zOeZtEw1fsWhRftFE0AqSVTLAouZzFwt5cwiqSo="
+debug: true
+# base_url: https://informatikolympiade.at
+# mail:
+#   host: localhost
+#   port: 25
+#   use_tls: false
+#   username: null
+#   password: null
+#   default_sender: Informatikolympiade <noreply@informatikolympiade.at>
+
+# github_oauth:
+#   client_id: ''
+#   client_secret: ''
+# google_oauth:
+#   client_id: ''
+#   client_secret: ''
+# discord_oauth:
+#   client_id: ''
+#   client_secret: ''
+cms:
+  database_uri: 'postgresql+psycopg2://cmsuser:cms@cmsdb:5432/cmsdb'
+  evaluation_service:
+    host: cms-evaluation-service
+    port: 25000
