@@ -1,13 +1,13 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/portal-frontend/"
+    directory: "/frontend/"
     schedule:
       interval: "weekly"
     ignore:
       - dependency-name: "vue"
         versions: ["3.x"]
   - package-ecosystem: "pip"
-    directory: "/portal-backend/"
+    directory: "/backend/"
     schedule:
       interval: "weekly"

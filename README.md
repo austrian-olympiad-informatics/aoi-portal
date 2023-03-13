@@ -18,7 +18,7 @@ Zusätzlich gibt es eine cms-bridge, die interaktionen zwischen dem backend und 
 ### MacOS or Unix
 
 ```bash
-$ cd portal-backend/
+$ cd backend/
 $ python3 -m venv venv
 $ source venv/bin/activate
 $ pip3 install -e .
@@ -36,7 +36,7 @@ $ python3 run.py wsgi  # start server
 ```
 
 ```bash
-$ cd portal-frontend
+$ cd frontend
 $ npm install
 $ npm run serve
 ```
@@ -46,7 +46,7 @@ $ npm run serve
 Make sure to run the powershell as admin.
 
 ```bash
-$ cd portal-backend/
+$ cd backend/
 $ python3 -m venv venv
 $ venv/Scripts/activate.bat
 $ pip3 install -e .
@@ -64,7 +64,7 @@ $ python3 run.py wsgi  # start server
 ```
 
 ```bash
-$ cd portal-frontend
+$ cd frontend
 $ npm install
 $ npm run serve
 ```
