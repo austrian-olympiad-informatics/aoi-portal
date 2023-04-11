@@ -202,7 +202,7 @@
                       type="is-link is-light"
                       icon-right="download"
                       class="download-button"
-                      @click="downloadTestcaseInput(props.row)"
+                      @click="downloadTestcaseOutput(props.row)"
                     />
                     <CodeMirror
                       :editable="false"
@@ -321,11 +321,11 @@ export default class AdminTaskView extends Vue {
   }
   downloadTestcaseInput(tc: AdminTestcase) {
     const blob = new Blob([this.testcaseDigests.get(tc.input_digest)!]);
-    downloadBlob(blob, `${tc.codename}.txt`);
+    downloadBlob(blob, `${tc.codename}.in.txt`);
   }
   downloadTestcaseOutput(tc: AdminTestcase) {
     const blob = new Blob([this.testcaseDigests.get(tc.output_digest)!]);
-    downloadBlob(blob, `${tc.codename}.txt`);
+    downloadBlob(blob, `${tc.codename}.out.txt`);
   }
 }
 </script>
