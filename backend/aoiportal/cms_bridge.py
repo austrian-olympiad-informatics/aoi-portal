@@ -129,6 +129,7 @@ def create_participation(
     contest_id: int,
     manual_password: Optional[str] = None,
     hidden: bool = False,
+    unrestricted: bool = False,
 ) -> int:
     stored_password = None
     if manual_password is not None:
@@ -144,7 +145,7 @@ def create_participation(
         password=stored_password,
         team=None,
         hidden=hidden,
-        unrestricted=False,
+        unrestricted=unrestricted,
     )
     cms_session.add(part)  # type: ignore
     cms_session.commit()  # type: ignore

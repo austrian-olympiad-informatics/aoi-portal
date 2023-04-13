@@ -215,7 +215,7 @@ class Contest(Base):
         Integer, CheckConstraint("score_precision >= 0"), nullable=False, default=0
     )
 
-    allow_frontendv2 = Column(Boolean, nullable=False, default=False)
+    allow_frontendv2 = Column(Boolean, nullable=False, default=True)
 
     show_global_rank = Column(Boolean, nullable=False, default=False)
     show_points_to_next_rank = Column(Boolean, nullable=False, default=False)

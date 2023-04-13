@@ -83,7 +83,7 @@ def _get_participation() -> Participation:
     )
     if part is None:
         raise AOINotFound("Contest not found")
-    if not part.contest.allow_frontendv2:
+    if not part.contest.allow_frontendv2 and not part.unrestricted:
         raise AOINotFound("Contest not found")
     setattr(g, key, part)
     return part

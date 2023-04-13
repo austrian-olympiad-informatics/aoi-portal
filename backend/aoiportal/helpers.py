@@ -23,6 +23,7 @@ def create_participation(
     *,
     manual_password: Optional[str] = None,
     hidden: bool = False,
+    unrestricted: bool = False,
 ) -> Participation:
     if user.cms_id is None:
         create_cms_user(user)
@@ -32,6 +33,7 @@ def create_participation(
         contest_id=contest.cms_id,
         manual_password=manual_password,
         hidden=hidden,
+        unrestricted=unrestricted,
     )
     part = Participation(
         cms_id=res,

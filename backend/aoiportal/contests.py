@@ -64,7 +64,7 @@ def list_contests():
             )
             value["sso_enabled"] = sso_enabled
             value["cms_name"] = contest.cms_name
-            value["allow_frontendv2"] = contest.cms_allow_frontendv2
+            value["allow_frontendv2"] = contest.cms_allow_frontendv2 or get_current_user().is_admin
 
         ret.append(value)
 
@@ -144,7 +144,7 @@ def join_contest(contest_uuid: str):
     if existing_part is not None:
         raise AOIConflict("Contest already joined.")
 
-    create_participation(current_user, contest, hidden=current_user.is_admin)
+    create_participation(current_user, contest, hidden=current_user.is_admin, unrestricted=current_user.is_admin)
 
     if contest.auto_add_to_group is not None:
         try:
