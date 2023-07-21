@@ -22,6 +22,7 @@ debug: true
 # discord_oauth:
 #   client_id: ''
 #   client_secret: ''
+#   bot_secret: ''
 # cms:
 #   database_uri: ''
 #   evaluation_service:

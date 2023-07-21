@@ -28,6 +28,7 @@ from aoiportal.const import (
     KEY_SESSION_TOKEN_KEY,
     KEY_USE_TLS,
     KEY_USERNAME,
+    KEY_BOT_SECRET,
 )
 from aoiportal.contests import contests_bp
 from aoiportal.mail import mail
@@ -69,6 +70,7 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Required(KEY_CLIENT_ID): str,
                 vol.Required(KEY_CLIENT_SECRET): str,
+                vol.Required(KEY_BOT_SECRET): str,
             }
         ),
         vol.Optional(KEY_CMS): vol.Schema(
@@ -129,6 +131,9 @@ def create_app(config_file: Path):
         app.config["DISCORD_OAUTH_CLIENT_ID"] = conf[KEY_DISCORD_OAUTH][KEY_CLIENT_ID]
         app.config["DISCORD_OAUTH_CLIENT_SECRET"] = conf[KEY_DISCORD_OAUTH][
             KEY_CLIENT_SECRET
+        ]
+        app.config["DISCORD_BOT_SECRET"] = conf[KEY_DISCORD_OAUTH][
+            KEY_BOT_SECRET
         ]
 
     if KEY_CMS in conf:
