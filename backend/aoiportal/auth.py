@@ -98,12 +98,9 @@ def auth_status():
         user_id=get_current_user().id
     ).first()
 
-    print(u.id, sys.stdout)
-
     discord_user = ""
 
     if obj is not None:
-        print("TEST", sys.stdout)
         data = json.loads(obj.extra_data)
         discord_user = (
             data["user_info"]["username"] + "#" + data["user_info"]["discriminator"]
