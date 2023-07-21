@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Union
 
 import voluptuous as vol  # type: ignore
 from flask import Flask
@@ -10,6 +11,7 @@ from aoiportal.auth import auth_bp
 from aoiportal.bot import bot_bp
 from aoiportal.const import (
     KEY_BASE_URL,
+    KEY_BOT_SECRET,
     KEY_CLIENT_ID,
     KEY_CLIENT_SECRET,
     KEY_CMS,
@@ -28,7 +30,6 @@ from aoiportal.const import (
     KEY_SESSION_TOKEN_KEY,
     KEY_USE_TLS,
     KEY_USERNAME,
-    KEY_BOT_SECRET,
 )
 from aoiportal.contests import contests_bp
 from aoiportal.mail import mail
@@ -88,7 +89,7 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-def create_app(config_file: Path | str):
+def create_app(config_file: Union[Path, str]):
     package = __name__.split(".", 1)[0]
     app = Flask(package, instance_relative_config=True)
     config_file = Path(config_file)
@@ -133,9 +134,7 @@ def create_app(config_file: Path | str):
         app.config["DISCORD_OAUTH_CLIENT_SECRET"] = conf[KEY_DISCORD_OAUTH][
             KEY_CLIENT_SECRET
         ]
-        app.config["DISCORD_BOT_SECRET"] = conf[KEY_DISCORD_OAUTH][
-            KEY_BOT_SECRET
-        ]
+        app.config["DISCORD_BOT_SECRET"] = conf[KEY_DISCORD_OAUTH][KEY_BOT_SECRET]
 
     if KEY_CMS in conf:
         app.config["CMS_DATABASE_URI"] = conf[KEY_CMS][KEY_DATABASE_URI]

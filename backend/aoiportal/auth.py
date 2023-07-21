@@ -1,7 +1,6 @@
 import hmac
 import json
 import secrets
-import sys
 from datetime import timedelta
 from typing import Optional
 from uuid import uuid4
