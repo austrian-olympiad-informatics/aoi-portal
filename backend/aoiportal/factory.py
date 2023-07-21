@@ -88,9 +88,10 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-def create_app(config_file: Path):
+def create_app(config_file: Path | str):
     package = __name__.split(".", 1)[0]
     app = Flask(package, instance_relative_config=True)
+    config_file = Path(config_file)
 
     if not config_file.is_file():
         raise FileNotFoundError(f"Configuration file {config_file} not found")
