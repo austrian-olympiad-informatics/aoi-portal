@@ -28,7 +28,7 @@
     "@tiptap/extension-link": "^2.0.3",
     "@tiptap/extension-underline": "^2.0.4",
     "@tiptap/starter-kit": "^2.0.3",
-    "@tiptap/vue-2": "^2.0.3",
+    "@tiptap/vue-2": "^2.0.4",
     "@types/canvas-confetti": "^1.6.0",
     "axios": "^1.4.0",
     "buefy": "^0.9.23",
