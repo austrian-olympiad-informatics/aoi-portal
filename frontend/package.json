@@ -47,7 +47,7 @@
     "vuex": "^3.6.2"
   },
   "devDependencies": {
-    "@types/katex": "^0.16.1",
+    "@types/katex": "^0.16.2",
     "@types/node": "^20.4.9",
     "@typescript-eslint/eslint-plugin": "^6.3.0",
     "@typescript-eslint/parser": "^6.3.0",
