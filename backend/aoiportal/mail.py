@@ -1,13 +1,13 @@
 import logging
-from dataclasses import dataclass
-from typing import List, Optional, Union
-import smtplib
-from email.message import EmailMessage
-from email.headerregistry import Address as EmailAddress
-from email.utils import formatdate, make_msgid
 import re
+import smtplib
+from dataclasses import dataclass
+from email.headerregistry import Address as EmailAddress
+from email.message import EmailMessage
+from email.utils import formatdate, make_msgid
+from typing import List, Optional, Union, cast
 
-from flask import render_template, current_app
+from flask import current_app, render_template
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -18,7 +18,9 @@ class Address:
     name: Optional[str] = None
 
 
-def _address_to_email_address(address: Union[Address, str, None]) -> Optional[EmailAddress]:
+def _address_to_email_address(
+    address: Union[List[Address], Address, str, None]
+) -> Union[None, EmailAddress, List[EmailAddress]]:
     if address is None:
         return None
     if isinstance(address, str):
@@ -27,12 +29,14 @@ def _address_to_email_address(address: Union[Address, str, None]) -> Optional[Em
             return EmailAddress(m.group(1), m.group(2), m.group(3))
         m = re.match(r"(.*)@(.*)", address)
         if m is not None:
-            return EmailAddress(None, m.group(1), m.group(2))
+            return EmailAddress("", m.group(1), m.group(2))
         raise ValueError(f"Not a valid email address: {address}")
+    if isinstance(address, list):
+        return [cast(EmailAddress, _address_to_email_address(x)) for x in address]
     m = re.match(r"(.*)@(.*)", address.address)
     if m is None:
         raise ValueError(f"Not a valid email address: {address}")
-    return EmailAddress(address.name, m.group(1), m.group(2))
+    return EmailAddress(address.name or "", m.group(1), m.group(2))
 
 
 def encode_email(
@@ -46,23 +50,21 @@ def encode_email(
     full_html = render_template(
         "mail_template.html", content=content_html, unsubscribe_link=unsubscribe_link
     )
-    reply_to_str: Optional[str] = None
-    if isinstance(reply_to, Address):
-        reply_to_str = reply_to.encode()
-    elif isinstance(reply_to, list):
-        reply_to_str = ",".join(x.encode() for x in reply_to)
 
     msg = EmailMessage()
-    sender = _address_to_email_address(current_app.config["MAIL_DEFAULT_SENDER"])
+    sender = cast(
+        EmailAddress,
+        _address_to_email_address(current_app.config["MAIL_DEFAULT_SENDER"]),
+    )
     msg["Subject"] = subject
     msg["From"] = sender
     msg.set_content(full_html, subtype="html")
     msg["To"] = _address_to_email_address(to)
-    msg['Date'] = formatdate(localtime=True)
+    msg["Date"] = formatdate(localtime=True)
     # see RFC 5322 section 3.6.4.
-    msg['Message-ID'] = make_msgid(domain=sender.domain)
-    if reply_to_str is not None:
-        msg["Reply-To"] = _address_to_email_address(reply_to_str)
+    msg["Message-ID"] = make_msgid(domain=sender.domain)
+    if reply_to:
+        msg["Reply-To"] = _address_to_email_address(reply_to)
     return msg
 
 
