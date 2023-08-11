@@ -37,7 +37,7 @@
     "core-js": "^3.32.0",
     "dayjs": "^1.11.9",
     "katex": "^0.16.8",
-    "sass": "^1.64.0",
+    "sass": "^1.64.2",
     "sass-loader": "^13.3.2",
     "vue": "^2.7.14",
     "vue-class-component": "^7.2.3",
