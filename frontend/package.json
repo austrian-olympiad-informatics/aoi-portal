@@ -61,7 +61,7 @@
     "eslint": "^8.46.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
-    "eslint-plugin-vue": "^9.15.1",
+    "eslint-plugin-vue": "^9.17.0",
     "prettier": "^3.0.1",
     "typescript": "~5.1.6",
     "vue-cli-plugin-buefy": "~0.3.8",
