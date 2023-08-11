@@ -1,13 +1,15 @@
 import logging
 from dataclasses import dataclass
 from typing import List, Optional, Union
+import smtplib
+from email.message import EmailMessage
+from email.headerregistry import Address as EmailAddress
+from email.utils import formatdate, make_msgid
+import re
 
-from flask import render_template
-from flask_mail import Mail, Message  # type: ignore
+from flask import render_template, current_app
 
 _LOGGER = logging.getLogger(__name__)
-
-mail = Mail()
 
 
 @dataclass
@@ -15,10 +17,22 @@ class Address:
     address: str
     name: Optional[str] = None
 
-    def encode(self) -> str:
-        if self.name is not None:
-            return f"{self.name} <{self.address}>"
-        return self.address
+
+def _address_to_email_address(address: Union[Address, str, None]) -> Optional[EmailAddress]:
+    if address is None:
+        return None
+    if isinstance(address, str):
+        m = re.match(r"(.*)\s*<(.*)@(.*)>", address)
+        if m is not None:
+            return EmailAddress(m.group(1), m.group(2), m.group(3))
+        m = re.match(r"(.*)@(.*)", address)
+        if m is not None:
+            return EmailAddress(None, m.group(1), m.group(2))
+        raise ValueError(f"Not a valid email address: {address}")
+    m = re.match(r"(.*)@(.*)", address.address)
+    if m is None:
+        raise ValueError(f"Not a valid email address: {address}")
+    return EmailAddress(address.name, m.group(1), m.group(2))
 
 
 def encode_email(
@@ -28,7 +42,7 @@ def encode_email(
     content_html: str,
     reply_to: Union[None, Address, List[Address]] = None,
     unsubscribe_link: Optional[str] = None,
-) -> Message:
+) -> EmailMessage:
     full_html = render_template(
         "mail_template.html", content=content_html, unsubscribe_link=unsubscribe_link
     )
@@ -38,12 +52,18 @@ def encode_email(
     elif isinstance(reply_to, list):
         reply_to_str = ",".join(x.encode() for x in reply_to)
 
-    return Message(
-        subject=subject,
-        recipients=[to.encode()],
-        html=full_html,
-        reply_to=reply_to_str,
-    )
+    msg = EmailMessage()
+    sender = _address_to_email_address(current_app.config["MAIL_DEFAULT_SENDER"])
+    msg["Subject"] = subject
+    msg["From"] = sender
+    msg.set_content(full_html, subtype="html")
+    msg["To"] = _address_to_email_address(to)
+    msg['Date'] = formatdate(localtime=True)
+    # see RFC 5322 section 3.6.4.
+    msg['Message-ID'] = make_msgid(domain=sender.domain)
+    if reply_to_str is not None:
+        msg["Reply-To"] = _address_to_email_address(reply_to_str)
+    return msg
 
 
 def send_email(
@@ -61,15 +81,34 @@ def send_email(
         reply_to=reply_to,
         unsubscribe_link=unsubscribe_link,
     )
-    mail.send(msg)
+    with smtplib.SMTP(
+        current_app.config["MAIL_SERVER"],
+        current_app.config["MAIL_PORT"],
+    ) as smtp:
+        if current_app.config["MAIL_USE_TLS"]:
+            smtp.starttls()
+        smtp.login(
+            current_app.config["MAIL_USERNAME"],
+            current_app.config["MAIL_PASSWORD"],
+        )
+        smtp.send_message(msg)
 
 
-def send_mass(mails: List[Message]) -> List[Message]:
+def send_mass(mails: List[EmailMessage]) -> List[EmailMessage]:
     failed = []
-    with mail.connect() as conn:
+    with smtplib.SMTP(
+        current_app.config["MAIL_SERVER"],
+        current_app.config["MAIL_PORT"],
+    ) as smtp:
+        if current_app.config["MAIL_USE_TLS"]:
+            smtp.starttls()
+        smtp.login(
+            current_app.config["MAIL_USERNAME"],
+            current_app.config["MAIL_PASSWORD"],
+        )
         for msg in mails:
             try:
-                conn.send(msg)
+                smtp.send_message(msg)
             except Exception:
                 _LOGGER.error("Sending mail %s failed", msg, exc_info=True)
                 failed.append(msg)

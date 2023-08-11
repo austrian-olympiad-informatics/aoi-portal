@@ -32,7 +32,6 @@ from aoiportal.const import (
     KEY_USERNAME,
 )
 from aoiportal.contests import contests_bp
-from aoiportal.mail import mail
 from aoiportal.models import db  # type: ignore
 from aoiportal.newsletter import newsletter_bp
 from aoiportal.oauth import oauth_bp
@@ -146,7 +145,6 @@ def create_app(config_file: Union[Path, str]):
         ][KEY_PORT]
 
     db.init_app(app)
-    mail.init_app(app)
     app.register_blueprint(auth_bp)
     app.register_blueprint(profile_bp)
     app.register_blueprint(admin_bp)
