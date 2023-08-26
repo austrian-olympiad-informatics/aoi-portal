@@ -25,7 +25,7 @@
     "@codemirror/view": "^6.16.0",
     "@mdi/js": "^7.2.96",
     "@tiptap/extension-bubble-menu": "^2.1.7",
-    "@tiptap/extension-link": "^2.0.4",
+    "@tiptap/extension-link": "^2.1.7",
     "@tiptap/extension-underline": "^2.1.7",
     "@tiptap/starter-kit": "^2.0.4",
     "@tiptap/vue-2": "^2.1.6",
