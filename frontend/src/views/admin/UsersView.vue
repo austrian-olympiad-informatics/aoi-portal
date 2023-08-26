@@ -190,6 +190,9 @@
         <b>Schuladresse:</b>
         {{ props.row.school_address ? props.row.school_address : "N/A" }} <br />
         <div class="buttons is-pulled-right">
+          <b-button icon-left="account" @click="downloadVCard(props.row)">
+            vCard
+          </b-button>
           <b-button
             tag="router-link"
             :to="{ name: 'AdminUser', params: { userId: props.row.id } }"
@@ -206,9 +209,10 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { AdminUsers } from "@/types/admin";
+import { AdminUser, AdminUsers } from "@/types/admin";
 import AdminCard from "@/components/admin/AdminCard.vue";
 import admin from "@/services/admin";
+import { downloadBlob } from "@/util/download";
 
 @Component({
   components: {
@@ -233,6 +237,20 @@ export default class UsersView extends Vue {
 
   async mounted() {
     await this.loadUsers();
+  }
+
+  downloadVCard(row: AdminUser) {
+    const content = `BEGIN:VCARD
+VERSION:3.0
+N:${row.last_name} (AOI);${row.first_name};;;
+ADR:;;${row.address_street};${row.address_town};;${row.address_zip};Österreich
+EMAIL:${row.email}
+TEL;TYPE=CELL:${row.phone_nr}
+BDAY:${row.birthday ? row.birthday.replaceAll("-", "") : ""}
+END:VCARD`;
+    const blob = new Blob([content]);
+    const fname = `${row.first_name}_${row.last_name}.vcf`;
+    downloadBlob(blob, fname);
   }
 }
 </script>
