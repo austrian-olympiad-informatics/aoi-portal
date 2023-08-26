@@ -135,7 +135,7 @@
           class="block score-loader"
           v-if="
             ['compiling', 'evaluating', 'scoring'].includes(
-              submission.result.status
+              submission.result.status,
             )
           "
         >
@@ -166,7 +166,7 @@
               <strong>Speichernutzung:</strong>
               {{
                 (submission.result.compilation_memory / (1024 * 1024)).toFixed(
-                  1
+                  1,
                 )
               }}
               MiB
@@ -243,14 +243,14 @@ export default class SubmissionDetailsPanel extends Vue {
     this.submission = await cms.getSubmission(
       this.contestName,
       this.taskName,
-      this.submissionUuid
+      this.submissionUuid,
     );
     if (this.submission.result.meme_digest !== null) {
       const blob = await cms.getSubmissionMeme(
         this.contestName,
         this.taskName,
         this.submissionUuid,
-        this.submission.result.meme_digest
+        this.submission.result.meme_digest,
       );
       this.memeUrl = URL.createObjectURL(blob);
     }
@@ -267,11 +267,11 @@ export default class SubmissionDetailsPanel extends Vue {
             this.taskName,
             this.submissionUuid,
             file.filename,
-            file.digest
+            file.digest,
           );
           return [file.filename, await resp.text()];
-        })
-      )
+        }),
+      ),
     );
   }
 
@@ -291,7 +291,7 @@ export default class SubmissionDetailsPanel extends Vue {
 
   subtaskPoints(st: { max_score: number; fraction: number }): number {
     return parseFloat(
-      (st.max_score * st.fraction).toFixed(this.task.score_precision)
+      (st.max_score * st.fraction).toFixed(this.task.score_precision),
     );
   }
 
@@ -305,14 +305,14 @@ export default class SubmissionDetailsPanel extends Vue {
     if (this.checkSubTimeout !== null) clearTimeout(this.checkSubTimeout);
     this.checkSubTimeout = window.setTimeout(
       () => this.checkSubmissions(timeout),
-      timeout
+      timeout,
     );
   }
 
   async checkSubmissions(prevTime: number) {
     if (
       ["compilation_failed", "scored"].includes(
-        this.submission!.result.status || ""
+        this.submission!.result.status || "",
       )
     )
       return;
@@ -320,7 +320,7 @@ export default class SubmissionDetailsPanel extends Vue {
     await this.loadSubmission();
     const newState = this.submission!.result.status;
     this.scheduleCheckSubmissions(
-      prevState === newState ? prevTime * 1.2 : 1000
+      prevState === newState ? prevTime * 1.2 : 1000,
     );
   }
 

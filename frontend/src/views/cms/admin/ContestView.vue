@@ -125,7 +125,7 @@ export default class AdminContestView extends Vue {
   }
   async loadParticipations() {
     this.participations = await cmsadmin.getContestParticipations(
-      this.contestId
+      this.contestId,
     );
   }
   async loadSubmissions() {

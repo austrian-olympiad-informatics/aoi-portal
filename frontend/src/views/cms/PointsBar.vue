@@ -92,7 +92,7 @@ export default class PointsBar extends Vue {
         {
           width: `${negWidth}%`,
           class: ["is-grey"],
-        }
+        },
       );
       cumw += posWidth + negWidth;
     }
@@ -110,7 +110,7 @@ export default class PointsBar extends Vue {
     const a = parseFloat(this.score.toFixed(this.scorePrecision)).toString();
     if (this.showMaxScore) {
       const b = parseFloat(
-        this.maxScore.toFixed(this.scorePrecision)
+        this.maxScore.toFixed(this.scorePrecision),
       ).toString();
       return `${a} / ${b}`;
     }

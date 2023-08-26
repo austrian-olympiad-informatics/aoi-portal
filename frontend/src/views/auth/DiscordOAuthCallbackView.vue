@@ -19,7 +19,7 @@ export default class DiscordOAuthCallbackView extends Vue {
     if (err) {
       console.error("OAuth error: ", err);
       showErrorNotification(
-        "Beim Verlinken mit Discord ist etwas schiefgelaufen. Bitte versuche es später erneut."
+        "Beim Verlinken mit Discord ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       );
       return;
     }
@@ -27,7 +27,7 @@ export default class DiscordOAuthCallbackView extends Vue {
     if (state !== sessionStorage.getItem("discordOAuthState")) {
       console.error("Invalid OAuth state!");
       showErrorNotification(
-        "Beim Verlinken mit Discord ist etwas schiefgelaufen. Bitte versuche es später erneut."
+        "Beim Verlinken mit Discord ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       );
       return;
     }

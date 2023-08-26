@@ -27,7 +27,7 @@ class AdminService {
   }
   async getUser(userId: number): Promise<AdminUserDetail> {
     const resp = await http.get(
-      `/api/admin/users/${encodeURIComponent(userId)}`
+      `/api/admin/users/${encodeURIComponent(userId)}`,
     );
     return resp.data;
   }
@@ -36,11 +36,11 @@ class AdminService {
   }
   async updateUser(
     userId: number,
-    params: AdminUserUpdateParams
+    params: AdminUserUpdateParams,
   ): Promise<void> {
     await http.put(
       `/api/admin/users/${encodeURIComponent(userId)}/update`,
-      params
+      params,
     );
   }
   async createUser(params: AdminUserCreateParams): Promise<void> {
@@ -55,86 +55,86 @@ class AdminService {
   }
   async getContest(contestUuid: string): Promise<AdminContestDetail> {
     const resp = await http.get(
-      `/api/admin/contests/${encodeURIComponent(contestUuid)}`
+      `/api/admin/contests/${encodeURIComponent(contestUuid)}`,
     );
     return resp.data;
   }
   async deleteContest(contestUuid: string): Promise<void> {
     await http.delete(
-      `/api/admin/contests/${encodeURIComponent(contestUuid)}/delete`
+      `/api/admin/contests/${encodeURIComponent(contestUuid)}/delete`,
     );
   }
   async updateContest(
     contestUuid: string,
-    params: AdminContestUpdateParams
+    params: AdminContestUpdateParams,
   ): Promise<void> {
     await http.put(
       `/api/admin/contests/${encodeURIComponent(contestUuid)}/update`,
-      params
+      params,
     );
   }
   async contestProvisionSSO(contestUuid: string): Promise<void> {
     await http.post(
-      `/api/admin/contests/${encodeURIComponent(contestUuid)}/provision-sso`
+      `/api/admin/contests/${encodeURIComponent(contestUuid)}/provision-sso`,
     );
   }
   async contestRemoveSSO(contestUuid: string): Promise<void> {
     await http.post(
-      `/api/admin/contests/${encodeURIComponent(contestUuid)}/remove-sso`
+      `/api/admin/contests/${encodeURIComponent(contestUuid)}/remove-sso`,
     );
   }
   async createContestParticipation(
     contestUuid: string,
-    params: AdminContestCreateParticipationParams
+    params: AdminContestCreateParticipationParams,
   ): Promise<number> {
     const resp = await http.post(
       `/api/admin/contests/${encodeURIComponent(
-        contestUuid
+        contestUuid,
       )}/participations/create`,
-      params
+      params,
     );
     return resp.data.id;
   }
   async getContestParticipation(
     contestUuid: string,
-    participationId: number
+    participationId: number,
   ): Promise<AdminContestParticipation> {
     const resp = await http.get(
       `/api/admin/contests/${encodeURIComponent(
-        contestUuid
-      )}/participations/${encodeURIComponent(participationId)}`
+        contestUuid,
+      )}/participations/${encodeURIComponent(participationId)}`,
     );
     return resp.data;
   }
   async updateContestParticipation(
     contestUuid: string,
     participationId: number,
-    params: AdminContestParticipationUpdateParams
+    params: AdminContestParticipationUpdateParams,
   ): Promise<void> {
     await http.put(
       `/api/admin/contests/${encodeURIComponent(
-        contestUuid
+        contestUuid,
       )}/participations/${encodeURIComponent(participationId)}/update`,
-      params
+      params,
     );
   }
   async deleteContestParticipation(
     contestUuid: string,
-    participationId: number
+    participationId: number,
   ): Promise<void> {
     await http.delete(
       `/api/admin/contests/${encodeURIComponent(
-        contestUuid
-      )}/participations/${encodeURIComponent(participationId)}/delete`
+        contestUuid,
+      )}/participations/${encodeURIComponent(participationId)}/delete`,
     );
   }
   async contestImportGroup(
     contestUuid: string,
-    params: AdminContestImportGroupParams
+    params: AdminContestImportGroupParams,
   ): Promise<void> {
     await http.post(
       `/api/admin/contests/${encodeURIComponent(contestUuid)}/import-group`,
-      params
+      params,
     );
   }
   async getGroups(): Promise<AdminGroups> {
@@ -143,17 +143,17 @@ class AdminService {
   }
   async getGroup(groupId: number): Promise<AdminGroupDetail> {
     const resp = await http.get(
-      `/api/admin/groups/${encodeURIComponent(groupId)}`
+      `/api/admin/groups/${encodeURIComponent(groupId)}`,
     );
     return resp.data;
   }
   async updateGroup(
     groupId: number,
-    params: AdminGroupUpdateParams
+    params: AdminGroupUpdateParams,
   ): Promise<void> {
     await http.put(
       `/api/admin/groups/${encodeURIComponent(groupId)}/update`,
-      params
+      params,
     );
   }
   async createGroup(params: AdminGroupCreateParams): Promise<number> {
@@ -162,7 +162,7 @@ class AdminService {
   }
   async deleteGroup(groupId: number): Promise<void> {
     await http.delete(
-      `/api/admin/groups/${encodeURIComponent(groupId)}/delete`
+      `/api/admin/groups/${encodeURIComponent(groupId)}/delete`,
     );
   }
   async userEmail(params: AdminUserEmailParams): Promise<void> {
@@ -174,7 +174,7 @@ class AdminService {
   }
   async deleteNewsletterSubscriber(email: string): Promise<void> {
     await http.delete(
-      `/api/admin/newsletter/${encodeURIComponent(email)}/delete`
+      `/api/admin/newsletter/${encodeURIComponent(email)}/delete`,
     );
   }
   async newsletterEmail(params: AdminNewsletterEmailParams): Promise<void> {

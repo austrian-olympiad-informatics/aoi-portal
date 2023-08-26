@@ -44,12 +44,12 @@ export default class SuccessModal extends Vue {
         startVelocity?: number;
         decay?: number;
         scalar?: number;
-      }
+      },
     ) => {
       confetti(
         Object.assign({}, defaults, opts, {
           particleCount: Math.floor(count * particleRatio),
-        })
+        }),
       );
     };
 

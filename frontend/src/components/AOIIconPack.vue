@@ -162,7 +162,7 @@ export default class AOIIconPack extends Vue {
   mounted() {
     if (!(this.icon[1] in ICON_LOOKUP)) {
       console.warn(
-        `Unknown icon ${this.icon[1]}, please add it to the list in src/components/AOIIconPack.vue`
+        `Unknown icon ${this.icon[1]}, please add it to the list in src/components/AOIIconPack.vue`,
       );
     }
   }

@@ -168,7 +168,7 @@
                 <td>
                   {{
                     (userEval.result.execution_memory / (1024 * 1024)).toFixed(
-                      2
+                      2,
                     )
                   }}
                   MiB
@@ -314,8 +314,8 @@ export default class AdminUserEvalDetailsPanel extends Vue {
         this.userEval!.files.map(async (file) => {
           const resp = await cmsadmin.getDigest(file.digest);
           return [file.filename, await resp.text()];
-        })
-      )
+        }),
+      ),
     );
   }
   async loadInput() {
@@ -363,14 +363,14 @@ export default class AdminUserEvalDetailsPanel extends Vue {
     if (this.checkSubTimeout !== null) clearTimeout(this.checkSubTimeout);
     this.checkSubTimeout = window.setTimeout(
       () => this.checkSubmissions(timeout),
-      timeout
+      timeout,
     );
   }
 
   async checkSubmissions(prevTime: number) {
     if (
       ["compilation_failed", "evaluated"].includes(
-        this.userEval!.result.status || ""
+        this.userEval!.result.status || "",
       )
     )
       return;
@@ -378,7 +378,7 @@ export default class AdminUserEvalDetailsPanel extends Vue {
     await this.loadUserEval();
     const newState = this.userEval!.result.status;
     this.scheduleCheckSubmissions(
-      prevState === newState ? prevTime * 1.2 : 1000
+      prevState === newState ? prevTime * 1.2 : 1000,
     );
   }
 

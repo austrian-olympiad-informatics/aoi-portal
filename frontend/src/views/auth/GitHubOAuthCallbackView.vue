@@ -19,7 +19,7 @@ export default class GitHubOAuthCallbackView extends Vue {
     if (err) {
       console.error("OAuth error: ", err);
       showErrorNotification(
-        "Beim Anmelden mit GitHub ist etwas schiefgelaufen. Bitte versuche es später erneut."
+        "Beim Anmelden mit GitHub ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       );
       return;
     }
@@ -27,7 +27,7 @@ export default class GitHubOAuthCallbackView extends Vue {
     if (state !== sessionStorage.getItem("githubOAuthState")) {
       console.error("Invalid OAuth state!");
       showErrorNotification(
-        "Beim Anmelden mit GitHub ist etwas schiefgelaufen. Bitte versuche es später erneut."
+        "Beim Anmelden mit GitHub ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       );
       return;
     }

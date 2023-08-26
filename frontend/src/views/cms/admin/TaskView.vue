@@ -287,7 +287,7 @@ export default class AdminTaskView extends Vue {
     const blob = await cmsadmin.getDigest(stat.digest);
     downloadBlob(
       blob,
-      `${this.task!.name} (${stat.language.toUpperCase()}).pdf`
+      `${this.task!.name} (${stat.language.toUpperCase()}).pdf`,
     );
   }
   async downloadAttachment(att: AdminAttachment) {
@@ -315,7 +315,7 @@ export default class AdminTaskView extends Vue {
       [tc.input_digest, tc.output_digest].map(async (digest) => {
         const blob = await cmsadmin.getDigest(digest);
         this.testcaseDigests.set(digest, await blob.text());
-      })
+      }),
     );
     this.testcaseKey += 1;
   }

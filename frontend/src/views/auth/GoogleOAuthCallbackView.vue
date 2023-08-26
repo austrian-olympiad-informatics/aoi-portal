@@ -19,7 +19,7 @@ export default class GoogleOAuthCallbackView extends Vue {
     if (err) {
       console.error("OAuth error: ", err);
       showErrorNotification(
-        "Beim Anmelden mit Google ist etwas schiefgelaufen. Bitte versuche es später erneut."
+        "Beim Anmelden mit Google ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       );
       return;
     }
@@ -27,7 +27,7 @@ export default class GoogleOAuthCallbackView extends Vue {
     if (state !== sessionStorage.getItem("googleOAuthState")) {
       console.error("Invalid OAuth state!");
       showErrorNotification(
-        "Beim Anmelden mit Google ist etwas schiefgelaufen. Bitte versuche es später erneut."
+        "Beim Anmelden mit Google ist etwas schiefgelaufen. Bitte versuche es später erneut.",
       );
       return;
     }

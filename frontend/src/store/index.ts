@@ -64,14 +64,14 @@ const store = new Vuex.Store({
     },
     setChangeEmailVerifyState(
       state,
-      { changeEmailVerifyEmail, changeEmailVerifyUuid }
+      { changeEmailVerifyEmail, changeEmailVerifyUuid },
     ) {
       state.changeEmailVerifyEmail = changeEmailVerifyEmail;
       state.changeEmailVerifyUuid = changeEmailVerifyUuid;
     },
     setPasswordResetVerifyState(
       state,
-      { passwordResetVerifyEmail, passwordResetVerifyUuid }
+      { passwordResetVerifyEmail, passwordResetVerifyUuid },
     ) {
       state.passwordResetVerifyEmail = passwordResetVerifyEmail;
       state.passwordResetVerifyUuid = passwordResetVerifyUuid;

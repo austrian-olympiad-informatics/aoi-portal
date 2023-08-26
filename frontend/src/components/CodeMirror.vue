@@ -163,7 +163,7 @@ export default class CodeMirror extends Vue {
       indentOnInput(),
       syntaxHighlighting(
         this.darkTheme ? oneDarkHighlightStyle : defaultHighlightStyle,
-        { fallback: true }
+        { fallback: true },
       ),
       this.darkTheme ? oneDark : undefined,
       fontTheme,
@@ -236,7 +236,7 @@ export default class CodeMirror extends Vue {
         doc: this.doc || "",
         extensions: this.extensions,
         selection: this.view.state.selection,
-      })
+      }),
     );
     if (this.italic) {
       italicAll(this.view);

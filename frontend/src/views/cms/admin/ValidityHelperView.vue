@@ -192,13 +192,15 @@ export default class AdminValidityHelperView extends Vue {
   }
   async loadParticipations() {
     this.participations = await cmsadmin.getContestParticipations(
-      this.contestId
+      this.contestId,
     );
   }
   async loadRegisterData() {
     const users = await admin.getUsers();
     this.registerDatas = new Map(
-      users.filter((u) => u.cms_id !== null).map((u) => [u.cms_id as number, u])
+      users
+        .filter((u) => u.cms_id !== null)
+        .map((u) => [u.cms_id as number, u]),
     );
   }
   async loadScores() {

@@ -245,7 +245,7 @@ export default class DescriptionPanel extends Vue {
       this.contestName!,
       this.taskName!,
       st.language,
-      st.digest
+      st.digest,
     );
     downloadBlob(resp, `${this.taskName} (${st.language.toUpperCase()}).pdf`);
   }
@@ -254,7 +254,7 @@ export default class DescriptionPanel extends Vue {
       this.contestName!,
       this.taskName!,
       att.filename,
-      att.digest
+      att.digest,
     );
     downloadBlob(resp, att.filename);
   }
@@ -266,7 +266,7 @@ export default class DescriptionPanel extends Vue {
         await cms.getStatementHTML(
           this.contestName!,
           this.taskName!,
-          this.task.statement_html_digest
+          this.task.statement_html_digest,
         )
       ).text();
       this.$nextTick(() => {
@@ -298,7 +298,7 @@ export default class DescriptionPanel extends Vue {
 
   get pendingSubmissions(): SubmissionShort[] {
     return this.task.submissions.filter((sub) =>
-      ["compiling", "evaluating", "scoring"].includes(sub.result.status)
+      ["compiling", "evaluating", "scoring"].includes(sub.result.status),
     );
   }
   get hasPendingSubmissions(): boolean {
@@ -314,7 +314,7 @@ export default class DescriptionPanel extends Vue {
     if (this.checkSubTimeout !== null) clearTimeout(this.checkSubTimeout);
     this.checkSubTimeout = window.setTimeout(
       () => this.checkSubmissions(timeout),
-      timeout
+      timeout,
     );
   }
 
@@ -326,7 +326,7 @@ export default class DescriptionPanel extends Vue {
         const resp = await cms.getSubmissionShort(
           this.contestName,
           this.taskName,
-          sub.uuid
+          sub.uuid,
         );
         for (let i = 0; i < this.task.submissions.length; i++) {
           const x = this.task.submissions[i];
@@ -337,7 +337,7 @@ export default class DescriptionPanel extends Vue {
             }
           }
         }
-      })
+      }),
     );
     const afterStates = this.subStates;
     const isSame =

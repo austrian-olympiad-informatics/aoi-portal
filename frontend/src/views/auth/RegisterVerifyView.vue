@@ -90,9 +90,12 @@ export default class RegisterVerifyView extends Vue {
     if (!this.$store.getters.registerVerifyUuid) {
       this.$router.push("/");
     }
-    setTimeout(() => {
-      this.showHelpText = true;
-    }, 2 * 60 * 1000);
+    setTimeout(
+      () => {
+        this.showHelpText = true;
+      },
+      2 * 60 * 1000,
+    );
   }
 }
 </script>

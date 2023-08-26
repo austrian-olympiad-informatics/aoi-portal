@@ -8,7 +8,7 @@ class ContestsService {
   }
   async getContest(contestUuid: string): Promise<ContestDetail> {
     const resp = await http.get(
-      `/api/contests/${encodeURIComponent(contestUuid)}`
+      `/api/contests/${encodeURIComponent(contestUuid)}`,
     );
     return resp.data;
   }
@@ -17,7 +17,7 @@ class ContestsService {
   }
   async genSSOToken(contestUuid: string): Promise<GenSSOTokenResponse> {
     const resp = await http.post(
-      `/api/contests/${encodeURIComponent(contestUuid)}/gen-sso-token`
+      `/api/contests/${encodeURIComponent(contestUuid)}/gen-sso-token`,
     );
     return resp.data;
   }

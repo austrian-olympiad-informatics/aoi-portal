@@ -42,7 +42,7 @@ export default class ParticipationUpdateModal extends Vue {
   async loadParticipation() {
     this.part = await admin.getContestParticipation(
       this.contestUuid,
-      this.participationId
+      this.participationId,
     );
     this.data = {
       user_id: this.part.user.id,

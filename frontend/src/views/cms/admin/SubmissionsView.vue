@@ -275,7 +275,7 @@ export default class AdminSubmissionsView extends Vue {
     if (this.users === null) return null;
     if (this.filterByContestId === null) return this.users;
     return this.users.filter((u) =>
-      u.participations.some((p) => p.contest.id === this.filterByContestId)
+      u.participations.some((p) => p.contest.id === this.filterByContestId),
     );
   }
   reloadHandle: number | null = null;

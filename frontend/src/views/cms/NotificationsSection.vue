@@ -133,7 +133,7 @@ export default class NotificationsSection extends Vue {
       },
       () => {
         this.updateShowNotificationSwitch();
-      }
+      },
     );
   }
 

@@ -192,7 +192,7 @@ export default class UserMailView extends Vue {
         u.first_name,
         u.last_name,
         u.email,
-      ])
+      ]),
     );
     const csvContent = rows.map((r) => encodeRow(r)).join("\n");
     const blob = new Blob([csvContent], { type: "text/csv" });
@@ -251,9 +251,20 @@ export default class UserMailView extends Vue {
   font-size: 13pt;
 }
 .preview-inside {
-  font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    "Helvetica", "Arial", sans-serif;
+  font-family:
+    BlinkMacSystemFont,
+    -apple-system,
+    "Segoe UI",
+    "Roboto",
+    "Oxygen",
+    "Ubuntu",
+    "Cantarell",
+    "Fira Sans",
+    "Droid Sans",
+    "Helvetica Neue",
+    "Helvetica",
+    "Arial",
+    sans-serif;
   color: #4a4a4a;
   font-size: 1em;
   font-weight: 400;

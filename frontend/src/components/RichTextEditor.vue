@@ -389,7 +389,10 @@ export default class RichTextEditor extends Vue {
 .bubble-controls {
   background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 3px 5px -1px #0003, 0 6px 10px #00000024, 0 1px 18px #0000001f;
+  box-shadow:
+    0 3px 5px -1px #0003,
+    0 6px 10px #00000024,
+    0 1px 18px #0000001f;
   display: flex;
   padding: 5px;
   z-index: 50;

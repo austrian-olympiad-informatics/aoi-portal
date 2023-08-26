@@ -17,7 +17,7 @@ class OAuthService {
     return resp.data;
   }
   async githubAuthorize(
-    data: GitHubAuthorizeParams
+    data: GitHubAuthorizeParams,
   ): Promise<GitHubAuthorizeResponse> {
     const resp = await http.post("/api/oauth/github/auth", data);
     return resp.data;
@@ -27,7 +27,7 @@ class OAuthService {
     return resp.data;
   }
   async googleAuthorize(
-    data: GoogleAuthorizeParams
+    data: GoogleAuthorizeParams,
   ): Promise<GoogleAuthorizeResponse> {
     const resp = await http.post("/api/oauth/google/auth", data);
     return resp.data;
@@ -37,7 +37,7 @@ class OAuthService {
     return resp.data;
   }
   async discordAuthorize(
-    data: DiscordAuthorizeParams
+    data: DiscordAuthorizeParams,
   ): Promise<DiscordAuthorizeResponse> {
     const resp = await http.post("/api/oauth/discord/auth", data);
     return resp.data;

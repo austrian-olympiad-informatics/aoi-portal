@@ -142,7 +142,7 @@ export default class CodePanel extends Vue {
     if (this.testEval.result.status !== "evaluated")
       return "Wird ausgeführt...";
     const translatedEvalText = translateText(
-      this.testEval.result.evaluation_text
+      this.testEval.result.evaluation_text,
     );
     if (this.testEval.result.output === undefined) return translatedEvalText;
     const decodedOutput = b64DecodeUnicode(this.testEval.result.output);
@@ -170,7 +170,7 @@ export default class CodePanel extends Vue {
       this.task.language_templates.map((x) => {
         const ext = x.filename.substr(x.filename.lastIndexOf("."));
         return [langToCMSLang(extToLang(ext), this.task.languages), x];
-      })
+      }),
     );
   }
 
@@ -197,7 +197,7 @@ export default class CodePanel extends Vue {
           this.contestName,
           this.taskName,
           lt.filename,
-          lt.digest
+          lt.digest,
         );
         this.code = await resp.text();
         this.codeChanged();
@@ -244,7 +244,7 @@ export default class CodePanel extends Vue {
     const resp = await cms.getDefaultInput(
       this.contestName,
       this.taskName,
-      this.task.default_input_digest
+      this.task.default_input_digest,
     );
     this.testInput = await resp.text();
   }
@@ -311,7 +311,7 @@ export default class CodePanel extends Vue {
           this.contestName,
           this.taskName,
           lt.filename,
-          lt.digest
+          lt.digest,
         );
         this.code = await resp.text();
         this.codeChanged();
@@ -359,7 +359,7 @@ export default class CodePanel extends Vue {
         const resp = await cms.getUserEval(
           this.contestName,
           this.taskName,
-          this.testEvalUuid!
+          this.testEvalUuid!,
         );
         const oldStatus = this.testEval?.result.status || "";
         this.testEval = resp;

@@ -247,7 +247,7 @@
           class="block score-loader"
           v-if="
             ['compiling', 'evaluating', 'scoring'].includes(
-              submission.result.status
+              submission.result.status,
             )
           "
         >
@@ -294,7 +294,7 @@
               <strong>Speichernutzung:</strong>
               {{
                 (submission.result.compilation_memory / (1024 * 1024)).toFixed(
-                  1
+                  1,
                 )
               }}
               MiB
@@ -417,17 +417,17 @@ export default class AdminSubmissionDetailsPanel extends Vue {
   }
   async loadScores() {
     this.scores = await cmsadmin.getParticipationScore(
-      this.submission!.participation.id
+      this.submission!.participation.id,
     );
   }
   get scoreTaskScore() {
     return this.scores?.task_scores.find(
-      (task) => task.id === this.submission!.task.id
+      (task) => task.id === this.submission!.task.id,
     );
   }
   get scoreTaskInfo() {
     return this.scores?.tasks.find(
-      (task) => task.id === this.submission!.task.id
+      (task) => task.id === this.submission!.task.id,
     );
   }
   get scoreSubtasks() {
@@ -448,8 +448,8 @@ export default class AdminSubmissionDetailsPanel extends Vue {
         this.submission!.files.map(async (file) => {
           const resp = await cmsadmin.getDigest(file.digest);
           return [file.filename, await resp.text()];
-        })
-      )
+        }),
+      ),
     );
   }
 
@@ -477,7 +477,7 @@ export default class AdminSubmissionDetailsPanel extends Vue {
   subtaskPoints(st: { max_score: number; fraction: number }): number {
     const res = this.submission?.result as AdminSubmissionResultScoredShort;
     return parseFloat(
-      (st.max_score * st.fraction).toFixed(res.score_precision)
+      (st.max_score * st.fraction).toFixed(res.score_precision),
     );
   }
 
@@ -491,14 +491,14 @@ export default class AdminSubmissionDetailsPanel extends Vue {
     if (this.checkSubTimeout !== null) clearTimeout(this.checkSubTimeout);
     this.checkSubTimeout = window.setTimeout(
       () => this.checkSubmissions(timeout),
-      timeout
+      timeout,
     );
   }
 
   async checkSubmissions(prevTime: number) {
     if (
       ["compilation_failed", "scored"].includes(
-        this.submission!.result.status || ""
+        this.submission!.result.status || "",
       )
     )
       return;
@@ -506,7 +506,7 @@ export default class AdminSubmissionDetailsPanel extends Vue {
     await this.loadSubmission();
     const newState = this.submission!.result.status;
     this.scheduleCheckSubmissions(
-      prevState === newState ? prevTime * 1.2 : 1000
+      prevState === newState ? prevTime * 1.2 : 1000,
     );
   }
 

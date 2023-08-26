@@ -34,7 +34,7 @@ class AuthService {
     return resp.data;
   }
   async registerVerify(
-    params: AuthRegisterVerifyParams
+    params: AuthRegisterVerifyParams,
   ): Promise<AuthRegisterVerifyResult> {
     const resp = await http.post("/api/auth/register-verify", params);
     return resp.data;
@@ -43,19 +43,19 @@ class AuthService {
     await http.post("/api/auth/change-password", params);
   }
   async requestPasswordReset(
-    params: AuthRequestPasswordResetParams
+    params: AuthRequestPasswordResetParams,
   ): Promise<AuthRequestPasswordResetResult> {
     const resp = await http.post("/api/auth/request-password-reset", params);
     return resp.data;
   }
   async resetPassword(
-    params: AuthResetPasswordParams
+    params: AuthResetPasswordParams,
   ): Promise<AuthResetPasswordResult> {
     const resp = await http.post("/api/auth/reset-password", params);
     return resp.data;
   }
   async changeEmail(
-    params: AuthChangeEmailParams
+    params: AuthChangeEmailParams,
   ): Promise<AuthChangeEmailResult> {
     const resp = await http.post("/api/auth/change-email", params);
     return resp.data;

@@ -99,7 +99,7 @@ export default class TaskView extends Vue {
           this.contestName,
           this.taskName,
           sub.uuid,
-          sub.result.meme_digest
+          sub.result.meme_digest,
         );
         memeUrl = URL.createObjectURL(blob);
       }
