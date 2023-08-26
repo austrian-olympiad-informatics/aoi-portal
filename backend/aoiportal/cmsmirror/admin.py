@@ -530,7 +530,16 @@ def _get_submissions(
 
     page = paginate(q)
     submissions: List[
-        Tuple[Submission, Optional[SubmissionResult], Participation, Optional[Meme], Task, Dataset, Contest, User]
+        Tuple[
+            Submission,
+            Optional[SubmissionResult],
+            Participation,
+            Optional[Meme],
+            Task,
+            Dataset,
+            Contest,
+            User,
+        ]
     ] = page.items
 
     return {
