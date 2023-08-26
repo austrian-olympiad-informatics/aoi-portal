@@ -240,15 +240,22 @@ export default class UsersView extends Vue {
   }
 
   downloadVCard(row: AdminUser) {
-    const content = `BEGIN:VCARD
+    let content = `BEGIN:VCARD
 VERSION:3.0
 N:${row.last_name} (AOI);${row.first_name};;;
-ADR:;;${row.address_street};${row.address_town};;${row.address_zip};Österreich
 EMAIL:${row.email}
-TEL;TYPE=CELL:${row.phone_nr}
-BDAY:${row.birthday ? row.birthday.replaceAll("-", "") : ""}
-END:VCARD`;
-    const blob = new Blob([content]);
+`;
+    if (row.address_street !== null) {
+      content += `ADR;TYPE=HOME:;;${row.address_street};${row.address_town};;${row.address_zip};Österreich\n`;
+    }
+    if (row.phone_nr !== null) {
+      content += `TEL;TYPE=CELL:${row.phone_nr}\n`;
+    }
+    if (row.birthday !== null) {
+      content += `BDAY:${row.birthday.replaceAll("-", "")}\n`;
+    }
+    content += `END:VCARD`;
+    const blob = new Blob([content], { type: "text/vcard" });
     const fname = `${row.first_name}_${row.last_name}.vcf`;
     downloadBlob(blob, fname);
   }
