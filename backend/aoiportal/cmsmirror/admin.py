@@ -454,7 +454,7 @@ def _get_submissions(
     user_id: Optional[int] = None,
 ):
     q = (
-        session.query(Submission, SubmissionResult, Participation)  # type: ignore
+        session.query(Submission, SubmissionResult, Participation, Meme, Task, Dataset, Contest, User)  # type: ignore
         .join(Submission.task)
         .join(Submission.participation)
         .outerjoin(
@@ -462,6 +462,10 @@ def _get_submissions(
                 SubmissionResult.dataset_id == Task.active_dataset_id
             )
         )
+        .outerjoin(SubmissionResult.meme)
+        .join(Task.active_dataset)
+        .join(Participation.user)
+        .join(Participation.contest)
         .options(
             Load(Submission).load_only(
                 Submission.id,
@@ -526,7 +530,7 @@ def _get_submissions(
 
     page = paginate(q)
     submissions: List[
-        Tuple[Submission, Optional[SubmissionResult], Participation]
+        Tuple[Submission, Optional[SubmissionResult], Participation, Optional[Meme], Task, Dataset, Contest, User]
     ] = page.items
 
     return {
@@ -539,7 +543,7 @@ def _get_submissions(
                 res,
                 detailed=False,
             )
-            for sub, res, _ in submissions
+            for sub, res, _, _, _, _, _, _ in submissions
         ],
     }
 
@@ -884,9 +888,11 @@ def get_all_user_evals():
             raise AOINotFound("User not found")
 
     q = (
-        session.query(UserEval, UserEvalResult, Participation)
+        session.query(UserEval, UserEvalResult, Participation, Task, Contest, User)
         .join(UserEval.task)
         .join(UserEval.participation)
+        .join(Participation.contest)
+        .join(Participation.user)
         .outerjoin(
             UserEval.results.and_(UserEvalResult.dataset_id == Task.active_dataset_id)
         )
@@ -943,7 +949,7 @@ def get_all_user_evals():
 
     page = paginate(q)
     user_evals: List[
-        Tuple[UserEval, Optional[UserEvalResult], Participation]
+        Tuple[UserEval, Optional[UserEvalResult], Participation, Task, Contest, User]
     ] = page.items
 
     data = {
@@ -956,7 +962,7 @@ def get_all_user_evals():
                 res,
                 detailed=False,
             )
-            for eva, res, _ in user_evals
+            for eva, res, _, _, _, _ in user_evals
         ],
     }
 
@@ -1065,11 +1071,12 @@ def get_meme(meme_id: int):
 @admin_required
 @json_api()
 def get_users():
-    users: List[User] = (
-        session.query(User)
+    users: List[Tuple[User, Participation]] = (
+        session.query(User, Participation)
+        .join(User.participations)
         .order_by(User.id.asc())
-        .options(joinedload(User.participations))
-        .options(selectinload("participations.contest"))
+        # .options(joinedload(User.participations))
+        .options(selectinload(Participation.contest))
         .all()
     )
     return [
@@ -1086,7 +1093,7 @@ def get_users():
                 for part in user.participations
             ],
         }
-        for user in users
+        for user, _ in users
     ]
 
 
@@ -1098,7 +1105,7 @@ def get_user(user_id: int):
         session.query(User)  # type: ignore
         .filter(User.id == user_id)
         .options(joinedload(User.participations))
-        .options(selectinload("participations.contest"))
+        .options(selectinload(Participation.contest))
         .first()
     )
     if user is None:
