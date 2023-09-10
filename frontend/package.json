@@ -30,7 +30,7 @@
     "@tiptap/starter-kit": "^2.1.7",
     "@tiptap/vue-2": "^2.1.7",
     "@types/canvas-confetti": "^1.6.0",
-    "axios": "^1.4.0",
+    "axios": "^1.5.0",
     "buefy": "^0.9.23",
     "bulma": "^0.9.4",
     "canvas-confetti": "^1.6.0",
