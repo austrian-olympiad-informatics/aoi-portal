@@ -22,7 +22,7 @@
     "@codemirror/search": "^6.5.2",
     "@codemirror/state": "^6.2.1",
     "@codemirror/theme-one-dark": "^6.1.2",
-    "@codemirror/view": "^6.16.0",
+    "@codemirror/view": "^6.18.0",
     "@mdi/js": "^7.2.96",
     "@tiptap/extension-bubble-menu": "^2.1.8",
     "@tiptap/extension-link": "^2.1.8",
