@@ -24,7 +24,7 @@
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.16.0",
     "@mdi/js": "^7.2.96",
-    "@tiptap/extension-bubble-menu": "^2.1.7",
+    "@tiptap/extension-bubble-menu": "^2.1.8",
     "@tiptap/extension-link": "^2.1.7",
     "@tiptap/extension-underline": "^2.1.8",
     "@tiptap/starter-kit": "^2.1.7",
