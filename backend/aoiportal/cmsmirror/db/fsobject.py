@@ -36,7 +36,6 @@ from .session import custom_psycopg2_connection
 
 
 class LargeObject(io.RawIOBase):
-
     """Present a PostgreSQL large object as a Python file-object.
 
     A LargeObject creates and maintains (i.e. closes when done) its
