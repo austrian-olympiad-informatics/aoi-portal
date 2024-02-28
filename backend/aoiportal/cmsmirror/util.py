@@ -90,8 +90,8 @@ def create_file(content: bytes, description: str) -> str:
 
 
 def _send_rpc_evaluation_service(method: str, data):
-    host = current_app.config.get("CMS_EVALUATION_HOST", "127.0.0.1:25000")
-    hostname, port_s = host.split(":")
+    hostname = current_app.config.get("CMS_EVALUATION_SERVICE_HOST", "127.0.0.1")
+    port_s = current_app.config.get("CMS_EVALUATION_SERVICE_PORT", "25000")
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((hostname, int(port_s)))
     payload = json.dumps(
