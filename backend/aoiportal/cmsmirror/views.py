@@ -149,13 +149,15 @@ def _conv_question(q: Question):
         "timestamp": as_utc(q.question_timestamp).isoformat(),
         "subject": q.subject,
         "text": q.text,
-        "reply": {
-            "timestamp": as_utc(q.reply_timestamp).isoformat(),
-            "subject": q.reply_subject,
-            "text": q.reply_text,
-        }
-        if q.reply_timestamp is not None
-        else None,
+        "reply": (
+            {
+                "timestamp": as_utc(q.reply_timestamp).isoformat(),
+                "subject": q.reply_subject,
+                "text": q.reply_text,
+            }
+            if q.reply_timestamp is not None
+            else None
+        ),
         "task": q.task.name if q.task is not None else None,
     }
 
@@ -171,12 +173,14 @@ def get_contest(contest_name: str):
         "description": contest.description,
         "start": as_utc(contest.start).isoformat(),
         "stop": as_utc(contest.stop).isoformat(),
-        "analysis": {
-            "start": as_utc(contest.analysis_start).isoformat(),
-            "stop": as_utc(contest.analysis_stop).isoformat(),
-        }
-        if contest.analysis_enabled
-        else None,
+        "analysis": (
+            {
+                "start": as_utc(contest.analysis_start).isoformat(),
+                "stop": as_utc(contest.analysis_stop).isoformat(),
+            }
+            if contest.analysis_enabled
+            else None
+        ),
         "is_active": False,
         "announcements": [_conv_announcement(ann) for ann in contest.announcements],
         "messages": [_conv_message(msg) for msg in part.messages],

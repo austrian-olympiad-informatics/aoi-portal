@@ -76,12 +76,14 @@ def _dump_contest(contest: Contest):
         "description": contest.description,
         "start": as_utc(contest.start).isoformat(),
         "stop": as_utc(contest.stop).isoformat(),
-        "analysis": {
-            "start": as_utc(contest.analysis_start).isoformat(),
-            "stop": as_utc(contest.analysis_stop).isoformat(),
-        }
-        if contest.analysis_enabled
-        else None,
+        "analysis": (
+            {
+                "start": as_utc(contest.analysis_start).isoformat(),
+                "stop": as_utc(contest.analysis_stop).isoformat(),
+            }
+            if contest.analysis_enabled
+            else None
+        ),
         "tasks": [_dump_task_short(task) for task in contest.tasks],
         "score_precision": contest.score_precision,
         "languages": contest.languages,
@@ -150,13 +152,15 @@ def _dump_question(q: Question):
         "text": q.text,
         "task": _dump_task_short(q.task) if q.task is not None else None,
         "ignored": q.ignored,
-        "reply": {
-            "timestamp": as_utc(q.reply_timestamp).isoformat(),
-            "subject": q.reply_subject,
-            "text": q.reply_text,
-        }
-        if q.reply_timestamp is not None
-        else None,
+        "reply": (
+            {
+                "timestamp": as_utc(q.reply_timestamp).isoformat(),
+                "subject": q.reply_subject,
+                "text": q.reply_text,
+            }
+            if q.reply_timestamp is not None
+            else None
+        ),
         "participation": _dump_participation_short(q.participation),
     }
 
@@ -562,9 +566,9 @@ def _dump_task(task: Task, detailed: bool = False):
         "id": task.id,
         "name": task.name,
         "title": task.title,
-        "contest": _dump_contest_short(task.contest)
-        if task.contest is not None
-        else None,
+        "contest": (
+            _dump_contest_short(task.contest) if task.contest is not None else None
+        ),
     }
     if detailed:
         ret.update(
@@ -1144,9 +1148,9 @@ def get_tasks():
             "id": task.id,
             "name": task.name,
             "title": task.title,
-            "contest": _dump_contest_short(task.contest)
-            if task.contest is not None
-            else None,
+            "contest": (
+                _dump_contest_short(task.contest) if task.contest is not None else None
+            ),
         }
         for task in tasks
     ]

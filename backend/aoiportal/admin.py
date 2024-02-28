@@ -377,13 +377,15 @@ def list_contests():
             "archived": c.archived,
             "deleted": c.deleted,
             "order_priority": c.order_priority,
-            "auto_add_to_group": {
-                "id": c.auto_add_to_group.id,
-                "name": c.auto_add_to_group.name,
-                "description": c.auto_add_to_group.description,
-            }
-            if c.auto_add_to_group is not None
-            else None,
+            "auto_add_to_group": (
+                {
+                    "id": c.auto_add_to_group.id,
+                    "name": c.auto_add_to_group.name,
+                    "description": c.auto_add_to_group.description,
+                }
+                if c.auto_add_to_group is not None
+                else None
+            ),
             "participant_count": len(c.participations),
             "cms_allow_frontendv2": c.cms_allow_frontendv2,
         }
@@ -415,13 +417,15 @@ def get_contest(contest_uuid: str):
         "archived": c.archived,
         "deleted": c.deleted,
         "order_priority": c.order_priority,
-        "auto_add_to_group": {
-            "id": c.auto_add_to_group.id,
-            "name": c.auto_add_to_group.name,
-            "description": c.auto_add_to_group.description,
-        }
-        if c.auto_add_to_group is not None
-        else None,
+        "auto_add_to_group": (
+            {
+                "id": c.auto_add_to_group.id,
+                "name": c.auto_add_to_group.name,
+                "description": c.auto_add_to_group.description,
+            }
+            if c.auto_add_to_group is not None
+            else None
+        ),
         "participations": [
             {
                 "id": p.id,

@@ -154,9 +154,9 @@ def get_contest_scores(contest_id: int) -> ContestData:
         .having(func.max(SubtaskScore.score) > 0)
         .all()
     )
-    max_subtask_task_part_subtask_max_scores: Dict[
-        int, Dict[int, Dict[int, float]]
-    ] = collections.defaultdict(dict)
+    max_subtask_task_part_subtask_max_scores: Dict[int, Dict[int, Dict[int, float]]] = (
+        collections.defaultdict(dict)
+    )
     for tid, pid, stidx, score in rows:
         max_subtask_task_part_subtask_max_scores[tid].setdefault(pid, {})[stidx] = score
 
