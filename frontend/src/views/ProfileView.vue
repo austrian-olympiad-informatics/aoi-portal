@@ -95,6 +95,32 @@
         ></b-input>
       </b-field>
 
+      <b-field label="Teilnahmeberechtigt">
+        <section>
+          <b-field>
+            <b-radio v-model="eligibility"
+                name="eligibility"
+                native-value="ioi">
+                Ich bin ein Schüler(m) an einer Österreichischen Schule und werde am nächsten 1. Juli nicht älter als 20 Jahre sein und bin somit teilnahmeberechtigt für die IOI.
+            </b-radio>
+          </b-field>
+          <b-field>
+            <b-radio v-model="eligibility"
+                name="eligibility"
+                native-value="ioi_egoi">
+                Ich bin Schülerin(f/d) an einer Österreichischen Schule und werde am nächsten 1. Juli nicht älter als 20 Jahre sein und bin somit teilnahmeberechtigt für IOI und EGOI.
+            </b-radio>
+          </b-field>
+          <b-field>
+            <b-radio v-model="eligibility"
+                name="eligibility"
+                native-value="none">
+                Ich bin bin nicht teilnahmeberechtigt und will mir nur die Aufgaben ansehen.
+            </b-radio>
+          </b-field>
+        </section>
+      </b-field>
+
       <b-button type="is-primary" native-type="submit" expanded class="mt-5"
         >Speichern</b-button
       >
@@ -123,6 +149,7 @@ export default class ProfileView extends Vue {
   addressTown: string | null = null;
   schoolName: string | null = null;
   schoolAddress: string | null = null;
+  eligibility: string | null = null;
   missingFields: string[] = [];
 
   calcMissingFields() {
@@ -134,6 +161,7 @@ export default class ProfileView extends Vue {
     if (!this.addressTown) missing.push("Wohnort");
     if (!this.schoolName) missing.push("Name der Schule");
     if (!this.schoolAddress) missing.push("Adresse der Schule");
+    if (!this.eligibility) missing.push("Teilnahmeberechtigung");
     this.missingFields = missing;
   }
 
@@ -154,6 +182,7 @@ export default class ProfileView extends Vue {
       address_town: this.addressTown || null,
       school_name: this.schoolName || null,
       school_address: this.schoolAddress || null,
+      eligibility: this.eligibility,
     });
     await this.loadProfile();
     this.$buefy.toast.open({
@@ -173,6 +202,7 @@ export default class ProfileView extends Vue {
     this.addressTown = data.address_town;
     this.schoolName = data.school_name;
     this.schoolAddress = data.school_address;
+    this.eligibility = data.eligibility;
     this.calcMissingFields();
   }
   async mounted() {

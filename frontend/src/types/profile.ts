@@ -10,6 +10,7 @@ export interface ProfileInfoResponse {
   address_town: string | null;
   school_name: string | null;
   school_address: string | null;
+  eligibility: string | null;
 }
 
 export interface ProfileUpdateParams {
@@ -22,4 +23,5 @@ export interface ProfileUpdateParams {
   address_town?: string | null;
   school_name?: string | null;
   school_address?: string | null;
+  eligibility?: string | null; 
 }

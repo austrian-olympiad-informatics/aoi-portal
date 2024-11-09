@@ -3,10 +3,10 @@ version: '3'
 services:
   frontend:
     build:
-      context: ./portal-frontend
+      context: ./frontend
       dockerfile: Dockerfile.dev
     volumes:
-      - ./portal-frontend:/app:rw
+      - ./frontend:/app:rw
     networks:
       - proxy
 
@@ -22,10 +22,10 @@ services:
       - backend
   backend:
     build:
-      context: ./portal-backend
+      context: ./backend
       dockerfile: Dockerfile.dev
     volumes:
-      - ./portal-backend:/app
+      - ./backend:/app
       - ./docker/config.yaml:/config.yaml:ro
     networks:
       - backend
@@ -34,11 +34,11 @@ services:
 
   console:
     build:
-      context: ./portal-backend
+      context: ./backend
       dockerfile: Dockerfile.dev
     command: bash -c 'pip3 install -e . && tail -f /dev/null'
     volumes:
-      - ./portal-backend:/app
+      - ./backend:/app
       - ./docker/config.yaml:/config.yaml:ro
     networks:
       - cms

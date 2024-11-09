@@ -14,6 +14,7 @@ from aoiportal.const import (
     KEY_PHONE_NR,
     KEY_SCHOOL_ADDRESS,
     KEY_SCHOOL_NAME,
+    KEY_ELIGIBILITY
 )
 from aoiportal.models import User, db  # type: ignore
 from aoiportal.web_utils import json_api
@@ -26,6 +27,18 @@ profile_bp = Blueprint("profile", __name__)
 @json_api()
 def profile_info():
     u: User = get_current_user()
+
+    # For now this will work. lsb = ioi flag, lsb+1 = egoi_flag
+    # Todo: make this a proper bitset.
+    elig = None
+
+    if u.eligibility == 0:
+        elig = "none"
+    elif u.eligibility == 1:
+        elig = "ioi"
+    elif u.eligibility == 3:
+        elig = "ioi_egoi"
+
     return {
         "first_name": u.first_name,
         "last_name": u.last_name,
@@ -38,6 +51,7 @@ def profile_info():
         "address_town": u.address_town,
         "school_name": u.school_name,
         "school_address": u.school_address,
+        "eligibility": elig,
     }
 
 
@@ -54,6 +68,7 @@ def profile_info():
         vol.Optional(KEY_ADDRESS_TOWN): vol.Any(None, str),
         vol.Optional(KEY_SCHOOL_NAME): vol.Any(None, str),
         vol.Optional(KEY_SCHOOL_ADDRESS): vol.Any(None, str),
+        vol.Optional(KEY_ELIGIBILITY): vol.Any(None, str)
     }
 )
 def profile_update(data):
@@ -83,6 +98,16 @@ def profile_update(data):
         u.school_name = data[KEY_SCHOOL_NAME]
     if KEY_SCHOOL_ADDRESS in data:
         u.school_address = data[KEY_SCHOOL_ADDRESS]
+
+    if KEY_ELIGIBILITY in data:
+        # For now this will work. lsb = ioi flag, lsb+1 = egoi_flag
+        # Todo: make this a proper bitset.
+        if data[KEY_ELIGIBILITY] == "ioi":
+            u.eligibility = 1
+        elif data[KEY_ELIGIBILITY] == "ioi_egoi":
+            u.eligibility = 3
+        elif data[KEY_ELIGIBILITY] == "none":
+            u.eligibility = 0
 
     db.session.commit()
     return {"success": True}

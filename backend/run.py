@@ -8,8 +8,8 @@ from aoiportal.factory import create_app
 from aoiportal.models import db, User
 from aoiportal.config import DevelopmentDefaultConfig
 
-config_file = Path(__file__).parent / "config" / "dev.json"
-app = create_app(DevelopmentDefaultConfig, str(config_file))
+config_file = Path(__file__).parent / "config" / "dev.yaml"
+app = create_app(str(config_file))
 
 parser = argparse.ArgumentParser("aoiportal")
 subparsers = parser.add_subparsers(help="action", dest="action")

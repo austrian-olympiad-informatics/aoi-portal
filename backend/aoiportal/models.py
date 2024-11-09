@@ -47,6 +47,8 @@ class User(Base):
     school_name = Column(String)
     school_address = Column(String)
 
+    eligibility = Column(Integer)
+
     cms_id = Column(Integer, nullable=True)
     cms_username = Column(String, nullable=True)
 
