@@ -92,8 +92,8 @@
               </b-checkbox>
               <b-checkbox class="mb-3" required>
                 Ich verstehe, dass die Verwendung von KI-Tools zur
-                Codegenerierung (wie GitHub Copilot, ChatGPT, etc.) verboten
-                ist.
+                Codegenerierung und Lösungsfindung (wie GitHub Copilot, ChatGPT,
+                etc.) verboten ist.
               </b-checkbox>
             </div>
             <b-button expanded native-type="submit" type="is-primary">
