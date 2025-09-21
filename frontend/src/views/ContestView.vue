@@ -85,7 +85,7 @@
                 </a>
                 gelesen und akzeptiere diese.
               </b-checkbox>
-              <b-checkbox class="mb-3" required>
+              <b-checkbox required>
                 Ich verstehe, dass diese Qualifikation eine Einzelarbeit ist.
                 Gruppenarbeiten sowie das Teilen von Lösungen sind nicht
                 erlaubt.
