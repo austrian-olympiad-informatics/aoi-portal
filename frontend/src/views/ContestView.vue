@@ -90,6 +90,11 @@
                 Gruppenarbeiten sowie das Teilen von Lösungen sind nicht
                 erlaubt.
               </b-checkbox>
+              <b-checkbox class="mb-3" required>
+                Ich verstehe, dass die Verwendung von KI-Tools zur
+                Codegenerierung (wie GitHub Copilot, ChatGPT, etc.) verboten
+                ist.
+              </b-checkbox>
             </div>
             <b-button expanded native-type="submit" type="is-primary">
               Teilnehmen / Bei diesem Bewerb registrieren
