@@ -8,10 +8,10 @@ from aoiportal.factory import create_app
 from aoiportal.models import db, User
 from aoiportal.config import DevelopmentDefaultConfig
 
-config_file = Path(__file__).parent / "config" / "dev.yaml"
-app = create_app(str(config_file))
-
 parser = argparse.ArgumentParser("aoiportal")
+parser.add_argument("-c", "--config", type=str, 
+                   default=str(Path(__file__).parent / "config" / "dev.yaml"),
+                   help="Path to config file")
 subparsers = parser.add_subparsers(help="action", dest="action")
 
 wsgi_parser = subparsers.add_parser("wsgi")
@@ -29,22 +29,22 @@ addadmin_parser.add_argument("--last-name", dest="last_name", type=str, required
 addadmin_parser.add_argument("--password", type=str, required=True)
 
 
-def cmd_wsgi(args):
+def cmd_wsgi(app, args):
     print(app.url_map)
     app.run(host=args.host, port=args.port)
 
 
-def cmd_createdb(args):
+def cmd_createdb(app, args):
     with app.app_context():
         db.create_all()
 
 
-def cmd_dropdb(args):
+def cmd_dropdb(app, args):
     with app.app_context():
         db.drop_all()
 
 
-def cmd_addadmin(args):
+def cmd_addadmin(app, args):
     with app.app_context():
         u = User(
             email=args.email,
@@ -67,5 +67,6 @@ COMMANDS = {
 
 if __name__ == '__main__':
     args = parser.parse_args()
+    app = create_app(args.config)
     cmd = COMMANDS[args.action]
-    sys.exit(cmd(args) or 0)
+    sys.exit(cmd(app, args) or 0)

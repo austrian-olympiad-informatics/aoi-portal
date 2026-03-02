@@ -70,3 +70,17 @@ $ npm run serve
 ```
 
 Dann die URL die von `npm run serve` gezeigt wird aufrufen. Das setup sollte automatisch die APIs an das backend weiterleiten.
+
+### devenv.sh
+
+devenv ist ein nix-basiertes Tool für reproduzierbare development environments (mit ein bisschen weniger Lernkurve als reines Nix).
+Vollkommen optional.
+Mit installiertem nix + devenv + direnv:
+
+```bash
+$ cd aoi-portal
+$ devenv up
+```
+
+devenv up startet eine postgres-datenbank (Daten in .devenv/state), initialisiert bei bedarf einen Admin namens Theodor Rainer
+(t.rainer@example.org; Passwort="password1") und startet Frontend und Backend (mit autoreload).
