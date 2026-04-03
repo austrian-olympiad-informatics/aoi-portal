@@ -3,7 +3,7 @@ import datetime
 import voluptuous as vol  # type: ignore
 from flask import Blueprint
 
-from aoiportal.auth_util import get_current_user, login_required
+from aoiportal.auth_util import get_current_user, has_proxy_header, login_required
 from aoiportal.const import (
     KEY_ADDRESS_STREET,
     KEY_ADDRESS_TOWN,
@@ -16,6 +16,7 @@ from aoiportal.const import (
     KEY_SCHOOL_NAME,
     KEY_ELIGIBILITY
 )
+from aoiportal.error import AOIForbidden
 from aoiportal.models import User, db  # type: ignore
 from aoiportal.web_utils import json_api
 
@@ -26,6 +27,8 @@ profile_bp = Blueprint("profile", __name__)
 @login_required
 @json_api()
 def profile_info():
+    if has_proxy_header():
+        raise AOIForbidden("Profile access is disabled in proxy auth mode")
     u: User = get_current_user()
 
     # For now this will work. lsb = ioi flag, lsb+1 = egoi_flag
@@ -72,6 +75,8 @@ def profile_info():
     }
 )
 def profile_update(data):
+    if has_proxy_header():
+        raise AOIForbidden("Profile access is disabled in proxy auth mode")
     u: User = get_current_user()
 
     if KEY_FIRST_NAME in data:

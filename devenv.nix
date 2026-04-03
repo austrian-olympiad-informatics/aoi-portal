@@ -22,14 +22,25 @@
   languages.typescript.enable = true;
 
   # https://devenv.sh/reference/options/#files
-  files."$DEVENV_STATE/config/backend-dev.yaml" = {
-    yaml = {
+
+   files."$DEVENV_STATE/config/backend-dev.yaml".yaml = {
       database_uri = "postgresql:///aoi-portal";
       secret_key = "Please change me";
       session_token_key = "UZb1zOeZtEw1fsWhRftFE0AqSVTLAouZzFwt5cwiqSo=";
       debug = true;
-    };
-  };
+      # same as to aoi-contestant-pc-control:keys/test-jwt-pub.peb
+      proxy_auth_public_key = ''
+        -----BEGIN PUBLIC KEY-----
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArDUS/q3qMXTs8Xec3kcd
+        xJgI+ia0hYZlvvH7357ri/seuJogpjUJ3egT3wHWC7wUjRlUzJvjPJQTVvaPRq05
+        gmYF0ZROUOYRmjqJ8/A+K6iE8GP1hvIvaWekwUcC9FVG/MdCkFYlQJdeTYj6poUT
+        XZLlu/MZ7CUWAqqh0KJVES4cWOLiQ12B0l0t9E1sdw1MlsnAkW9eKmFOBfK6YLJs
+        a8V921TN9e2QlUyZITdGVFpSXnZgntRc5ApG7UTpUeXqw6Ewh6A+RMX3z8e6umpd
+        LRKMLZeiQpfEtvO9oDvkdSxs7FS6WKxiRWf9o1q0PdZ7FOEweCOnxeazT36a3Nvn
+        EwIDAQAB
+        -----END PUBLIC KEY-----
+      '';
+   };
 
   # https://devenv.sh/processes/
   processes.backend = {
@@ -68,4 +79,6 @@
   };
 
   # See full reference at https://devenv.sh/reference/options/
+
+  process.manager.implementation = "process-compose";
 }

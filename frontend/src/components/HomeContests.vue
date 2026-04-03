@@ -103,6 +103,10 @@ export default class HomeContests extends Vue {
   }
 
   async loadProfile() {
+    if (this.$store.getters.isProxyAuth) {
+      this.profile = {} as ProfileInfoResponse;
+      return;
+    }
     this.profile = await profile.profileInfo();
   }
   async loadContests() {

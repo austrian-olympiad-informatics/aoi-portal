@@ -12,7 +12,7 @@ from flask import Blueprint, g, request, send_file
 from sqlalchemy.orm import Load, joinedload  # type: ignore
 from werkzeug.local import LocalProxy
 
-from aoiportal.auth_util import get_current_user, login_required
+from aoiportal.auth_util import get_current_user, get_proxy_contest, is_proxy_auth, login_required
 from aoiportal.cmsmirror import scores
 from aoiportal.cmsmirror.db import (  # type: ignore
     Announcement,
@@ -69,6 +69,11 @@ def _get_participation() -> Participation:
         return getattr(g, key)
     assert request.view_args is not None
     contest_name = request.view_args["contest_name"]
+
+    proxy_contest = get_proxy_contest() if is_proxy_auth() else None
+    if proxy_contest is not None and contest_name != proxy_contest.cms_name:
+        raise AOINotFound("Contest not found")
+
     cu = get_current_user()
     assert cu is not None
     part = (

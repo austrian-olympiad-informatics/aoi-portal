@@ -412,6 +412,58 @@ const router = new VueRouter({
 // https://stackoverflow.com/a/51495462
 const storeInit = store.dispatch("init");
 
+// Proxy auth error: redirect everything to /error
+router.beforeEach((to, from, next) => {
+  storeInit.then(() => {
+    if (store.getters.proxyAuthError) {
+      if (to.path === "/error") {
+        next();
+      } else {
+        next("/error");
+      }
+      return;
+    }
+    next();
+  });
+});
+
+// Proxy auth active: restrict navigation to the proxy contest only
+router.beforeEach((to, from, next) => {
+  storeInit.then(() => {
+    if (!store.getters.isProxyAuth) {
+      next();
+      return;
+    }
+
+    const proxyUuid = store.getters.proxyContestUuid;
+    const proxyCmsName = store.getters.proxyContestCmsName;
+
+    // Allow contest page for the proxy contest
+    if (to.name === "Contest" && to.params.contestUuid === proxyUuid) {
+      next();
+      return;
+    }
+
+    // Allow CMS routes for the proxy contest
+    if (
+      to.matched.some((r) => r.meta.isCMS) &&
+      to.params.contestName === proxyCmsName
+    ) {
+      next();
+      return;
+    }
+
+    // Allow error page
+    if (to.path === "/error") {
+      next();
+      return;
+    }
+
+    // Redirect everything else to the contest page
+    next({ name: "Contest", params: { contestUuid: proxyUuid } });
+  });
+});
+
 // check requires auth
 router.beforeEach((to, from, next) => {
   if (to.matched.every((r) => r.meta.requiresAuth === false)) {

@@ -26,6 +26,7 @@ from aoiportal.const import (
     KEY_MAIL,
     KEY_PASSWORD,
     KEY_PORT,
+    KEY_PROXY_AUTH_PUBLIC_KEY,
     KEY_SECRET_KEY,
     KEY_SESSION_TOKEN_KEY,
     KEY_USE_TLS,
@@ -84,6 +85,7 @@ CONFIG_SCHEMA = vol.Schema(
                 ),
             }
         ),
+        vol.Optional(KEY_PROXY_AUTH_PUBLIC_KEY): str,
     }
 )
 
@@ -134,6 +136,9 @@ def create_app(config_file: Union[Path, str]):
             KEY_CLIENT_SECRET
         ]
         app.config["DISCORD_BOT_SECRET"] = conf[KEY_DISCORD_OAUTH][KEY_BOT_SECRET]
+
+    if KEY_PROXY_AUTH_PUBLIC_KEY in conf:
+        app.config["PROXY_AUTH_JWT_PUBLIC_KEY"] = conf[KEY_PROXY_AUTH_PUBLIC_KEY]
 
     if KEY_CMS in conf:
         app.config["CMS_DATABASE_URI"] = conf[KEY_CMS][KEY_DATABASE_URI]

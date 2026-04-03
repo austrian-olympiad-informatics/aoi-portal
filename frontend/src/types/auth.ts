@@ -11,6 +11,13 @@ export interface AuthStatusResult {
   first_name?: string;
   last_name?: string;
   discord_user?: string;
+  proxy_auth?: boolean;
+  proxy_auth_error?: boolean;
+  proxy_contest?: {
+    uuid: string;
+    name: string;
+    cms_name: string;
+  };
 }
 export interface AuthRegisterParams {
   email: string;

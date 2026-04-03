@@ -14,8 +14,12 @@ from aoiportal.auth_util import (
     create_session,
     get_current_session,
     get_current_user,
+    get_proxy_contest,
+    has_proxy_auth_error,
+    has_proxy_header,
     hash_password,
     invalidate_session,
+    is_proxy_auth,
     login_required,
 )
 from aoiportal.const import (
@@ -39,6 +43,7 @@ from aoiportal.error import (
     ERROR_USER_NOT_FOUND,
     AOIBadRequest,
     AOIConflict,
+    AOIForbidden,
     AOINotFound,
     AOITooManyRequests,
     AOIUnauthorized,
@@ -68,6 +73,8 @@ SET_PASSWORD_SCHEMA = vol.All(str, vol.Length(min=8))
     }
 )
 def login(data):
+    if has_proxy_header():
+        raise AOIForbidden("Login is disabled in proxy auth mode")
     if get_current_user() is not None:
         raise AOIConflict("Already logged in", error_code=ERROR_ALREADY_LOGGED_IN)
 
@@ -89,12 +96,15 @@ def login(data):
 @auth_bp.route("/api/auth/status")
 @json_api()
 def auth_status():
+    if has_proxy_auth_error():
+        return {"authenticated": False, "admin": False, "proxy_auth_error": True}
+
     u = get_current_user()
     if u is None:
         return {"authenticated": False, "admin": False}
 
     obj: Optional[UserDiscordOAuth] = UserDiscordOAuth.query.filter_by(
-        user_id=get_current_user().id
+        user_id=u.id
     ).first()
 
     discord_user = ""
@@ -105,7 +115,7 @@ def auth_status():
             data["user_info"]["username"] + "#" + data["user_info"]["discriminator"]
         )
 
-    return {
+    result = {
         "authenticated": True,
         "admin": u.is_admin,
         "first_name": u.first_name,
@@ -113,11 +123,24 @@ def auth_status():
         "discord_user": discord_user,
     }
 
+    if is_proxy_auth():
+        contest = get_proxy_contest()
+        result["proxy_auth"] = True
+        result["proxy_contest"] = {
+            "uuid": contest.uuid,
+            "name": contest.name,
+            "cms_name": contest.cms_name,
+        }
+
+    return result
+
 
 @auth_bp.route("/api/auth/logout", methods=["POST"])
 @login_required
 @json_api()
 def logout():
+    if is_proxy_auth():
+        raise AOIForbidden("Logout is disabled in proxy auth mode")
     invalidate_session(get_current_session())
     return {"success": True}
 
@@ -165,6 +188,8 @@ def send_password_reset_verification_code(req: UserPasswordResetRequest) -> None
     }
 )
 def register(data):
+    if has_proxy_header():
+        raise AOIForbidden("Registration is disabled in proxy auth mode")
     existing_user: Optional[User] = User.query.filter_by(email=data[KEY_EMAIL]).first()
     if existing_user is not None:
         raise AOIConflict(
@@ -262,6 +287,8 @@ def register_verify(data):
     }
 )
 def change_password(data):
+    if is_proxy_auth():
+        raise AOIForbidden("Password change is disabled in proxy auth mode")
     u = get_current_user()
     if u.password_hash is not None:
         if KEY_OLD_PASSWORD not in data:
@@ -376,6 +403,8 @@ def reset_password(data):
     }
 )
 def change_email(data):
+    if is_proxy_auth():
+        raise AOIForbidden("Email change is disabled in proxy auth mode")
     current_user = get_current_user()
     if current_user.email == data[KEY_EMAIL]:
         raise AOIBadRequest("Email hasn't changed")

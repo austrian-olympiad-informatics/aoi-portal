@@ -8,8 +8,8 @@ from flask import Blueprint
 from sqlalchemy import and_  # type: ignore
 from sqlalchemy.exc import IntegrityError  # type: ignore
 
-from aoiportal.auth_util import get_current_user, login_required
-from aoiportal.error import AOIConflict, AOINotFound
+from aoiportal.auth_util import get_current_user, get_proxy_contest, is_proxy_auth, login_required
+from aoiportal.error import AOIConflict, AOIForbidden, AOINotFound
 from aoiportal.helpers import create_participation
 from aoiportal.models import Contest, Participation, db  # type: ignore
 from aoiportal.utils import utcnow
@@ -22,6 +22,7 @@ contests_bp = Blueprint("contests", __name__)
 @login_required
 @json_api()
 def list_contests():
+    proxy_contest = get_proxy_contest() if is_proxy_auth() else None
     q = (
         db.session.query(Contest, Participation)
         .join(
@@ -35,6 +36,8 @@ def list_contests():
         .filter(Contest.deleted == False)  # noqa: E712
         .order_by(Contest.order_priority.desc())
     )
+    if proxy_contest is not None:
+        q = q.filter(Contest.id == proxy_contest.id)
     ret = []
     for contest, part in q:
         joined = part is not None
@@ -81,6 +84,10 @@ def get_contest(contest_uuid: str):
     if contest is None or contest.deleted:
         raise AOINotFound("Contest not found")
 
+    proxy_contest = get_proxy_contest() if is_proxy_auth() else None
+    if proxy_contest is not None and contest.id != proxy_contest.id:
+        raise AOINotFound("Contest not found")
+
     current_user = get_current_user()
     assert current_user is not None
     part: Optional[Participation] = (
@@ -124,6 +131,8 @@ def get_contest(contest_uuid: str):
 @login_required
 @json_api()
 def join_contest(contest_uuid: str):
+    if is_proxy_auth():
+        raise AOIForbidden("Joining contests is disabled in proxy auth mode")
     contest = Contest.query.filter_by(uuid=contest_uuid).first()
     current_user = get_current_user()
     assert current_user is not None
@@ -168,6 +177,8 @@ def join_contest(contest_uuid: str):
 @login_required
 @json_api()
 def gen_sso_token(contest_uuid: str):
+    if is_proxy_auth():
+        raise AOIForbidden("SSO token generation is disabled in proxy auth mode")
     # TODO: add state param like in oauth to avoid attacker giving user URL
     # that will log them in to different account
     contest: Optional[Contest] = Contest.query.filter_by(uuid=contest_uuid).first()

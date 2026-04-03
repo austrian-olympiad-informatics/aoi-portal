@@ -150,6 +150,10 @@ export default class ContestView extends Vue {
     this.contest = await contests.getContest(this.contestUuid);
   }
   async loadProfile() {
+    if (this.$store.getters.isProxyAuth) {
+      this.profile = {} as ProfileInfoResponse;
+      return;
+    }
     this.profile = await profile.profileInfo();
   }
 

@@ -17,7 +17,7 @@
 
     <template #end>
       <b-navbar-item
-        v-if="!isAuthenticated && !$route.meta.noNavAuth"
+        v-if="!isAuthenticated && !isProxyAuth && !$route.meta.noNavAuth"
         tag="div"
       >
         <div class="buttons">
@@ -33,14 +33,21 @@
         </div>
       </b-navbar-item>
 
-      <b-field class="discord-tag" v-if="isDiscordLinked">
+      <b-field class="discord-tag" v-if="isDiscordLinked && !isProxyAuth">
         <span class="icon">
           <img src="./../assets/discord-icon.svg" loading="lazy" />
         </span>
         <b-tag class="username">{{ getDiscordUsername }}</b-tag>
       </b-field>
 
-      <b-navbar-dropdown v-if="isAuthenticated">
+      <b-navbar-item v-if="isProxyAuth" tag="div">
+        <span class="icon-text ml-1">
+          <b-icon class="mr-2" icon="account-circle" />
+          <span>{{ name }}</span>
+        </span>
+      </b-navbar-item>
+
+      <b-navbar-dropdown v-if="isAuthenticated && !isProxyAuth">
         <template slot="label">
           <span class="icon-text ml-1">
             <b-icon class="mr-2" icon="account-circle" />
@@ -88,6 +95,9 @@ export default class Navbar extends Vue {
   }
   get isAuthenticated(): boolean {
     return this.$store.getters.isAuthenticated;
+  }
+  get isProxyAuth(): boolean {
+    return this.$store.getters.isProxyAuth;
   }
   get isNavbarSmall(): boolean {
     return this.$route.matched.some((x) => x.meta.navbarSmall);

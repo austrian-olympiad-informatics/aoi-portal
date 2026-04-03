@@ -32,6 +32,11 @@ const store = new Vuex.Store({
     passwordResetVerifyEmail: "",
     passwordResetVerifyUuid: "",
     discordUsername: "",
+    isProxyAuth: false,
+    proxyAuthError: false,
+    proxyContestUuid: "",
+    proxyContestName: "",
+    proxyContestCmsName: "",
   },
   getters: {
     isAuthenticated: (state) => state.isAuthenticated,
@@ -46,6 +51,11 @@ const store = new Vuex.Store({
     firstName: (state) => state.firstName,
     lastName: (state) => state.lastName,
     discordUsername: (state) => state.discordUsername,
+    isProxyAuth: (state) => state.isProxyAuth,
+    proxyAuthError: (state) => state.proxyAuthError,
+    proxyContestUuid: (state) => state.proxyContestUuid,
+    proxyContestName: (state) => state.proxyContestName,
+    proxyContestCmsName: (state) => state.proxyContestCmsName,
   },
   mutations: {
     setFromAuthStatus(state, status: AuthStatusResult) {
@@ -54,6 +64,11 @@ const store = new Vuex.Store({
       state.firstName = status.first_name || "";
       state.lastName = status.last_name || "";
       state.discordUsername = status.discord_user || "";
+      state.isProxyAuth = status.proxy_auth || false;
+      state.proxyAuthError = status.proxy_auth_error || false;
+      state.proxyContestUuid = status.proxy_contest?.uuid || "";
+      state.proxyContestName = status.proxy_contest?.name || "";
+      state.proxyContestCmsName = status.proxy_contest?.cms_name || "";
     },
     setAuthToken(state, authToken: string) {
       state.authToken = authToken;

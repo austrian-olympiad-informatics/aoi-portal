@@ -28,3 +28,8 @@ debug: true
 #   evaluation_service:
 #     host: localhost
 #     port: 25000
+
+# proxy_auth_public_key: |
+#   -----BEGIN PUBLIC KEY-----
+#   ...
+#   -----END PUBLIC KEY-----
