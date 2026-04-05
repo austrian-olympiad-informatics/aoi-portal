@@ -15,7 +15,7 @@
     <b-button
       class="discord-button"
       type="is-link"
-      v-if="isAuthenticated && !isDiscordButtonHidden && !isDiscordLinked"
+      v-if="isAuthenticated && !isProxyAuth && !isDiscordButtonHidden && !isDiscordLinked"
       tag="router-link"
       :to="{ name: 'DiscordOAuth' }"
     >
@@ -27,7 +27,7 @@
 
     <b-button
       class="admin-button"
-      v-if="isAdmin && !isAdminButtonHidden"
+      v-if="isAdmin && !isProxyAuth && !isAdminButtonHidden"
       type="is-danger"
       tag="router-link"
       :to="isCMS ? { name: 'CMSAdminIndex' } : { name: 'AdminContests' }"
@@ -65,6 +65,9 @@ export default class AppComponent extends Vue {
   }
   get isAuthenticated(): boolean {
     return this.$store.getters.isAuthenticated;
+  }
+  get isProxyAuth(): boolean {
+    return this.$store.getters.isProxyAuth;
   }
   get isDiscordLinked(): boolean {
     return !!this.$store.getters.discordUsername;
