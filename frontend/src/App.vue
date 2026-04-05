@@ -8,7 +8,7 @@
 
     <footer class="footer" v-if="!isFooterHidden">
       <div class="content container is-max-desktop has-text-centered">
-        <p>&copy; Österreichische Informatikolympiade 2023</p>
+        <p>&copy; Österreichische Informatikolympiade 2026</p>
       </div>
     </footer>
 
