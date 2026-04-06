@@ -13,6 +13,7 @@ export interface AdminUser {
   address_town: string | null;
   school_name: string | null;
   school_address: string | null;
+  eligibility: string | null;
   cms_id: number | null;
   cms_username: string | null;
   groups: {

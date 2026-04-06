@@ -79,6 +79,11 @@ def _conv_user(user: User) -> dict:
         "address_town": user.address_town,
         "school_name": user.school_name,
         "school_address": user.school_address,
+        "eligibility": (
+            "ioi" if user.eligibility == 1
+            else "ioi_egoi" if user.eligibility == 3
+            else "none"
+        ) if user.eligibility is not None else None,
         "cms_id": user.cms_id,
         "cms_username": user.cms_username,
         "groups": [

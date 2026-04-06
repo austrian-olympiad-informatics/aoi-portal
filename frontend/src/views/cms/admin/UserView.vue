@@ -73,6 +73,9 @@
         <b>Schuladresse:</b>
         {{ registerInfo.school_address ? registerInfo.school_address : "N/A" }}
         <br />
+        <b>Teilnahmeberechtigung:</b>
+        {{ eligibilityLabel(registerInfo.eligibility) }}
+        <br />
         <div class="buttons is-pulled-right">
           <b-button
             tag="router-link"
@@ -162,6 +165,12 @@ export default class AdminUserView extends Vue {
       this.loadUserEvals(),
       this.loadRegisterData(),
     ]);
+  }
+
+  eligibilityLabel(eligibility: string | null): string {
+    if (eligibility === "ioi") return "IOI";
+    if (eligibility === "ioi_egoi") return "IOI + EGOI";
+    return "-";
   }
 }
 </script>

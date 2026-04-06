@@ -189,6 +189,8 @@
         {{ props.row.school_name ? props.row.school_name : "N/A" }} <br />
         <b>Schuladresse:</b>
         {{ props.row.school_address ? props.row.school_address : "N/A" }} <br />
+        <b>Teilnahmeberechtigung:</b>
+        {{ eligibilityLabel(props.row.eligibility) }} <br />
         <div class="buttons is-pulled-right">
           <b-button icon-left="account" @click="downloadVCard(props.row)">
             vCard
@@ -233,6 +235,12 @@ export default class UsersView extends Vue {
 
   async loadUsers() {
     this.users = await admin.getUsers();
+  }
+
+  eligibilityLabel(eligibility: string | null): string {
+    if (eligibility === "ioi") return "IOI";
+    if (eligibility === "ioi_egoi") return "IOI + EGOI";
+    return "-";
   }
 
   async mounted() {

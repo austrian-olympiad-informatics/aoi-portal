@@ -121,6 +121,9 @@
             <b>Schuladresse:</b>
             {{ props.row.school_address ? props.row.school_address : "N/A" }}
             <br />
+            <b>Teilnahmeberechtigung:</b>
+            {{ eligibilityLabel(props.row.eligibility) }}
+            <br />
             <router-link
               :to="{
                 name: 'AdminUser',
@@ -316,6 +319,13 @@ export default class AdminValidityHelperView extends Vue {
   async changeHidden(partId: number, hidden: boolean) {
     await cmsadmin.updateParticipation(partId, { hidden });
     await this.loadParticipations();
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  eligibilityLabel(eligibility: any): string {
+    if (eligibility === "ioi") return "IOI";
+    if (eligibility === "ioi_egoi") return "IOI + EGOI";
+    return "-";
   }
 
   async mounted() {
