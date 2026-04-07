@@ -256,6 +256,7 @@ export default class AdminValidityHelperView extends Vue {
           school_name: user.school_name,
           school_address: user.school_address,
           portal_id: user.id,
+          eligibility: user.eligibility,
         };
       }
       if (score !== undefined) {
