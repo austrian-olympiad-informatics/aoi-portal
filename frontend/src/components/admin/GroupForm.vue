@@ -15,6 +15,7 @@
         autocomplete
         v-if="users !== null"
         ref="taginput"
+        @typing="onTyping"
       >
         <template v-slot="props">
           {{ props.option.first_name }} {{ props.option.last_name }} ({{
@@ -64,6 +65,7 @@ export default class GroupForm extends Vue {
   data!: GroupFormData;
 
   users: AdminUsers | null = null;
+  filterText: string = "";
 
   async loadUsers() {
     this.users = await admin.getUsers();
@@ -73,9 +75,21 @@ export default class GroupForm extends Vue {
     await this.loadUsers();
   }
 
+  onTyping(text: string) {
+    this.filterText = text;
+  }
+
   get filteredUsers(): AdminUser[] {
     const uids = new Set(this.data.users);
-    return this.users!.filter((u) => !uids.has(u.id));
+    const search = this.filterText.toLowerCase();
+    return this.users!.filter(
+      (u) =>
+        !uids.has(u.id) &&
+        (search === "" ||
+          u.first_name.toLowerCase().includes(search) ||
+          u.last_name.toLowerCase().includes(search) ||
+          u.email.toLowerCase().includes(search)),
+    );
   }
   get selectedUsers(): AdminUser[] {
     const idToUser = new Map(this.users!.map((u) => [u.id, u]));
