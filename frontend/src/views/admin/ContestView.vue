@@ -1,10 +1,30 @@
 <template>
   <AdminCard>
     <template v-slot:title>
-      <b-icon icon="medal" />&nbsp; Contest&nbsp;
-      <span v-if="contest !== null">
-        {{ contest.cms_name }}
-      </span>
+      <div class="level mb-0">
+        <div class="level-left">
+          <div class="level-item">
+            <b-icon icon="medal" />&nbsp; Contest&nbsp;
+            <span v-if="contest !== null">
+              {{ contest.cms_name }}
+            </span>
+          </div>
+        </div>
+        <div class="level-right" v-if="contest !== null">
+          <div class="level-item">
+            <b-button
+              tag="router-link"
+              icon-left="medal"
+              :to="{
+                name: 'CMSAdminContest',
+                params: { contestId: contest.cms_id },
+              }"
+            >
+              Info
+            </b-button>
+          </div>
+        </div>
+      </div>
     </template>
     <div class="block">
       <h3 class="title is-4">Edit Contest</h3>

@@ -27,6 +27,7 @@ from aoiportal.cmsmirror.db.submission import (  # type: ignore
 from aoiportal.cmsmirror.db.user import Message, Question  # type: ignore
 from aoiportal.cmsmirror.util import open_digest, paginate
 from aoiportal.error import AOIBadRequest, AOINotFound
+from aoiportal.models import Contest as PortalContest, db  # type: ignore
 from aoiportal.utils import as_utc
 from aoiportal.web_utils import json_api
 
@@ -70,6 +71,7 @@ def _dump_meme(meme: Meme):
 
 
 def _dump_contest(contest: Contest):
+    portal_contest = PortalContest.query.filter_by(cms_id=contest.id).first()
     return {
         "id": contest.id,
         "name": contest.name,
@@ -88,6 +90,7 @@ def _dump_contest(contest: Contest):
         "score_precision": contest.score_precision,
         "languages": contest.languages,
         "allow_frontendv2": contest.allow_frontendv2,
+        "portal_uuid": portal_contest.uuid if portal_contest is not None else None,
     }
 
 

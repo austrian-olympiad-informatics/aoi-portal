@@ -34,6 +34,7 @@ export interface AdminContest {
   score_precision: number;
   languages: string[];
   allow_frontendv2: boolean;
+  portal_uuid: string | null;
 }
 
 export type AdminContests = AdminContest[];

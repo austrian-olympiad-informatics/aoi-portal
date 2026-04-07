@@ -13,7 +13,27 @@
           {{ contest.description }}
         </b-breadcrumb-item>
       </b-breadcrumb>
-      <h1 class="title is-2">Admin - Contest {{ contest.description }}</h1>
+      <div class="level">
+        <div class="level-left">
+          <div class="level-item">
+            <h1 class="title is-2 mb-0">Admin - Contest {{ contest.description }}</h1>
+          </div>
+        </div>
+        <div class="level-right" v-if="contest.portal_uuid !== null">
+          <div class="level-item">
+            <b-button
+              tag="router-link"
+              icon-left="pencil"
+              :to="{
+                name: 'AdminContest',
+                params: { contestUuid: contest.portal_uuid },
+              }"
+            >
+              Edit
+            </b-button>
+          </div>
+        </div>
+      </div>
       <div class="block" v-if="submissions !== null">
         <h2 class="title is-4">Submissions</h2>
         <router-link
