@@ -2,7 +2,7 @@
   <section>
     <b-field label="User">
       <b-autocomplete
-        :data="users"
+        :data="filteredUsers"
         :disabled="!userEditable"
         :loading="users === null"
         :value="userValue"
@@ -10,6 +10,7 @@
         :custom-formatter="formatUser"
         required
         open-on-focus
+        @typing="onTyping"
         @select="(u) => (data.user_id = u.id)"
       >
       </b-autocomplete>
@@ -54,6 +55,23 @@ export default class ParticipationForm extends Vue {
   userEditable!: boolean;
 
   users: AdminUsers | null = null;
+  filterText: string = "";
+
+  onTyping(text: string) {
+    this.filterText = text;
+  }
+
+  get filteredUsers(): AdminUser[] {
+    if (this.users === null) return [];
+    const search = this.filterText.toLowerCase();
+    if (search === "") return this.users;
+    return this.users.filter(
+      (u) =>
+        u.first_name.toLowerCase().includes(search) ||
+        u.last_name.toLowerCase().includes(search) ||
+        u.email.toLowerCase().includes(search),
+    );
+  }
 
   formatUser(user: AdminUser): string {
     return `${user.first_name} ${user.last_name} (${user.email})`;
