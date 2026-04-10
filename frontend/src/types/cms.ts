@@ -28,6 +28,7 @@ export interface ContestBase {
   description: string;
   start: string;
   stop: string;
+  extra_time: number; // seconds; per-participation extra time beyond contest.stop
   analysis: null | {
     start: string;
     stop: string;

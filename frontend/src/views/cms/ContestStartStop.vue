@@ -12,6 +12,10 @@
       begonnen<span v-if="isContestStopDefault">.</span>
       <span v-else> und endet {{ formatToDate(contestStop) }}. </span>
     </template>
+    <template v-else-if="isDuringExtraTime">
+      Der Wettbewerb hat {{ formatFromDate(contestStop) }} geendet. Deine
+      Extra-Zeit endet {{ formatToDate(userContestStop) }}.
+    </template>
     <template v-else-if="hasAnalysis && isBeforeAnalysis">
       Der Wettbewerb hat {{ formatFromDate(contestStop) }} geendet. Die Analyse
       beginnt {{ formatToDate(analysisStart) }}.
@@ -110,6 +114,19 @@ export default class ContestStartStop extends Vue {
   }
   get isContestStopDefault(): boolean {
     return this.contestStop.getFullYear() === 2030;
+  }
+  get hasExtraTime(): boolean {
+    return this.contest.extra_time > 0;
+  }
+  get userContestStop(): Date {
+    return new Date(this.contestStop.getTime() + this.contest.extra_time * 1000);
+  }
+  get isDuringExtraTime(): boolean {
+    return (
+      this.hasExtraTime &&
+      isAfter(this.now, this.contestStop) &&
+      isBefore(this.now, this.userContestStop)
+    );
   }
   get analysisStart(): Date | null {
     return this.contest.analysis === null

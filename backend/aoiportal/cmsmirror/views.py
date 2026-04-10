@@ -117,12 +117,25 @@ current_contest: Contest = LocalProxy(lambda: current_participation.contest)
 current_task: Task = LocalProxy(lambda: _get_task())
 
 
+def _user_effective_stop(
+    contest: Contest, part: Participation
+) -> datetime.datetime:
+    """Return the effective contest stop time for this participation,
+    accounting for any per-user extra time."""
+    return contest.stop + part.extra_time
+
+
 def active_contest_required(fn):
     @functools.wraps(fn)
     def wrapped(*args, **kwargs):
         now = datetime.datetime.utcnow()
+        phase = current_contest.phase(now)
+        in_extra_time = phase > 0 and now <= _user_effective_stop(
+            current_contest, current_participation
+        )
         if (
-            current_contest.phase(now) not in (0, 2)
+            phase not in (0, 2)
+            and not in_extra_time
             and not current_participation.unrestricted
         ):
             raise AOIForbidden("Contest is not active")
@@ -187,12 +200,15 @@ def get_contest(contest_name: str):
             else None
         ),
         "is_active": False,
+        "extra_time": int(part.extra_time.total_seconds()),
         "announcements": [_conv_announcement(ann) for ann in contest.announcements],
         "messages": [_conv_message(msg) for msg in part.messages],
         "questions": [_conv_question(q) for q in part.questions],
     }
     now = datetime.datetime.utcnow()
-    if 0 <= contest.phase(now) <= 2 or part.unrestricted:
+    phase = contest.phase(now)
+    in_extra_time = phase > 0 and now <= _user_effective_stop(contest, part)
+    if 0 <= phase <= 2 or in_extra_time or part.unrestricted:
         ret.update(
             {
                 "tasks": [
@@ -803,7 +819,12 @@ def submit(data, contest_name: str, task_name: str):
         timestamp=now,
         language=data[KEY_LANGUAGE],
         official=(
-            current_contest.phase(now) == 0 or current_participation.unrestricted
+            current_contest.phase(now) == 0
+            or (
+                current_contest.phase(now) > 0
+                and now <= _user_effective_stop(current_contest, current_participation)
+            )
+            or current_participation.unrestricted
         ),
     )
     session.add(sub)  # type: ignore
