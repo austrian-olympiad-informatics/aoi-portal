@@ -1087,12 +1087,10 @@ def get_meme(meme_id: int):
 @admin_required
 @json_api()
 def get_users():
-    users: List[Tuple[User, Participation]] = (
-        session.query(User, Participation)
-        .join(User.participations)
+    users: List[User] = (
+        session.query(User)
         .order_by(User.id.asc())
-        # .options(joinedload(User.participations))
-        .options(selectinload(Participation.contest))
+        .options(selectinload(User.participations).selectinload(Participation.contest))
         .all()
     )
     return [
@@ -1109,7 +1107,7 @@ def get_users():
                 for part in user.participations
             ],
         }
-        for user, _ in users
+        for user in users
     ]
 
 
