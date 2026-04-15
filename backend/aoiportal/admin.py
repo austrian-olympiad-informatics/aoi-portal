@@ -319,10 +319,7 @@ def create_user(data):
     return {"success": True}
 
 
-@admin_bp.route("/api/admin/refresh-cms-contests", methods=["POST"])
-@admin_required
-@json_api()
-def refresh_cms_contests():
+def sync_cms_contests() -> None:
     ourcontests: List[Contest] = Contest.query.all()
     ourids = {c.cms_id: c for c in ourcontests}
     cmscontests: List[CMSContest] = cms_session.query(CMSContest).all()
@@ -358,6 +355,13 @@ def refresh_cms_contests():
             c.deleted = True
 
     db.session.commit()
+
+
+@admin_bp.route("/api/admin/refresh-cms-contests", methods=["POST"])
+@admin_required
+@json_api()
+def refresh_cms_contests():
+    sync_cms_contests()
     return {"success": True}
 
 

@@ -28,6 +28,8 @@ addadmin_parser.add_argument("--first-name", dest="first_name", type=str, requir
 addadmin_parser.add_argument("--last-name", dest="last_name", type=str, required=True)
 addadmin_parser.add_argument("--password", type=str, required=True)
 
+refreshcmscontests_parser = subparsers.add_parser("refreshcmscontests")
+
 
 def cmd_wsgi(app, args):
     print(app.url_map)
@@ -57,11 +59,18 @@ def cmd_addadmin(app, args):
         db.session.commit()
 
 
+def cmd_refreshcmscontests(app, args):
+    from aoiportal.admin import sync_cms_contests
+    with app.app_context():
+        sync_cms_contests()
+
+
 COMMANDS = {
     "wsgi": cmd_wsgi,
     "createdb": cmd_createdb,
     "dropdb": cmd_dropdb,
-    "addadmin": cmd_addadmin
+    "addadmin": cmd_addadmin,
+    "refreshcmscontests": cmd_refreshcmscontests,
 }
 
 

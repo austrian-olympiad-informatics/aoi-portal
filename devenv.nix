@@ -92,7 +92,7 @@ in
   processes.backend = {
     cwd = "backend";
     exec = "watchexec -r -e py,yaml -- python3 run.py --config $DEVENV_STATE/config/backend-dev.yaml wsgi";
-    after = ["db:init@completed" "cms:init@completed"];
+    after = ["portal:sync-contests@completed"];
   };
 
   processes.frontend = {
@@ -181,6 +181,16 @@ in
       fi
     '';
     after = [ "devenv:processes:postgres@ready" ];
+  };
+
+  tasks."portal:sync-contests" = {
+    exec = ''
+      set -eu
+      cd backend
+      python3 run.py --config $DEVENV_STATE/config/backend-dev.yaml refreshcmscontests
+      echo "✅ Portal contests synced from CMS!"
+    '';
+    after = ["db:init@completed" "cms:init@completed"];
   };
 
   tasks."cms:import-tasks" = {
