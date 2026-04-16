@@ -14,7 +14,11 @@ in
 
 {
   # https://devenv.sh/packages/
-  packages = [ pkgs.git pkgs.postgresql.pg_config pkgs.watchexec cmsPackage cmsAOIPackage ];
+  packages = [
+    pkgs.git pkgs.postgresql.pg_config pkgs.watchexec cmsPackage cmsAOIPackage
+    pkgs.playwright-mcp
+    pkgs.playwright-test
+  ];
 
   # https://devenv.sh/languages/
   languages.python = {
