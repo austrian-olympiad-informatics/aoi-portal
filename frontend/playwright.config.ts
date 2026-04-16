@@ -7,10 +7,12 @@ export default defineConfig({
   forbidOnly: true,
   retries: 0,
   workers: 1,
+  timeout: 120000,
   reporter: "list",
   use: {
     baseURL: "http://localhost:8080",
     screenshot: "only-on-failure",
+    permissions: ["clipboard-read", "clipboard-write"],
   },
   projects: [
     {
