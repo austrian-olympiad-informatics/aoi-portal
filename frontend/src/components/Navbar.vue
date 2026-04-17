@@ -48,7 +48,7 @@
       </b-navbar-item>
 
       <b-navbar-dropdown v-if="isAuthenticated && !isProxyAuth">
-        <template slot="label">
+        <template #label>
           <span class="icon-text ml-1">
             <b-icon class="mr-2" icon="account-circle" />
             <span>{{ name }}</span>

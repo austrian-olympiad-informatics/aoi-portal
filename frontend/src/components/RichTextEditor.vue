@@ -261,11 +261,11 @@ class RichTextEditor extends Vue {
     type: String,
     default: "",
   })
-  value!: string;
+  modelValue!: string;
 
   headingDropDownActive = false;
 
-  @Watch("value")
+  @Watch("modelValue")
   watchValue(value: string) {
     const isSame = this.editor?.getHTML() === value;
     if (!isSame) {
@@ -275,10 +275,10 @@ class RichTextEditor extends Vue {
 
   mounted() {
     this.editor = new Editor({
-      content: this.value,
+      content: this.modelValue,
       extensions: [StarterKit, Underline, Link],
       onUpdate: () => {
-        this.$emit("input", this.editor?.getHTML());
+        this.$emit("update:modelValue", this.editor?.getHTML());
       },
       editorProps: {
         attributes: {

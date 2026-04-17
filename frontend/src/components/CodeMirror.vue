@@ -18,7 +18,6 @@ import {
 } from "@codemirror/view";
 import {
   EditorState,
-  Transaction,
   Extension,
   StateEffect,
   StateField,
@@ -112,7 +111,7 @@ class CodeMirror extends Vue {
     type: String,
     default: "",
   })
-  value!: string;
+  modelValue!: string;
   doc: string | null = null;
 
   @Prop({
@@ -210,20 +209,20 @@ class CodeMirror extends Vue {
   }
 
   mounted() {
-    this.doc = this.value;
+    this.doc = this.modelValue;
     this.view = new EditorView({
       state: EditorState.create({
         doc: this.doc,
-        extensions: this.extensions,
+        extensions: [
+          ...this.extensions,
+          EditorView.updateListener.of((update) => {
+            if (!update.docChanged) return;
+            this.doc = update.state.doc.toString();
+            this.$emit("update:modelValue", this.doc);
+          }),
+        ],
       }),
       parent: this.$refs.codemirror as Element,
-      dispatch: (tr: Transaction) => {
-        this.view.update([tr]);
-        if (tr.changes.empty) return;
-
-        this.doc = this.view.state.doc.toString();
-        this.$emit("input", this.doc);
-      },
     });
     if (this.italic) {
       italicAll(this.view);
@@ -234,7 +233,14 @@ class CodeMirror extends Vue {
     this.view.setState(
       EditorState.create({
         doc: this.doc || "",
-        extensions: this.extensions,
+        extensions: [
+          ...this.extensions,
+          EditorView.updateListener.of((update) => {
+            if (!update.docChanged) return;
+            this.doc = update.state.doc.toString();
+            this.$emit("update:modelValue", this.doc);
+          }),
+        ],
         selection: this.view.state.selection,
       }),
     );
@@ -248,7 +254,7 @@ class CodeMirror extends Vue {
     this.resetState();
   }
 
-  @Watch("value")
+  @Watch("modelValue")
   watchValue(value: string) {
     if (value === this.doc) return;
     this.doc = value;
