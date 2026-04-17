@@ -24,7 +24,7 @@ class SimpleAutoselect extends Vue {
   readonly data!: any[] | null; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   @Prop()
-  readonly value!: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  readonly modelValue!: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   @Prop({
     type: Boolean,
@@ -52,17 +52,17 @@ class SimpleAutoselect extends Vue {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   bSelect(newValue: any) {
-    this.$emit("input", newValue === null ? null : this.valueFunc(newValue));
+    this.$emit("update:modelValue", newValue === null ? null : this.valueFunc(newValue));
   }
 
   resetBValueFromValue() {
-    if (this.value === null) {
+    if (this.modelValue === null) {
       this.bValue = "";
       return;
     }
     if (this.filteredData === null) return;
     for (const val of this.filteredData) {
-      if (this.valueFunc(val) === this.value) {
+      if (this.valueFunc(val) === this.modelValue) {
         this.bValue = this.formatter(val);
       }
     }
@@ -72,7 +72,7 @@ class SimpleAutoselect extends Vue {
     this.resetBValueFromValue();
   }
 
-  @Watch("value")
+  @Watch("modelValue")
   onValueChanged() {
     this.resetBValueFromValue();
   }

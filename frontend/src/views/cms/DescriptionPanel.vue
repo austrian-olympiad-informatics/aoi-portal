@@ -348,7 +348,7 @@ class DescriptionPanel extends Vue {
     this.scheduleCheckSubmissions(isSame ? prevTime * 1.2 : 1000);
   }
 
-  @Watch("task.submissions")
+  @Watch("task.submissions", { deep: true })
   submissionsChanged() {
     this.scheduleCheckSubmissions(1000);
   }

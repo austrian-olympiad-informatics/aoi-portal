@@ -154,7 +154,7 @@ pinia.use(({ store }) => {
       discordUsername: state.discordUsername,
     };
     localStorage.setItem("aoiState", JSON.stringify(val));
-  });
+  }, { flush: "sync" });
 
   // Wrap restoreState to skip persistence during restore
   const origRestore = store.restoreState;

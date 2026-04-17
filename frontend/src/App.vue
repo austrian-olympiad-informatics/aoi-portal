@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div>
     <Navbar />
 
     <section>
@@ -88,15 +88,21 @@ html,
 body {
   height: 100%;
 }
-</style>
-
-<style scoped>
 #app {
   display: flex;
   min-height: -webkit-fill-available;
   height: 100%;
   flex-direction: column;
 }
+#app > * {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-height: 0;
+}
+</style>
+
+<style scoped>
 section {
   flex: 1 0 auto;
 }

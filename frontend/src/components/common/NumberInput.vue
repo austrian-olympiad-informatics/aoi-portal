@@ -1,7 +1,7 @@
 <template>
   <b-input
-    :value="valueStr"
-    @input="setValue(e.target.value)"
+    :model-value="valueStr"
+    @update:model-value="setValue"
     inputmode="numeric"
     pattern="[0-9]*"
   />
@@ -15,22 +15,22 @@ class NumberInput extends Vue {
   @Prop({
     type: Number,
   })
-  readonly value!: number | null;
+  readonly modelValue!: number | null;
 
   valueStr: string | null = null;
 
   setValue(val: string) {
     this.valueStr = val;
-    this.$emit("input", val ? +val : null);
+    this.$emit("update:modelValue", val ? +val : null);
   }
 
-  @Watch("value")
+  @Watch("modelValue")
   onValueChanged(val: number | null) {
     this.valueStr = val === null ? "" : val.toString();
   }
 
   mounted() {
-    this.valueStr = this.value === null ? "" : this.value.toString();
+    this.valueStr = this.modelValue === null ? "" : this.modelValue.toString();
   }
 }
 export default toNative(NumberInput)

@@ -20,10 +20,12 @@ export function initApiClient() {
   const store = useStore();
   // Set initial token
   updateAuthToken(store.authToken);
-  // Watch for changes
+  // Watch for changes — flush: 'sync' ensures the axios header is updated
+  // before any subsequent API calls (e.g. checkStatus after loadLocalStorage)
   watch(
     () => store.authToken,
     (newToken) => updateAuthToken(newToken),
+    { flush: "sync" },
   );
 }
 
