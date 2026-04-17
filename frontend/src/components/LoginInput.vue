@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts">
-import { Component, VModel, Vue } from "vue-property-decorator";
+import {  Component, VModel, Vue, toNative } from "vue-facing-decorator";
 import { PropType } from "vue";
 
 export interface LoginInputData {
@@ -29,12 +29,13 @@ export interface LoginInputData {
 }
 
 @Component
-export default class LoginForm extends Vue {
+class LoginForm extends Vue {
   @VModel({
     type: Object as PropType<LoginInputData>,
   })
   data!: LoginInputData;
 }
+export default toNative(LoginForm)
 </script>
 
 <style scoped></style>

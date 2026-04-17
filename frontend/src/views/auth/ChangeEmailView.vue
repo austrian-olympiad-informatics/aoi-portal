@@ -33,7 +33,8 @@
 
 <script lang="ts">
 import auth from "@/services/auth";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 import { AuthChangeEmailResult } from "@/types/auth";
 import { matchError } from "@/util/errors";
@@ -43,7 +44,7 @@ import { matchError } from "@/util/errors";
     CenterBoxLayout,
   },
 })
-export default class ChangeEmailView extends Vue {
+class ChangeEmailView extends Vue {
   currentPassword = "";
   newEmail = "";
   submitButtonLoading = false;
@@ -68,11 +69,12 @@ export default class ChangeEmailView extends Vue {
     } finally {
       this.submitButtonLoading = false;
     }
-    this.$store.commit("setChangeEmailVerifyState", {
+    useStore().setChangeEmailVerifyState({
       changeEmailVerifyEmail: this.newEmail,
       changeEmailVerifyUuid: resp.uuid,
     });
     this.$router.push({ name: "ChangeEmailVerify" });
   }
 }
+export default toNative(ChangeEmailView)
 </script>

@@ -50,10 +50,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 
 @Component
-export default class IndexView extends Vue {}
+class IndexView extends Vue {}
+export default toNative(IndexView)
 </script>
 
 <style scoped>

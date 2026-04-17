@@ -35,10 +35,10 @@
 <script lang="ts">
 import admin from "@/services/admin";
 import { AdminGroups } from "@/types/admin";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 
 @Component
-export default class ContestAddFromGroupModal extends Vue {
+class ContestAddFromGroupModal extends Vue {
   groups: AdminGroups | null = null;
   selected: number | null = null;
   randomPasswords = false;
@@ -58,4 +58,5 @@ export default class ContestAddFromGroupModal extends Vue {
     this.$emit("close");
   }
 }
+export default toNative(ContestAddFromGroupModal)
 </script>

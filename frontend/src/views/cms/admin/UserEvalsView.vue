@@ -191,7 +191,7 @@ import {
   AdminUserEvalShort,
 } from "@/types/cmsadmin";
 import { formatDateShort } from "@/util/dt";
-import { Component, Vue, Watch } from "vue-property-decorator";
+import {  Component, Vue, Watch, toNative } from "vue-facing-decorator";
 import SimpleAutoselect from "./SimpleAutoselect.vue";
 
 @Component({
@@ -199,7 +199,7 @@ import SimpleAutoselect from "./SimpleAutoselect.vue";
     SimpleAutoselect,
   },
 })
-export default class AdminUserEvalsView extends Vue {
+class AdminUserEvalsView extends Vue {
   data: AdminUserEvalsPaginated | null = null;
   loading = true;
   get userEvals(): AdminUserEvalShort[] {
@@ -271,19 +271,19 @@ export default class AdminUserEvalsView extends Vue {
     );
   }
   reloadHandle: number | null = null;
-  destroyed() {
+  unmounted() {
     if (this.reloadHandle !== null) clearInterval(this.reloadHandle);
   }
 
   async mounted() {
     if (this.$route.query.contest_id !== undefined)
-      this.filterByContestId = +this.$route.query.contest_id;
+      this.filterByContestId = +(this.$route.query.contest_id as string);
     if (this.$route.query.task_id !== undefined)
-      this.filterByTaskId = +this.$route.query.task_id;
+      this.filterByTaskId = +(this.$route.query.task_id as string);
     if (this.$route.query.user_id !== undefined)
-      this.filterByUserId = +this.$route.query.user_id;
+      this.filterByUserId = +(this.$route.query.user_id as string);
     if (this.$route.params.userEvalUuid !== undefined)
-      this.selectedUserEval = { uuid: this.$route.params.userEvalUuid };
+      this.selectedUserEval = { uuid: this.$route.params.userEvalUuid as string };
     this.reloadHandle = window.setInterval(async () => {
       await this.loadUserEvals();
     }, 15000);
@@ -335,10 +335,11 @@ export default class AdminUserEvalsView extends Vue {
   @Watch("$route")
   watchRoute() {
     if (this.$route.params.userEvalUuid !== undefined)
-      this.selectedUserEval = { uuid: this.$route.params.userEvalUuid };
+      this.selectedUserEval = { uuid: this.$route.params.userEvalUuid as string };
     else this.selectedUserEval = null;
   }
 }
+export default toNative(AdminUserEvalsView)
 </script>
 
 <style lang="scss" scoped>

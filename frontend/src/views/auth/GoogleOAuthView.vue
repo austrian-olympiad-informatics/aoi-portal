@@ -7,11 +7,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import oauth from "@/services/oauth";
 
 @Component
-export default class GoogleOAuthView extends Vue {
+class GoogleOAuthView extends Vue {
   async mounted() {
     const resp = await oauth.getGoogleAuthorizeURL();
     const url = new URL(resp.url);
@@ -33,4 +33,5 @@ export default class GoogleOAuthView extends Vue {
     window.location.replace(url);
   }
 }
+export default toNative(GoogleOAuthView)
 </script>

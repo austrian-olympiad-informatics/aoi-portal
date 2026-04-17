@@ -13,10 +13,10 @@
 </template>
 
 <script lang="ts">
-import { Vue, Component, Prop, Watch } from "vue-property-decorator";
+import {  Vue, Component, Prop, Watch, toNative } from "vue-facing-decorator";
 
 @Component
-export default class SimpleAutoselect extends Vue {
+class SimpleAutoselect extends Vue {
   @Prop({
     type: Array,
     default: () => [],
@@ -91,4 +91,5 @@ export default class SimpleAutoselect extends Vue {
     });
   }
 }
+export default toNative(SimpleAutoselect)
 </script>

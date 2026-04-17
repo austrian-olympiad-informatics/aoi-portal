@@ -373,7 +373,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
+import {  Component, Vue, Watch, toNative } from "vue-facing-decorator";
 import { formatDateShort } from "@/util/dt";
 import { langToExt, lookupCMSLang } from "@/util/lang-table";
 import CodeMirror from "@/components/CodeMirror.vue";
@@ -395,10 +395,10 @@ import PointsBar from "../PointsBar.vue";
     PointsBar,
   },
 })
-export default class AdminSubmissionDetailsPanel extends Vue {
+class AdminSubmissionDetailsPanel extends Vue {
   now: Date = new Date();
   get submissionUuid(): string {
-    return this.$route.params.submissionUuid;
+    return this.$route.params.submissionUuid as string;
   }
   submission: AdminSubmissionDetailed | null = null;
   files: Record<string, string> | null = null;
@@ -522,6 +522,7 @@ export default class AdminSubmissionDetailsPanel extends Vue {
     downloadBlob(blob, fname);
   }
 }
+export default toNative(AdminSubmissionDetailsPanel)
 </script>
 
 <style scoped lang="scss">

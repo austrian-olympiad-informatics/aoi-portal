@@ -237,7 +237,7 @@ import {
 } from "@/types/cmsadmin";
 import { downloadBlob } from "@/util/download";
 import { formatDateShort } from "@/util/dt";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import CodeMirror from "@/components/CodeMirror.vue";
 
 @Component({
@@ -245,7 +245,7 @@ import CodeMirror from "@/components/CodeMirror.vue";
     CodeMirror,
   },
 })
-export default class AdminTaskView extends Vue {
+class AdminTaskView extends Vue {
   get taskId(): number {
     return +this.$route.params.taskId;
   }
@@ -328,6 +328,7 @@ export default class AdminTaskView extends Vue {
     downloadBlob(blob, `${tc.codename}.txt`);
   }
 }
+export default toNative(AdminTaskView)
 </script>
 
 <style scoped>

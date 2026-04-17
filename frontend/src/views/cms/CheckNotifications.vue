@@ -5,10 +5,10 @@
 <script lang="ts">
 import { CheckNotificationsParams } from "@/types/cms";
 import cms from "@/services/cms";
-import { Component, Prop, Vue } from "vue-property-decorator";
+import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
 
 @Component
-export default class CheckNotifications extends Vue {
+class CheckNotifications extends Vue {
   @Prop({
     type: String,
   })
@@ -89,9 +89,10 @@ export default class CheckNotifications extends Vue {
     }, 15000);
   }
 
-  destroyed() {
+  unmounted() {
     if (this.checkNotificationsHandle !== null)
       clearInterval(this.checkNotificationsHandle);
   }
 }
+export default toNative(CheckNotifications)
 </script>

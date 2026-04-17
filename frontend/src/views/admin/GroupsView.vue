@@ -68,7 +68,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import { AdminGroups } from "@/types/admin";
 import AdminCard from "@/components/admin/AdminCard.vue";
 import admin from "@/services/admin";
@@ -78,7 +78,7 @@ import admin from "@/services/admin";
     AdminCard,
   },
 })
-export default class GroupsView extends Vue {
+class GroupsView extends Vue {
   groups: AdminGroups | null = null;
 
   async loadGroups() {
@@ -89,6 +89,7 @@ export default class GroupsView extends Vue {
     await this.loadGroups();
   }
 }
+export default toNative(GroupsView)
 </script>
 
 <style scoped>

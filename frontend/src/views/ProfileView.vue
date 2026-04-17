@@ -130,7 +130,7 @@
 
 <script lang="ts">
 import profile from "@/services/profile";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 
 @Component({
@@ -138,7 +138,7 @@ import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
     CenterBoxLayout,
   },
 })
-export default class ProfileView extends Vue {
+class ProfileView extends Vue {
   email = "";
   firstName = "";
   lastName = "";
@@ -209,4 +209,5 @@ export default class ProfileView extends Vue {
     await this.loadProfile();
   }
 }
+export default toNative(ProfileView)
 </script>

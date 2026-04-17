@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import AdminCard from "@/components/admin/AdminCard.vue";
 import UserForm, { UserFormData } from "@/components/admin/UserForm.vue";
 import admin from "@/services/admin";
@@ -22,7 +22,7 @@ import admin from "@/services/admin";
     UserForm,
   },
 })
-export default class UserCreateView extends Vue {
+class UserCreateView extends Vue {
   data: UserFormData = {
     first_name: "",
     last_name: "",
@@ -65,4 +65,5 @@ export default class UserCreateView extends Vue {
     this.$router.push({ name: "AdminUsers" });
   }
 }
+export default toNative(UserCreateView)
 </script>

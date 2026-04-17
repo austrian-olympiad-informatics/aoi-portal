@@ -83,7 +83,7 @@
 <script lang="ts">
 import { Contest, ContestTaskScore, ContestTaskScores } from "@/types/cms";
 import cms from "@/services/cms";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import CheckNotifications from "./CheckNotifications.vue";
 import ContestStartStop from "./ContestStartStop.vue";
 import NotificationsSection from "./NotificationsSection.vue";
@@ -97,9 +97,9 @@ import PointsBar from "./PointsBar.vue";
     PointsBar,
   },
 })
-export default class ContestView extends Vue {
+class ContestView extends Vue {
   get contestName(): string {
-    return this.$route.params.contestName;
+    return this.$route.params.contestName as string;
   }
   contest: Contest | null = null;
   scores: ContestTaskScores | null = null;
@@ -139,6 +139,7 @@ export default class ContestView extends Vue {
     });
   }
 }
+export default toNative(ContestView)
 </script>
 
 <style scoped>

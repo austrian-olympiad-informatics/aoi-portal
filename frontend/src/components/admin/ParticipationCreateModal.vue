@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import ParticipationForm, {
   ParticipationFormData,
 } from "./ParticipationForm.vue";
@@ -24,7 +24,7 @@ import ParticipationForm, {
     ParticipationForm,
   },
 })
-export default class ParticipationCreateModal extends Vue {
+class ParticipationCreateModal extends Vue {
   data: ParticipationFormData = {
     user_id: null,
     cms_id: null,
@@ -36,4 +36,5 @@ export default class ParticipationCreateModal extends Vue {
     this.$emit("close");
   }
 }
+export default toNative(ParticipationCreateModal)
 </script>

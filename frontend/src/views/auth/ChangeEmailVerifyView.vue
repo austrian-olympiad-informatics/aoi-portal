@@ -33,20 +33,21 @@
 <script lang="ts">
 import auth from "@/services/auth";
 import { matchError } from "@/util/errors";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 
 @Component
-export default class ChangeEmailVerifyView extends Vue {
+class ChangeEmailVerifyView extends Vue {
   verifyCode = "";
 
   get newMail(): string {
-    return this.$store.getters.changeEmailVerifyEmail;
+    return useStore().changeEmailVerifyEmail;
   }
 
   async changeEmailVerify() {
     try {
       await auth.changeEmailVerify({
-        uuid: this.$store.getters.changeEmailVerifyUuid,
+        uuid: useStore().changeEmailVerifyUuid,
         verification_code: this.verifyCode,
       });
     } catch (err) {
@@ -61,11 +62,11 @@ export default class ChangeEmailVerifyView extends Vue {
       return;
     }
 
-    this.$store.commit("setChangeEmailVerifyState", {
+    useStore().setChangeEmailVerifyState({
       changeEmailVerifyEmail: "",
       changeEmailVerifyUuid: "",
     });
-    await this.$store.dispatch("checkStatus");
+    await useStore().checkStatus();
     this.$buefy.toast.open({
       message: "E-Mail-Adresse erfolgreich geändert!",
       type: "is-success",
@@ -73,9 +74,10 @@ export default class ChangeEmailVerifyView extends Vue {
     this.$router.push("/");
   }
   mounted(): void {
-    if (!this.$store.getters.changeEmailVerifyUuid) {
+    if (!useStore().changeEmailVerifyUuid) {
       this.$router.push("/");
     }
   }
 }
+export default toNative(ChangeEmailVerifyView)
 </script>

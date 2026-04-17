@@ -8,10 +8,10 @@
 </template>
 
 <script lang="ts">
-import { Vue, Component, Watch, Prop } from "vue-property-decorator";
+import {  Vue, Component, Watch, Prop, toNative } from "vue-facing-decorator";
 
 @Component
-export default class NumberInput extends Vue {
+class NumberInput extends Vue {
   @Prop({
     type: Number,
   })
@@ -33,4 +33,5 @@ export default class NumberInput extends Vue {
     this.valueStr = this.value === null ? "" : this.value.toString();
   }
 }
+export default toNative(NumberInput)
 </script>

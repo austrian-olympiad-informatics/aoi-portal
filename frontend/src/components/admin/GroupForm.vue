@@ -49,7 +49,7 @@
 import admin from "@/services/admin";
 import { AdminUser, AdminUsers } from "@/types/admin";
 import { PropType } from "vue";
-import { Component, VModel, Vue } from "vue-property-decorator";
+import {  Component, VModel, Vue, toNative } from "vue-facing-decorator";
 
 export interface GroupFormData {
   name: string;
@@ -58,7 +58,7 @@ export interface GroupFormData {
 }
 
 @Component
-export default class GroupForm extends Vue {
+class GroupForm extends Vue {
   @VModel({
     type: Object as PropType<GroupFormData>,
   })
@@ -99,4 +99,5 @@ export default class GroupForm extends Vue {
     this.data.users = selected.map((u) => u.id);
   }
 }
+export default toNative(GroupForm)
 </script>

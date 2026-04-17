@@ -39,7 +39,8 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 import Navbar from "./components/Navbar.vue";
 
 @Component({
@@ -47,9 +48,9 @@ import Navbar from "./components/Navbar.vue";
     Navbar,
   },
 })
-export default class AppComponent extends Vue {
+class AppComponent extends Vue {
   get isAdmin(): boolean {
-    return this.$store.getters.isAdmin;
+    return useStore().isAdmin;
   }
   get isFooterHidden(): boolean {
     return this.$route.matched.some((x) => x.meta.footerHidden);
@@ -64,21 +65,22 @@ export default class AppComponent extends Vue {
     return this.$route.matched.some((x) => x.meta.isDiscordButtonHidden);
   }
   get isAuthenticated(): boolean {
-    return this.$store.getters.isAuthenticated;
+    return useStore().isAuthenticated;
   }
   get isProxyAuth(): boolean {
-    return this.$store.getters.isProxyAuth;
+    return useStore().isProxyAuth;
   }
   get isDiscordLinked(): boolean {
-    return !!this.$store.getters.discordUsername;
+    return !!useStore().discordUsername;
   }
   get getDiscordUsername(): string {
-    return this.$store.getters.discordUsername;
+    return useStore().discordUsername;
   }
   async mounted(): Promise<void> {
-    await this.$store.dispatch("checkStatus");
+    await useStore().checkStatus();
   }
 }
+export default toNative(AppComponent)
 </script>
 
 <style>

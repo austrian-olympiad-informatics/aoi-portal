@@ -7,13 +7,14 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 import oauth from "@/services/oauth";
 import { matchError, showErrorNotification } from "@/util/errors";
 import { GoogleAuthorizeResponse } from "@/types/oauth";
 
 @Component
-export default class GoogleOAuthCallbackView extends Vue {
+class GoogleOAuthCallbackView extends Vue {
   async mounted() {
     const err = this.$route.query.error as string | undefined;
     if (err) {
@@ -51,8 +52,8 @@ export default class GoogleOAuthCallbackView extends Vue {
       return;
     }
 
-    this.$store.commit("setAuthToken", resp.token);
-    await this.$store.dispatch("checkStatus");
+    useStore().setAuthToken(resp.token);
+    await useStore().checkStatus();
     this.$buefy.toast.open({
       message: "Erfolgreich angemeldet!",
       type: "is-success",
@@ -60,4 +61,5 @@ export default class GoogleOAuthCallbackView extends Vue {
     this.$router.push("/");
   }
 }
+export default toNative(GoogleOAuthCallbackView)
 </script>

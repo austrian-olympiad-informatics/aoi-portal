@@ -16,7 +16,7 @@
 <script lang="ts">
 import admin from "@/services/admin";
 import { AdminContestParticipation } from "@/types/admin";
-import { Component, Prop, Vue } from "vue-property-decorator";
+import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
 import ParticipationForm, {
   ParticipationFormData,
 } from "./ParticipationForm.vue";
@@ -26,7 +26,7 @@ import ParticipationForm, {
     ParticipationForm,
   },
 })
-export default class ParticipationUpdateModal extends Vue {
+class ParticipationUpdateModal extends Vue {
   @Prop()
   contestUuid!: string;
   @Prop()
@@ -56,4 +56,5 @@ export default class ParticipationUpdateModal extends Vue {
     this.$emit("close");
   }
 }
+export default toNative(ParticipationUpdateModal)
 </script>

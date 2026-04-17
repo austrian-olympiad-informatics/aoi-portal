@@ -52,7 +52,8 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 import LoginInput, { LoginInputData } from "@/components/LoginInput.vue";
 import { AuthLoginResult } from "@/types/auth";
 import auth from "@/services/auth";
@@ -65,14 +66,14 @@ import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
     CenterBoxLayout,
   },
 })
-export default class LoginView extends Vue {
+class LoginView extends Vue {
   data: LoginInputData = {
     email: "",
     password: "",
   };
   unsuccessfulAttempts = 0;
   mounted(): void {
-    if (this.$store.getters.isAuthenticated) {
+    if (useStore().isAuthenticated) {
       this.$router.push("/");
     }
   }
@@ -99,8 +100,8 @@ export default class LoginView extends Vue {
       return;
     }
 
-    this.$store.commit("setAuthToken", resp.token);
-    await this.$store.dispatch("checkStatus");
+    useStore().setAuthToken(resp.token);
+    await useStore().checkStatus();
     this.$buefy.toast.open({
       message: "Erfolgreich angemeldet!",
       type: "is-success",
@@ -108,6 +109,7 @@ export default class LoginView extends Vue {
     this.$router.push("/");
   }
 }
+export default toNative(LoginView)
 </script>
 
 <style scoped>

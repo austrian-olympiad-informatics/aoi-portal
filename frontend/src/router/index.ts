@@ -1,5 +1,8 @@
-import Vue from "vue";
-import VueRouter, { RouteConfig } from "vue-router";
+import {
+  createRouter,
+  createWebHistory,
+  RouteRecordRaw,
+} from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import LoginView from "../views/auth/LoginView.vue";
 import RegisterView from "../views/auth/RegisterView.vue";
@@ -21,9 +24,7 @@ import ErrorView from "../views/ErrorView.vue";
 import ContestView from "../views/ContestView.vue";
 import NewsletterSignUpView from "../views/NewsletterSignUpView.vue";
 import NewsletterUnsubscribeView from "../views/NewsletterUnsubscribeView.vue";
-import store from "@/store";
-
-Vue.use(VueRouter);
+import { useStore } from "@/store";
 
 const CMS_META = {
   navbarSmall: true,
@@ -31,7 +32,7 @@ const CMS_META = {
   isCMS: true,
 };
 
-const routes: Array<RouteConfig> = [
+const routes: Array<RouteRecordRaw> = [
   {
     path: "/error",
     name: "Error",
@@ -402,20 +403,27 @@ const routes: Array<RouteConfig> = [
   },
 ];
 
-const router = new VueRouter({
-  mode: "history",
-  base: process.env.BASE_URL,
+const router = createRouter({
+  history: createWebHistory(process.env.BASE_URL),
   routes,
 });
 
 // Ensure store initialized before any routing happens
 // https://stackoverflow.com/a/51495462
-const storeInit = store.dispatch("init");
+let storeInit: Promise<void> | null = null;
+function getStoreInit() {
+  if (!storeInit) {
+    const store = useStore();
+    storeInit = store.init();
+  }
+  return storeInit;
+}
 
 // Proxy auth error: redirect everything to /error
 router.beforeEach((to, from, next) => {
-  storeInit.then(() => {
-    if (store.getters.proxyAuthError) {
+  getStoreInit().then(() => {
+    const store = useStore();
+    if (store.proxyAuthError) {
       if (to.path === "/error") {
         next();
       } else {
@@ -429,14 +437,15 @@ router.beforeEach((to, from, next) => {
 
 // Proxy auth active: restrict navigation to the proxy contest only
 router.beforeEach((to, from, next) => {
-  storeInit.then(() => {
-    if (!store.getters.isProxyAuth) {
+  getStoreInit().then(() => {
+    const store = useStore();
+    if (!store.isProxyAuth) {
       next();
       return;
     }
 
-    const proxyUuid = store.getters.proxyContestUuid;
-    const proxyCmsName = store.getters.proxyContestCmsName;
+    const proxyUuid = store.proxyContestUuid;
+    const proxyCmsName = store.proxyContestCmsName;
 
     // Allow contest page for the proxy contest
     if (to.name === "Contest" && to.params.contestUuid === proxyUuid) {
@@ -470,8 +479,9 @@ router.beforeEach((to, from, next) => {
     next();
     return;
   }
-  storeInit.then(() => {
-    if (!store.getters.isAuthenticated) {
+  getStoreInit().then(() => {
+    const store = useStore();
+    if (!store.isAuthenticated) {
       next("/auth/login");
       return;
     }
@@ -482,8 +492,9 @@ router.beforeEach((to, from, next) => {
 // check requires admin
 router.beforeEach((to, from, next) => {
   if (to.matched.some((r) => r.meta.requiresAdmin)) {
-    storeInit.then(() => {
-      if (!store.getters.isAuthenticated) {
+    getStoreInit().then(() => {
+      const store = useStore();
+      if (!store.isAuthenticated) {
         next("/auth/login");
         return;
       }

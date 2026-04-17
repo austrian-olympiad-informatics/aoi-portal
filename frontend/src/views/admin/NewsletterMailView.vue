@@ -66,7 +66,7 @@
 
 <script lang="ts">
 import admin from "@/services/admin";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import RichTextEditor from "@/components/RichTextEditor.vue";
 
 interface Address {
@@ -79,7 +79,7 @@ interface Address {
     RichTextEditor,
   },
 })
-export default class NewsletterMailView extends Vue {
+class NewsletterMailView extends Vue {
   subject = "";
   reply_to: Address[] = [];
   content = "";
@@ -102,6 +102,7 @@ export default class NewsletterMailView extends Vue {
     });
   }
 }
+export default toNative(NewsletterMailView)
 </script>
 
 <style scoped>

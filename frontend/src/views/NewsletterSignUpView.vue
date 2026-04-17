@@ -30,12 +30,12 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import newsletter from "@/services/newsletter";
 import { matchError } from "@/util/errors";
 
 @Component
-export default class NewsletterSignUpView extends Vue {
+class NewsletterSignUpView extends Vue {
   email = "";
   finished = false;
   loading = false;
@@ -62,4 +62,5 @@ export default class NewsletterSignUpView extends Vue {
     });
   }
 }
+export default toNative(NewsletterSignUpView)
 </script>

@@ -193,7 +193,7 @@
 <script lang="ts">
 import { SubmissionShort, Task } from "@/types/cms";
 import cms from "@/services/cms";
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import {  Component, Prop, Vue, Watch, toNative } from "vue-facing-decorator";
 import { formatDateShort } from "@/util/dt";
 import { PropType } from "vue";
 import { downloadBlob } from "@/util/download";
@@ -207,7 +207,7 @@ import katex from "katex";
     NotificationsSection,
   },
 })
-export default class DescriptionPanel extends Vue {
+class DescriptionPanel extends Vue {
   @Prop({
     type: Object as PropType<Task>,
   })
@@ -215,10 +215,10 @@ export default class DescriptionPanel extends Vue {
   statement_html: string | null = null;
 
   get contestName(): string {
-    return this.$route.params.contestName;
+    return this.$route.params.contestName as string;
   }
   get taskName(): string {
-    return this.$route.params.taskName;
+    return this.$route.params.taskName as string;
   }
   get sortedSubmissions(): SubmissionShort[] {
     return this.task.submissions.sort((a, b) => {
@@ -363,6 +363,7 @@ export default class DescriptionPanel extends Vue {
     });
   }
 }
+export default toNative(DescriptionPanel)
 </script>
 
 <style scoped lang="scss">
@@ -432,7 +433,7 @@ tr.is-active {
 </style>
 
 <style scoped>
-.content::v-deep figure {
+.content :deep(figure) {
   margin-left: 0 !important;
   margin-right: 0 !important;
 }

@@ -53,7 +53,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import { AdminNewsletterSubscribers } from "@/types/admin";
 import AdminCard from "@/components/admin/AdminCard.vue";
 import admin from "@/services/admin";
@@ -63,7 +63,7 @@ import admin from "@/services/admin";
     AdminCard,
   },
 })
-export default class NewsletterView extends Vue {
+class NewsletterView extends Vue {
   subscribers: AdminNewsletterSubscribers | null = null;
 
   async loadNewsletter() {
@@ -79,4 +79,5 @@ export default class NewsletterView extends Vue {
     await this.loadNewsletter();
   }
 }
+export default toNative(NewsletterView)
 </script>

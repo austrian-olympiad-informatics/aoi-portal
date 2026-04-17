@@ -207,7 +207,7 @@
 <script lang="ts">
 import { Submission, Task } from "@/types/cms";
 import { PropType } from "vue";
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import {  Component, Prop, Vue, Watch, toNative } from "vue-facing-decorator";
 import cms from "@/services/cms";
 import { formatDateShort } from "@/util/dt";
 import { langToExt, lookupCMSLang } from "@/util/lang-table";
@@ -220,20 +220,20 @@ import { translateText } from "@/util/cms";
     CodeMirror,
   },
 })
-export default class SubmissionDetailsPanel extends Vue {
+class SubmissionDetailsPanel extends Vue {
   @Prop({
     type: Object as PropType<Task>,
   })
   task!: Task;
   now: Date = new Date();
   get contestName(): string {
-    return this.$route.params.contestName;
+    return this.$route.params.contestName as string;
   }
   get taskName(): string {
-    return this.$route.params.taskName;
+    return this.$route.params.taskName as string;
   }
   get submissionUuid(): string {
-    return this.$route.params.submissionUuid;
+    return this.$route.params.submissionUuid as string;
   }
   submission: Submission | null = null;
   files: Record<string, string> | null = null;
@@ -352,10 +352,11 @@ export default class SubmissionDetailsPanel extends Vue {
   created() {
     document.addEventListener("keydown", this.onKeydown);
   }
-  destroyed() {
+  unmounted() {
     document.removeEventListener("keydown", this.onKeydown);
   }
 }
+export default toNative(SubmissionDetailsPanel)
 </script>
 
 <style scoped lang="scss">

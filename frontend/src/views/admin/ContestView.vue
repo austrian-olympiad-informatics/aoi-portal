@@ -131,7 +131,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import admin from "@/services/admin";
 import { AdminContestDetail, AdminContestUpdateParams } from "@/types/admin";
 import AdminCard from "@/components/admin/AdminCard.vue";
@@ -149,13 +149,13 @@ import { ParticipationFormData } from "@/components/admin/ParticipationForm.vue"
     ContestForm,
   },
 })
-export default class ContestView extends Vue {
+class ContestView extends Vue {
   contestUuid!: string;
   contest: AdminContestDetail | null = null;
   data: ContestFormData | null = null;
 
   async mounted() {
-    this.contestUuid = this.$route.params.contestUuid;
+    this.contestUuid = this.$route.params.contestUuid as string;
     await this.loadContest();
   }
 
@@ -241,7 +241,6 @@ export default class ContestView extends Vue {
   }
   async createParticipation() {
     this.$buefy.modal.open({
-      parent: this,
       component: ParticipationCreateModal,
       hasModalCard: true,
       trapFocus: true,
@@ -265,7 +264,6 @@ export default class ContestView extends Vue {
   }
   async updateParticipation(id: number) {
     this.$buefy.modal.open({
-      parent: this,
       component: ParticipationUpdateModal,
       props: {
         contestUuid: this.contestUuid,
@@ -306,7 +304,6 @@ export default class ContestView extends Vue {
   }
   async addFromGroup() {
     this.$buefy.modal.open({
-      parent: this,
       component: ContestAddFromGroupModal,
       hasModalCard: true,
       trapFocus: true,
@@ -317,4 +314,5 @@ export default class ContestView extends Vue {
     });
   }
 }
+export default toNative(ContestView)
 </script>
