@@ -79,17 +79,18 @@
 import auth from "@/services/auth";
 import { AuthResetPasswordResult } from "@/types/auth";
 import { matchError } from "@/util/errors";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 
 @Component
-export default class PasswordResetVerifyView extends Vue {
+class PasswordResetVerifyView extends Vue {
   verifyCode = "";
   stageVerifyMail = true;
   newPassword = "";
   newPasswordConfirm = "";
 
   get email(): string {
-    return this.$store.getters.passwordResetVerifyEmail;
+    return useStore().passwordResetVerifyEmail;
   }
   get newPasswordsMatch(): boolean {
     return this.newPassword === this.newPasswordConfirm;
@@ -97,7 +98,7 @@ export default class PasswordResetVerifyView extends Vue {
 
   async passwordResetVerify() {
     await auth.resetPassword({
-      uuid: this.$store.getters.passwordResetVerifyUuid,
+      uuid: useStore().passwordResetVerifyUuid,
       verification_code: this.verifyCode,
     });
     this.stageVerifyMail = false;
@@ -107,7 +108,7 @@ export default class PasswordResetVerifyView extends Vue {
     let resp: AuthResetPasswordResult;
     try {
       resp = await auth.resetPassword({
-        uuid: this.$store.getters.passwordResetVerifyUuid,
+        uuid: useStore().passwordResetVerifyUuid,
         verification_code: this.verifyCode,
         new_password: this.newPassword,
       });
@@ -122,12 +123,12 @@ export default class PasswordResetVerifyView extends Vue {
       });
       return;
     }
-    this.$store.commit("setAuthToken", resp.token);
-    this.$store.commit("setPasswordResetVerifyState", {
+    useStore().setAuthToken(resp.token);
+    useStore().setPasswordResetVerifyState({
       passwordResetVerifyEmail: "",
       passwordResetVerifyUuid: "",
     });
-    await this.$store.dispatch("checkStatus");
+    await useStore().checkStatus();
     this.$buefy.toast.open({
       message: "Passwort wurde erfolgreich zurückgesetzt!",
       type: "is-success",
@@ -135,9 +136,10 @@ export default class PasswordResetVerifyView extends Vue {
     this.$router.push("/");
   }
   mounted(): void {
-    if (!this.$store.getters.passwordResetVerifyUuid) {
+    if (!useStore().passwordResetVerifyUuid) {
       this.$router.push("/");
     }
   }
 }
+export default toNative(PasswordResetVerifyView)
 </script>

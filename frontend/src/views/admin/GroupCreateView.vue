@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import AdminCard from "@/components/admin/AdminCard.vue";
 import GroupForm, { GroupFormData } from "@/components/admin/GroupForm.vue";
 import admin from "@/services/admin";
@@ -20,7 +20,7 @@ import admin from "@/services/admin";
     GroupForm,
   },
 })
-export default class GroupCreateView extends Vue {
+class GroupCreateView extends Vue {
   data: GroupFormData = {
     name: "",
     description: "",
@@ -40,4 +40,5 @@ export default class GroupCreateView extends Vue {
     this.$router.push({ name: "AdminGroups" });
   }
 }
+export default toNative(GroupCreateView)
 </script>

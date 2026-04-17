@@ -44,7 +44,7 @@
 
 <script lang="ts">
 import auth from "@/services/auth";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 import { matchError } from "@/util/errors";
 
@@ -53,7 +53,7 @@ import { matchError } from "@/util/errors";
     CenterBoxLayout,
   },
 })
-export default class ChangePasswordView extends Vue {
+class ChangePasswordView extends Vue {
   currentPassword = "";
   newPassword = "";
   newPasswordConfirm = "";
@@ -85,4 +85,5 @@ export default class ChangePasswordView extends Vue {
     this.$router.push({ name: "Profile" });
   }
 }
+export default toNative(ChangePasswordView)
 </script>

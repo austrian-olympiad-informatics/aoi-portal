@@ -39,7 +39,7 @@
 
 <script lang="ts">
 import { Contest } from "@/types/cms";
-import { Component, Prop, Vue } from "vue-property-decorator";
+import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
 import {
   formatDateLong,
   formatFromNow,
@@ -50,7 +50,7 @@ import {
 import { PropType } from "vue";
 
 @Component
-export default class ContestStartStop extends Vue {
+class ContestStartStop extends Vue {
   @Prop({
     type: Object as PropType<Contest>,
   })
@@ -157,8 +157,9 @@ export default class ContestStartStop extends Vue {
     }, 1000);
   }
 
-  destroyed() {
+  unmounted() {
     if (this.nowHandle !== null) clearInterval(this.nowHandle);
   }
 }
+export default toNative(ContestStartStop)
 </script>

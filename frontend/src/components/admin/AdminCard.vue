@@ -15,14 +15,15 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
 
 @Component
-export default class AdminCard extends Vue {
+class AdminCard extends Vue {
   @Prop({
     type: Boolean,
     default: false,
   })
   loading!: boolean;
 }
+export default toNative(AdminCard)
 </script>

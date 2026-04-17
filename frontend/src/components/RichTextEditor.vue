@@ -243,11 +243,11 @@
 </template>
 
 <script lang="ts">
-import { Editor, EditorContent, BubbleMenu } from "@tiptap/vue-2";
+import { Editor, EditorContent, BubbleMenu } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import {  Component, Prop, Vue, Watch, toNative } from "vue-facing-decorator";
 
 @Component({
   components: {
@@ -255,7 +255,7 @@ import { Component, Prop, Vue, Watch } from "vue-property-decorator";
     BubbleMenu,
   },
 })
-export default class RichTextEditor extends Vue {
+class RichTextEditor extends Vue {
   editor: Editor | null = null;
   @Prop({
     type: String,
@@ -312,10 +312,11 @@ export default class RichTextEditor extends Vue {
     });
   }
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.editor?.destroy();
   }
 }
+export default toNative(RichTextEditor)
 </script>
 
 <style>

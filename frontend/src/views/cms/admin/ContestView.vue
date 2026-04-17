@@ -128,10 +128,10 @@ import {
   AdminUserEvalsPaginated,
 } from "@/types/cmsadmin";
 import { formatDateShort } from "@/util/dt";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 
 @Component
-export default class AdminContestView extends Vue {
+class AdminContestView extends Vue {
   get contestId(): number {
     return +this.$route.params.contestId;
   }
@@ -172,4 +172,5 @@ export default class AdminContestView extends Vue {
     return formatDateShort(new Date(), new Date(date));
   }
 }
+export default toNative(AdminContestView)
 </script>

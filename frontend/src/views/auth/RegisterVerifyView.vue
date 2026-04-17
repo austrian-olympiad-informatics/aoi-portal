@@ -35,7 +35,8 @@
 import auth from "@/services/auth";
 import { AuthRegisterVerifyResult } from "@/types/auth";
 import { matchError } from "@/util/errors";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 
 @Component({
@@ -43,19 +44,19 @@ import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
     CenterBoxLayout,
   },
 })
-export default class RegisterVerifyView extends Vue {
+class RegisterVerifyView extends Vue {
   verifyCode = "";
   showHelpText = false;
 
   get registerEmail(): string {
-    return this.$store.getters.registerVerifyEmail;
+    return useStore().registerVerifyEmail;
   }
 
   async registerVerify() {
     let resp: AuthRegisterVerifyResult;
     try {
       resp = await auth.registerVerify({
-        uuid: this.$store.getters.registerVerifyUuid,
+        uuid: useStore().registerVerifyUuid,
         verification_code: this.verifyCode,
       });
     } catch (err) {
@@ -71,12 +72,12 @@ export default class RegisterVerifyView extends Vue {
       });
       return;
     }
-    this.$store.commit("setAuthToken", resp.token);
-    this.$store.commit("setRegisterVerifyState", {
+    useStore().setAuthToken(resp.token);
+    useStore().setRegisterVerifyState({
       registerVerifyEmail: "",
       registerVerifyUuid: "",
     });
-    await this.$store.dispatch("checkStatus");
+    await useStore().checkStatus();
     this.$buefy.toast.open({
       message: "Erfolgreich registriert!",
       type: "is-success",
@@ -84,10 +85,10 @@ export default class RegisterVerifyView extends Vue {
     this.$router.push("/");
   }
   mounted(): void {
-    if (this.$store.getters.isAuthenticated) {
+    if (useStore().isAuthenticated) {
       this.$router.push("/");
     }
-    if (!this.$store.getters.registerVerifyUuid) {
+    if (!useStore().registerVerifyUuid) {
       this.$router.push("/");
     }
     setTimeout(
@@ -98,4 +99,5 @@ export default class RegisterVerifyView extends Vue {
     );
   }
 }
+export default toNative(RegisterVerifyView)
 </script>

@@ -1,89 +1,23 @@
-// Import Bulma's core
-$family-sans-serif: "Arimo", sans-serif;
-$family-monospace: "Fira Code", monospace;
-
-@import "~bulma/sass/utilities/_all";
-
-// Set your colors
-$primary: #8a151b;
-$primary-light: findLightColor($primary);
-$primary-dark: findDarkColor($primary);
-$primary-invert: findColorInvert($primary);
-$twitter: #4099ff;
-$twitter-invert: findColorInvert($twitter);
-$success: #208b11;
-$danger: #b82e2e;
-$warning: #ead654;
-
-// Lists and maps
-$custom-colors: null !default;
-$custom-shades: null !default;
-
-// Setup $colors to use as bulma classes (e.g. 'is-twitter')
-$colors: mergeColorMaps(
-  (
-    "white": (
-      $white,
-      $black,
-    ),
-    "black": (
-      $black,
-      $white,
-    ),
-    "light": (
-      $light,
-      $light-invert,
-    ),
-    "dark": (
-      $dark,
-      $dark-invert,
-    ),
-    "primary": (
-      $primary,
-      $primary-invert,
-      $primary-light,
-      $primary-dark,
-    ),
-    "link": (
-      $link,
-      $link-invert,
-      $link-light,
-      $link-dark,
-    ),
-    "info": (
-      $info,
-      $info-invert,
-      $info-light,
-      $info-dark,
-    ),
-    "success": (
-      $success,
-      $success-invert,
-      $success-light,
-      $success-dark,
-    ),
-    "warning": (
-      $warning,
-      $warning-invert,
-      $warning-light,
-      $warning-dark,
-    ),
-    "danger": (
-      $danger,
-      $danger-invert,
-      $danger-light,
-      $danger-dark,
-    ),
-  ),
-  $custom-colors
+// Override Bulma initial variables
+@use "bulma/sass/utilities/initial-variables" as iv with (
+  $family-sans-serif: ("Arimo", sans-serif),
+  $family-monospace: ("Fira Code", monospace)
 );
 
-// Links
-$link: $primary;
-$link-invert: $primary-invert;
-$link-focus-border: $primary;
+// Override Bulma derived variables
+@use "bulma/sass/utilities/derived-variables" as dv with (
+  $primary: #8a151b,
+  $success: #208b11,
+  $danger: #b82e2e,
+  $warning: #ead654,
+  $link: #8a151b
+);
 
-// Import Bulma and Buefy styles
-@import "~bulma";
-@import "~buefy/src/scss/buefy";
-@import "./fonts.scss";
+// Import full Bulma
+@use "bulma/sass";
+
+// Import Buefy styles
+@use "buefy/src/scss/buefy";
+
+// Import fonts
+@use "./fonts.scss";

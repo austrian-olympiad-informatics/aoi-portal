@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import admin from "@/services/admin";
 import { AdminUserUpdateParams, AdminUserDetail } from "@/types/admin";
 import UserForm, { UserFormData } from "@/components/admin/UserForm.vue";
@@ -34,7 +34,7 @@ import AdminCard from "@/components/admin/AdminCard.vue";
     UserForm,
   },
 })
-export default class UserView extends Vue {
+class UserView extends Vue {
   userId!: number;
   user: AdminUserDetail | null = null;
   data: UserFormData | null = null;
@@ -102,4 +102,5 @@ export default class UserView extends Vue {
     });
   }
 }
+export default toNative(UserView)
 </script>

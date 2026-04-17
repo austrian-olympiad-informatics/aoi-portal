@@ -7,13 +7,13 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import contests from "@/services/contests";
 
 @Component
-export default class ContestSSOView extends Vue {
+class ContestSSOView extends Vue {
   async mounted() {
-    const contestUuid = this.$route.params.contestUuid;
+    const contestUuid = this.$route.params.contestUuid as string;
     const resp = await contests.genSSOToken(contestUuid);
     const url = new URL(resp.endpoint);
     url.searchParams.append("token", resp.token);
@@ -21,4 +21,5 @@ export default class ContestSSOView extends Vue {
     window.location.replace(url);
   }
 }
+export default toNative(ContestSSOView)
 </script>

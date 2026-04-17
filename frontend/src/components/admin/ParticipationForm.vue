@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, VModel, Vue } from "vue-property-decorator";
+import {  Component, Prop, VModel, Vue, toNative } from "vue-facing-decorator";
 import { AdminUser, AdminUsers } from "@/types/admin";
 import NumberInput from "../common/NumberInput.vue";
 import admin from "@/services/admin";
@@ -43,7 +43,7 @@ export interface ParticipationFormData {
     NumberInput,
   },
 })
-export default class ParticipationForm extends Vue {
+class ParticipationForm extends Vue {
   @VModel({
     type: Object as PropType<ParticipationFormData>,
   })
@@ -91,6 +91,7 @@ export default class ParticipationForm extends Vue {
     await this.loadUsers();
   }
 }
+export default toNative(ParticipationForm)
 </script>
 
 <style scoped></style>

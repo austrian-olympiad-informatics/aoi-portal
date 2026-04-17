@@ -113,7 +113,7 @@
 import admin from "@/services/admin";
 import { AdminGroup, AdminGroups } from "@/types/admin";
 import { PropType } from "vue";
-import { Component, Prop, Vue, VModel } from "vue-property-decorator";
+import {  Component, Prop, Vue, VModel, toNative } from "vue-facing-decorator";
 import NumberInput from "../common/NumberInput.vue";
 
 export interface UserFormData {
@@ -139,7 +139,7 @@ export interface UserFormData {
     NumberInput,
   },
 })
-export default class UserForm extends Vue {
+class UserForm extends Vue {
   @VModel({
     type: Object as PropType<UserFormData>,
   })
@@ -186,6 +186,7 @@ export default class UserForm extends Vue {
     await this.loadGroups();
   }
 }
+export default toNative(UserForm)
 </script>
 
 <style scoped></style>

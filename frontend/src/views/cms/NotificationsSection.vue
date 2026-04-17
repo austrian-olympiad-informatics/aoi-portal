@@ -73,13 +73,13 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
 import { formatDateShort } from "@/util/dt";
 import { Announcement, Message, Question } from "@/types/cms";
 import cms from "@/services/cms";
 
 @Component
-export default class NotificationsSection extends Vue {
+class NotificationsSection extends Vue {
   @Prop({
     type: Array,
     default: () => [],
@@ -162,6 +162,7 @@ export default class NotificationsSection extends Vue {
     this.$emit("new-question");
   }
 }
+export default toNative(NotificationsSection)
 </script>
 
 <style scoped>

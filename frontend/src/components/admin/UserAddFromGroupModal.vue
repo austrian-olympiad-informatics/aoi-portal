@@ -23,10 +23,10 @@
 <script lang="ts">
 import admin from "@/services/admin";
 import { AdminGroups } from "@/types/admin";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 
 @Component
-export default class UserAddFromGroupModal extends Vue {
+class UserAddFromGroupModal extends Vue {
   groups: AdminGroups | null = null;
   selected: number | null = null;
 
@@ -42,4 +42,5 @@ export default class UserAddFromGroupModal extends Vue {
     this.$emit("close");
   }
 }
+export default toNative(UserAddFromGroupModal)
 </script>

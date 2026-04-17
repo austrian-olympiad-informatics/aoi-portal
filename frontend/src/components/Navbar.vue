@@ -83,42 +83,44 @@
 
 <script lang="ts">
 import auth from "@/services/auth";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 
 @Component
-export default class Navbar extends Vue {
+class Navbar extends Vue {
   get isAdmin(): boolean {
-    return this.$store.getters.isAdmin;
+    return useStore().isAdmin;
   }
   get isCMS(): boolean {
     return this.$route.matched.some((x) => x.meta.isCMS);
   }
   get isAuthenticated(): boolean {
-    return this.$store.getters.isAuthenticated;
+    return useStore().isAuthenticated;
   }
   get isProxyAuth(): boolean {
-    return this.$store.getters.isProxyAuth;
+    return useStore().isProxyAuth;
   }
   get isNavbarSmall(): boolean {
     return this.$route.matched.some((x) => x.meta.navbarSmall);
   }
   get isDiscordLinked(): boolean {
-    return !!this.$store.getters.discordUsername;
+    return !!useStore().discordUsername;
   }
   get getDiscordUsername(): string {
-    return this.$store.getters.discordUsername;
+    return useStore().discordUsername;
   }
 
   get name(): string {
-    return `${this.$store.getters.firstName} ${this.$store.getters.lastName}`;
+    return `${useStore().firstName} ${useStore().lastName}`;
   }
   async logout(): Promise<void> {
     await auth.logout();
-    this.$store.commit("setAuthToken", "");
-    this.$store.dispatch("checkStatus");
+    useStore().setAuthToken("");
+    useStore().checkStatus();
     this.$router.push("/");
   }
 }
+export default toNative(Navbar)
 </script>
 
 <style scoped>

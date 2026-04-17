@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import {  Component, Prop, Vue, Watch, toNative } from "vue-facing-decorator";
 import {
   Decoration,
   DecorationSet,
@@ -107,7 +107,7 @@ function italicAll(view: EditorView) {
 }
 
 @Component
-export default class CodeMirror extends Vue {
+class CodeMirror extends Vue {
   @Prop({
     type: String,
     default: "",
@@ -266,6 +266,7 @@ export default class CodeMirror extends Vue {
     this.resetState();
   }
 }
+export default toNative(CodeMirror)
 </script>
 
 <style>

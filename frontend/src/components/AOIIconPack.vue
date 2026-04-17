@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
 import {
   mdiAccount,
   mdiAccountCircle,
@@ -143,7 +143,7 @@ const ICON_LOOKUP: IconLookupType = {
 };
 
 @Component
-export default class AOIIconPack extends Vue {
+class AOIIconPack extends Vue {
   @Prop({
     type: Array,
   })
@@ -171,4 +171,5 @@ export default class AOIIconPack extends Vue {
     return ICON_LOOKUP[this.icon[1]];
   }
 }
+export default toNative(AOIIconPack)
 </script>

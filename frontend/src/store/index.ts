@@ -1,9 +1,8 @@
 import auth from "@/services/auth";
 import { AuthStatusResult } from "@/types/auth";
-import Vue from "vue";
-import Vuex from "vuex";
+import { createPinia, defineStore } from "pinia";
 
-Vue.use(Vuex);
+export const pinia = createPinia();
 
 interface LocalStorageState {
   isAuthenticated: boolean;
@@ -18,8 +17,8 @@ interface LocalStorageState {
   discordUsername: string;
 }
 
-const store = new Vuex.Store({
-  state: {
+export const useStore = defineStore("main", {
+  state: () => ({
     authToken: "",
     isAuthenticated: false,
     isAdmin: false,
@@ -37,96 +36,111 @@ const store = new Vuex.Store({
     proxyContestUuid: "",
     proxyContestName: "",
     proxyContestCmsName: "",
-  },
+  }),
   getters: {
-    isAuthenticated: (state) => state.isAuthenticated,
-    isAdmin: (state) => state.isAdmin,
     getAuthToken: (state) => state.authToken,
-    registerVerifyEmail: (state) => state.registerVerifyEmail,
-    registerVerifyUuid: (state) => state.registerVerifyUuid,
-    changeEmailVerifyEmail: (state) => state.changeEmailVerifyEmail,
-    changeEmailVerifyUuid: (state) => state.changeEmailVerifyUuid,
-    passwordResetVerifyEmail: (state) => state.passwordResetVerifyEmail,
-    passwordResetVerifyUuid: (state) => state.passwordResetVerifyUuid,
-    firstName: (state) => state.firstName,
-    lastName: (state) => state.lastName,
-    discordUsername: (state) => state.discordUsername,
-    isProxyAuth: (state) => state.isProxyAuth,
-    proxyAuthError: (state) => state.proxyAuthError,
-    proxyContestUuid: (state) => state.proxyContestUuid,
-    proxyContestName: (state) => state.proxyContestName,
-    proxyContestCmsName: (state) => state.proxyContestCmsName,
-  },
-  mutations: {
-    setFromAuthStatus(state, status: AuthStatusResult) {
-      state.isAuthenticated = status.authenticated;
-      state.isAdmin = status.admin;
-      state.firstName = status.first_name || "";
-      state.lastName = status.last_name || "";
-      state.discordUsername = status.discord_user || "";
-      state.isProxyAuth = status.proxy_auth || false;
-      state.proxyAuthError = status.proxy_auth_error || false;
-      state.proxyContestUuid = status.proxy_contest?.uuid || "";
-      state.proxyContestName = status.proxy_contest?.name || "";
-      state.proxyContestCmsName = status.proxy_contest?.cms_name || "";
-    },
-    setAuthToken(state, authToken: string) {
-      state.authToken = authToken;
-    },
-    setRegisterVerifyState(state, { registerVerifyEmail, registerVerifyUuid }) {
-      state.registerVerifyEmail = registerVerifyEmail;
-      state.registerVerifyUuid = registerVerifyUuid;
-    },
-    setChangeEmailVerifyState(
-      state,
-      { changeEmailVerifyEmail, changeEmailVerifyUuid },
-    ) {
-      state.changeEmailVerifyEmail = changeEmailVerifyEmail;
-      state.changeEmailVerifyUuid = changeEmailVerifyUuid;
-    },
-    setPasswordResetVerifyState(
-      state,
-      { passwordResetVerifyEmail, passwordResetVerifyUuid },
-    ) {
-      state.passwordResetVerifyEmail = passwordResetVerifyEmail;
-      state.passwordResetVerifyUuid = passwordResetVerifyUuid;
-    },
-    setDiscordUsername(state, discordUsername: string) {
-      state.discordUsername = discordUsername;
-    },
-    restoreState(state, savedState: LocalStorageState) {
-      state.isAuthenticated = savedState.isAuthenticated;
-      state.isAdmin = savedState.isAdmin;
-      state.authToken = savedState.authToken;
-      state.registerVerifyEmail = savedState.registerVerifyEmail;
-      state.registerVerifyUuid = savedState.registerVerifyUuid;
-      state.changeEmailVerifyEmail = savedState.changeEmailVerifyEmail;
-      state.changeEmailVerifyUuid = savedState.changeEmailVerifyUuid;
-      state.passwordResetVerifyEmail = savedState.passwordResetVerifyEmail;
-      state.passwordResetVerifyUuid = savedState.passwordResetVerifyUuid;
-      state.discordUsername = savedState.discordUsername;
-    },
   },
   actions: {
-    async checkStatus({ commit }) {
-      const status = await auth.status();
-      commit("setFromAuthStatus", status);
+    setFromAuthStatus(status: AuthStatusResult) {
+      this.isAuthenticated = status.authenticated;
+      this.isAdmin = status.admin;
+      this.firstName = status.first_name || "";
+      this.lastName = status.last_name || "";
+      this.discordUsername = status.discord_user || "";
+      this.isProxyAuth = status.proxy_auth || false;
+      this.proxyAuthError = status.proxy_auth_error || false;
+      this.proxyContestUuid = status.proxy_contest?.uuid || "";
+      this.proxyContestName = status.proxy_contest?.name || "";
+      this.proxyContestCmsName = status.proxy_contest?.cms_name || "";
     },
-    loadLocalStorage({ commit }) {
+    setAuthToken(authToken: string) {
+      this.authToken = authToken;
+    },
+    setRegisterVerifyState({
+      registerVerifyEmail,
+      registerVerifyUuid,
+    }: {
+      registerVerifyEmail: string;
+      registerVerifyUuid: string;
+    }) {
+      this.registerVerifyEmail = registerVerifyEmail;
+      this.registerVerifyUuid = registerVerifyUuid;
+    },
+    setChangeEmailVerifyState({
+      changeEmailVerifyEmail,
+      changeEmailVerifyUuid,
+    }: {
+      changeEmailVerifyEmail: string;
+      changeEmailVerifyUuid: string;
+    }) {
+      this.changeEmailVerifyEmail = changeEmailVerifyEmail;
+      this.changeEmailVerifyUuid = changeEmailVerifyUuid;
+    },
+    setPasswordResetVerifyState({
+      passwordResetVerifyEmail,
+      passwordResetVerifyUuid,
+    }: {
+      passwordResetVerifyEmail: string;
+      passwordResetVerifyUuid: string;
+    }) {
+      this.passwordResetVerifyEmail = passwordResetVerifyEmail;
+      this.passwordResetVerifyUuid = passwordResetVerifyUuid;
+    },
+    setDiscordUsername(discordUsername: string) {
+      this.discordUsername = discordUsername;
+    },
+    restoreState(savedState: LocalStorageState) {
+      this.isAuthenticated = savedState.isAuthenticated;
+      this.isAdmin = savedState.isAdmin;
+      this.authToken = savedState.authToken;
+      this.registerVerifyEmail = savedState.registerVerifyEmail;
+      this.registerVerifyUuid = savedState.registerVerifyUuid;
+      this.changeEmailVerifyEmail = savedState.changeEmailVerifyEmail;
+      this.changeEmailVerifyUuid = savedState.changeEmailVerifyUuid;
+      this.passwordResetVerifyEmail = savedState.passwordResetVerifyEmail;
+      this.passwordResetVerifyUuid = savedState.passwordResetVerifyUuid;
+      this.discordUsername = savedState.discordUsername;
+    },
+    async checkStatus() {
+      const status = await auth.status();
+      this.setFromAuthStatus(status);
+    },
+    loadLocalStorage() {
       const val = localStorage.getItem("aoiState");
       if (!val) return;
       const js = JSON.parse(val) as LocalStorageState;
-      commit("restoreState", js);
+      this.restoreState(js);
     },
-    async init({ dispatch }) {
-      dispatch("loadLocalStorage");
-      await dispatch("checkStatus");
+    async init() {
+      this.loadLocalStorage();
+      await this.checkStatus();
+    },
+    _saveToLocalStorage() {
+      const val: LocalStorageState = {
+        isAuthenticated: this.isAuthenticated,
+        isAdmin: this.isAdmin,
+        authToken: this.authToken,
+        registerVerifyEmail: this.registerVerifyEmail,
+        registerVerifyUuid: this.registerVerifyUuid,
+        changeEmailVerifyEmail: this.changeEmailVerifyEmail,
+        changeEmailVerifyUuid: this.changeEmailVerifyUuid,
+        passwordResetVerifyEmail: this.passwordResetVerifyEmail,
+        passwordResetVerifyUuid: this.passwordResetVerifyUuid,
+        discordUsername: this.discordUsername,
+      };
+      localStorage.setItem("aoiState", JSON.stringify(val));
     },
   },
-  modules: {},
 });
-store.subscribe((mutation, state) => {
-  if (mutation.type !== "restoreState") {
+
+// Persist state to localStorage on every change (except restoreState)
+let _isRestoring = false;
+const _origRestoreState = useStore.prototype?.restoreState;
+
+pinia.use(({ store }) => {
+  if (store.$id !== "main") return;
+  store.$subscribe((mutation, state) => {
+    if (_isRestoring) return;
     const val: LocalStorageState = {
       isAuthenticated: state.isAuthenticated,
       isAdmin: state.isAdmin,
@@ -140,7 +154,13 @@ store.subscribe((mutation, state) => {
       discordUsername: state.discordUsername,
     };
     localStorage.setItem("aoiState", JSON.stringify(val));
-  }
-});
+  });
 
-export default store;
+  // Wrap restoreState to skip persistence during restore
+  const origRestore = store.restoreState;
+  store.restoreState = function (savedState: LocalStorageState) {
+    _isRestoring = true;
+    origRestore.call(this, savedState);
+    _isRestoring = false;
+  };
+});

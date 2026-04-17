@@ -93,10 +93,10 @@ import {
   AdminAllTasks,
   AdminMemes,
 } from "@/types/cmsadmin";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 
 @Component
-export default class AdminIndexView extends Vue {
+class AdminIndexView extends Vue {
   contests: AdminContests | null = null;
   tasks: AdminAllTasks | null = null;
   users: AdminUsers | null = null;
@@ -123,4 +123,5 @@ export default class AdminIndexView extends Vue {
     ]);
   }
 }
+export default toNative(AdminIndexView)
 </script>

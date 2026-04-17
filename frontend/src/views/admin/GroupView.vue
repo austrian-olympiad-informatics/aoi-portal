@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import admin from "@/services/admin";
 import { AdminGroupDetail, AdminGroupUpdateParams } from "@/types/admin";
 import GroupForm, { GroupFormData } from "@/components/admin/GroupForm.vue";
@@ -26,7 +26,7 @@ import AdminCard from "@/components/admin/AdminCard.vue";
     GroupForm,
   },
 })
-export default class GroupView extends Vue {
+class GroupView extends Vue {
   groupId!: number;
   group: AdminGroupDetail | null = null;
   data: GroupFormData | null = null;
@@ -58,4 +58,5 @@ export default class GroupView extends Vue {
     });
   }
 }
+export default toNative(GroupView)
 </script>

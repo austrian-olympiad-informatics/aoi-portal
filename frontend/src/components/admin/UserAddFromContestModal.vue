@@ -27,10 +27,10 @@
 <script lang="ts">
 import admin from "@/services/admin";
 import { AdminContests } from "@/types/admin";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 
 @Component
-export default class UserAddFromContestModal extends Vue {
+class UserAddFromContestModal extends Vue {
   contests: AdminContests | null = null;
   selected: string | null = null;
 
@@ -46,4 +46,5 @@ export default class UserAddFromContestModal extends Vue {
     this.$emit("close");
   }
 }
+export default toNative(UserAddFromContestModal)
 </script>

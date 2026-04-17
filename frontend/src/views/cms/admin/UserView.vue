@@ -112,7 +112,7 @@ import {
   AdminUserEvalsPaginated,
 } from "@/types/cmsadmin";
 import { AdminUser as AdminRegisterUser } from "@/types/admin";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import UserContest from "./UserContestComponent.vue";
 
 @Component({
@@ -120,7 +120,7 @@ import UserContest from "./UserContestComponent.vue";
     UserContest,
   },
 })
-export default class AdminUserView extends Vue {
+class AdminUserView extends Vue {
   get userId(): number {
     return +this.$route.params.userId;
   }
@@ -173,4 +173,5 @@ export default class AdminUserView extends Vue {
     return "-";
   }
 }
+export default toNative(AdminUserView)
 </script>

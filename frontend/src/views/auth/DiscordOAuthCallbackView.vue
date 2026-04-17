@@ -7,13 +7,14 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 import oauth from "@/services/oauth";
 import { matchError, showErrorNotification } from "@/util/errors";
 import { DiscordAuthorizeResponse } from "@/types/oauth";
 
 @Component
-export default class DiscordOAuthCallbackView extends Vue {
+class DiscordOAuthCallbackView extends Vue {
   async mounted() {
     const err = this.$route.query.error as string | undefined;
     if (err) {
@@ -51,7 +52,7 @@ export default class DiscordOAuthCallbackView extends Vue {
       return;
     }
 
-    this.$store.commit("setDiscordUsername", resp.username);
+    useStore().setDiscordUsername(resp.username);
     this.$buefy.toast.open({
       message: "Erfolgreich mit Discord verlinkt!",
       type: "is-success",
@@ -59,4 +60,5 @@ export default class DiscordOAuthCallbackView extends Vue {
     this.$router.push("/");
   }
 }
+export default toNative(DiscordOAuthCallbackView)
 </script>

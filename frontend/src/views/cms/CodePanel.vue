@@ -88,7 +88,7 @@ import {
   UserEval,
   UserEvalSubmitResult,
 } from "@/types/cms";
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import {  Component, Prop, Vue, Watch, toNative } from "vue-facing-decorator";
 import { PropType } from "vue";
 import CodeMirror from "@/components/CodeMirror.vue";
 import Dropzone from "@/components/Dropzone.vue";
@@ -111,16 +111,16 @@ interface CodeStorage {
     Dropzone,
   },
 })
-export default class CodePanel extends Vue {
+class CodePanel extends Vue {
   @Prop({
     type: Object as PropType<Task>,
   })
   task!: Task;
   get contestName(): string {
-    return this.$route.params.contestName;
+    return this.$route.params.contestName as string;
   }
   get taskName(): string {
-    return this.$route.params.taskName;
+    return this.$route.params.taskName as string;
   }
 
   code = "";
@@ -375,6 +375,7 @@ export default class CodePanel extends Vue {
     reschedule(1000);
   }
 }
+export default toNative(CodePanel)
 </script>
 
 <style scoped lang="scss">

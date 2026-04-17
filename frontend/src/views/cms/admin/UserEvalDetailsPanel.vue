@@ -275,7 +275,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
+import {  Component, Vue, Watch, toNative } from "vue-facing-decorator";
 import { formatDateShort } from "@/util/dt";
 import { langToExt, lookupCMSLang } from "@/util/lang-table";
 import CodeMirror from "@/components/CodeMirror.vue";
@@ -293,10 +293,10 @@ import {
     CodeMirror,
   },
 })
-export default class AdminUserEvalDetailsPanel extends Vue {
+class AdminUserEvalDetailsPanel extends Vue {
   now: Date = new Date();
   get userEvalUuid(): string {
-    return this.$route.params.userEvalUuid;
+    return this.$route.params.userEvalUuid as string;
   }
   userEval: AdminUserEvalDetailed | null = null;
   files: Record<string, string> | null = null;
@@ -394,6 +394,7 @@ export default class AdminUserEvalDetailsPanel extends Vue {
     downloadBlob(blob, fname);
   }
 }
+export default toNative(AdminUserEvalDetailsPanel)
 </script>
 
 <style scoped lang="scss">

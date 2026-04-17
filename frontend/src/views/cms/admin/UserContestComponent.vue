@@ -63,7 +63,7 @@
 <script lang="ts">
 import cmsadmin from "@/services/cmsadmin";
 import { AdminParticipationScore, AdminContestShort } from "@/types/cmsadmin";
-import { Component, Prop, Vue } from "vue-property-decorator";
+import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
 import PointsBar from "../PointsBar.vue";
 
 @Component({
@@ -71,7 +71,7 @@ import PointsBar from "../PointsBar.vue";
     PointsBar,
   },
 })
-export default class AdminUserContest extends Vue {
+class AdminUserContest extends Vue {
   @Prop({
     type: Number,
   })
@@ -109,4 +109,5 @@ export default class AdminUserContest extends Vue {
     });
   }
 }
+export default toNative(AdminUserContest)
 </script>

@@ -105,7 +105,7 @@
 <script lang="ts">
 import admin from "@/services/admin";
 import { AdminUser, AdminUsers } from "@/types/admin";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import RichTextEditor from "@/components/RichTextEditor.vue";
 import UserAddFromContestModal from "@/components/admin/UserAddFromContestModal.vue";
 import UserAddFromGroupModal from "@/components/admin/UserAddFromGroupModal.vue";
@@ -120,7 +120,7 @@ interface Address {
     RichTextEditor,
   },
 })
-export default class UserMailView extends Vue {
+class UserMailView extends Vue {
   subject = "";
   reply_to: Address[] = [];
   recipients: number[] = [];
@@ -153,7 +153,6 @@ export default class UserMailView extends Vue {
 
   addFromContest() {
     this.$buefy.modal.open({
-      parent: this,
       component: UserAddFromContestModal,
       hasModalCard: true,
       trapFocus: true,
@@ -165,7 +164,6 @@ export default class UserMailView extends Vue {
 
   addFromGroup() {
     this.$buefy.modal.open({
-      parent: this,
       component: UserAddFromGroupModal,
       hasModalCard: true,
       trapFocus: true,
@@ -240,6 +238,7 @@ export default class UserMailView extends Vue {
       .replaceAll("%NACHNAME%", "Rainer");
   }
 }
+export default toNative(UserMailView)
 </script>
 
 <style scoped>

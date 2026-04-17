@@ -25,7 +25,8 @@
 
 <script lang="ts">
 import auth from "@/services/auth";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 import { AuthRequestPasswordResetResult } from "@/types/auth";
 import { matchError } from "@/util/errors";
@@ -35,7 +36,7 @@ import { matchError } from "@/util/errors";
     CenterBoxLayout,
   },
 })
-export default class PasswordResetView extends Vue {
+class PasswordResetView extends Vue {
   email = "";
   submitButtonLoading = false;
 
@@ -59,11 +60,12 @@ export default class PasswordResetView extends Vue {
       this.submitButtonLoading = false;
     }
 
-    this.$store.commit("setPasswordResetVerifyState", {
+    useStore().setPasswordResetVerifyState({
       passwordResetVerifyEmail: this.email,
       passwordResetVerifyUuid: resp.uuid,
     });
     this.$router.push({ name: "PasswordResetVerify" });
   }
 }
+export default toNative(PasswordResetView)
 </script>

@@ -80,13 +80,13 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
 import contests from "@/services/contests";
 import { PropType } from "vue";
 import { Contest } from "@/types/contests";
 
 @Component
-export default class ContestCard extends Vue {
+class ContestCard extends Vue {
   @Prop({
     type: Object as PropType<Contest>,
   })
@@ -101,6 +101,7 @@ export default class ContestCard extends Vue {
     this.$emit("joined");
   }
 }
+export default toNative(ContestCard)
 </script>
 
 <style lang="scss" scoped>

@@ -10,12 +10,12 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import newsletter from "@/services/newsletter";
 import { matchError } from "@/util/errors";
 
 @Component
-export default class NewsletterUnsubscribeView extends Vue {
+class NewsletterUnsubscribeView extends Vue {
   finished = false;
 
   async mounted() {
@@ -40,4 +40,5 @@ export default class NewsletterUnsubscribeView extends Vue {
     this.finished = true;
   }
 }
+export default toNative(NewsletterUnsubscribeView)
 </script>

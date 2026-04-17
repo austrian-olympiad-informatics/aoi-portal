@@ -6,7 +6,8 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 import HomeHero from "@/components/HomeHero.vue";
 import HomeContests from "@/components/HomeContests.vue";
 
@@ -16,9 +17,10 @@ import HomeContests from "@/components/HomeContests.vue";
     HomeContests,
   },
 })
-export default class HomeView extends Vue {
+class HomeView extends Vue {
   get isAuthenticated(): boolean {
-    return this.$store.getters.isAuthenticated;
+    return useStore().isAuthenticated;
   }
 }
+export default toNative(HomeView)
 </script>

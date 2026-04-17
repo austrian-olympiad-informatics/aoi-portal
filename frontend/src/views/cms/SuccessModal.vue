@@ -13,11 +13,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
 import confetti from "canvas-confetti";
 
 @Component
-export default class SuccessModal extends Vue {
+class SuccessModal extends Vue {
   @Prop({
     type: String,
   })
@@ -77,6 +77,7 @@ export default class SuccessModal extends Vue {
     });
   }
 }
+export default toNative(SuccessModal)
 </script>
 
 <style scoped>

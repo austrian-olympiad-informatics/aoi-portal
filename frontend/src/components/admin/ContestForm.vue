@@ -95,7 +95,7 @@
 import admin from "@/services/admin";
 import { AdminGroups } from "@/types/admin";
 import { PropType } from "vue";
-import { Component, VModel, Vue } from "vue-property-decorator";
+import {  Component, VModel, Vue, toNative } from "vue-facing-decorator";
 import RichTextEditor from "@/components/RichTextEditor.vue";
 
 export interface ContestFormData {
@@ -123,7 +123,7 @@ export interface ContestFormData {
     RichTextEditor,
   },
 })
-export default class ContestForm extends Vue {
+class ContestForm extends Vue {
   @VModel({
     type: Object as PropType<ContestFormData>,
   })
@@ -144,6 +144,7 @@ export default class ContestForm extends Vue {
     this.data.auto_add_to_group_id = val ? +val : null;
   }
 }
+export default toNative(ContestForm)
 </script>
 
 <style scoped>

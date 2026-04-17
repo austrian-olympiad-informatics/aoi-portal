@@ -210,7 +210,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import { AdminUser, AdminUsers } from "@/types/admin";
 import AdminCard from "@/components/admin/AdminCard.vue";
 import admin from "@/services/admin";
@@ -221,7 +221,7 @@ import { downloadBlob } from "@/util/download";
     AdminCard,
   },
 })
-export default class UsersView extends Vue {
+class UsersView extends Vue {
   users: AdminUsers | null = null;
   searchable = false;
   showEmail = true;
@@ -268,4 +268,5 @@ EMAIL:${row.email}
     downloadBlob(blob, fname);
   }
 }
+export default toNative(UsersView)
 </script>

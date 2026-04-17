@@ -49,7 +49,8 @@
 
 <script lang="ts">
 import auth from "@/services/auth";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 import RegisterInput, {
   RegisterInputData,
 } from "@/components/RegisterInput.vue";
@@ -63,7 +64,7 @@ import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
     CenterBoxLayout,
   },
 })
-export default class RegisterView extends Vue {
+class RegisterView extends Vue {
   data: RegisterInputData = {
     first_name: "",
     last_name: "",
@@ -95,7 +96,7 @@ export default class RegisterView extends Vue {
       this.submitButtonLoading = false;
     }
 
-    this.$store.commit("setRegisterVerifyState", {
+    useStore().setRegisterVerifyState({
       registerVerifyEmail: this.data.email,
       registerVerifyUuid: resp.uuid,
     });
@@ -103,11 +104,12 @@ export default class RegisterView extends Vue {
     this.$router.push({ name: "RegisterVerify" });
   }
   mounted(): void {
-    if (this.$store.getters.isAuthenticated) {
+    if (useStore().isAuthenticated) {
       this.$router.push("/");
     }
   }
 }
+export default toNative(RegisterView)
 </script>
 
 <style scoped>

@@ -197,7 +197,7 @@ import {
   AdminAllTasks,
 } from "@/types/cmsadmin";
 import { formatDateShort } from "@/util/dt";
-import { Component, Vue, Watch } from "vue-property-decorator";
+import {  Component, Vue, Watch, toNative } from "vue-facing-decorator";
 import PointsBar from "../PointsBar.vue";
 import SimpleAutoselect from "./SimpleAutoselect.vue";
 
@@ -207,7 +207,7 @@ import SimpleAutoselect from "./SimpleAutoselect.vue";
     SimpleAutoselect,
   },
 })
-export default class AdminSubmissionsView extends Vue {
+class AdminSubmissionsView extends Vue {
   data: AdminSubmissionsPaginated | null = null;
   loading = true;
   get submissions(): AdminSubmissionShort[] {
@@ -279,19 +279,19 @@ export default class AdminSubmissionsView extends Vue {
     );
   }
   reloadHandle: number | null = null;
-  destroyed() {
+  unmounted() {
     if (this.reloadHandle !== null) clearInterval(this.reloadHandle);
   }
 
   async mounted() {
     if (this.$route.query.contest_id !== undefined)
-      this.filterByContestId = +this.$route.query.contest_id;
+      this.filterByContestId = +(this.$route.query.contest_id as string);
     if (this.$route.query.task_id !== undefined)
-      this.filterByTaskId = +this.$route.query.task_id;
+      this.filterByTaskId = +(this.$route.query.task_id as string);
     if (this.$route.query.user_id !== undefined)
-      this.filterByUserId = +this.$route.query.user_id;
+      this.filterByUserId = +(this.$route.query.user_id as string);
     if (this.$route.params.submissionUuid !== undefined)
-      this.selectedSub = { uuid: this.$route.params.submissionUuid };
+      this.selectedSub = { uuid: this.$route.params.submissionUuid as string };
     this.reloadHandle = window.setInterval(async () => {
       await this.loadSubmissions();
     }, 15000);
@@ -343,10 +343,11 @@ export default class AdminSubmissionsView extends Vue {
   @Watch("$route")
   watchRoute() {
     if (this.$route.params.submissionUuid !== undefined)
-      this.selectedSub = { uuid: this.$route.params.submissionUuid };
+      this.selectedSub = { uuid: this.$route.params.submissionUuid as string };
     else this.selectedSub = null;
   }
 }
+export default toNative(AdminSubmissionsView)
 </script>
 
 <style lang="scss" scoped>

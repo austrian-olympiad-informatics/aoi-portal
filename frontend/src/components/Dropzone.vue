@@ -17,10 +17,10 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 
 @Component
-export default class Dropzone extends Vue {
+class Dropzone extends Vue {
   dropzoneActive = false;
 
   dropzoneDragenter(e: DragEvent) {
@@ -42,6 +42,7 @@ export default class Dropzone extends Vue {
     this.$emit("drop", e.dataTransfer.files);
   }
 }
+export default toNative(Dropzone)
 </script>
 
 <style scoped>

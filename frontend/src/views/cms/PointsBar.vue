@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
 
 export interface Subtask {
   max_score: number;
@@ -24,7 +24,7 @@ export interface Subtask {
 }
 
 @Component
-export default class PointsBar extends Vue {
+class PointsBar extends Vue {
   @Prop({
     type: Array,
     default: null,
@@ -117,6 +117,7 @@ export default class PointsBar extends Vue {
     return a;
   }
 }
+export default toNative(PointsBar)
 </script>
 
 <style scoped>

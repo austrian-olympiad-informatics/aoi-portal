@@ -60,7 +60,8 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 import { Contests } from "@/types/contests";
 import contests from "@/services/contests";
 import ContestCard from "./ContestCard.vue";
@@ -72,7 +73,7 @@ import profile from "@/services/profile";
     ContestCard,
   },
 })
-export default class HomeContests extends Vue {
+class HomeContests extends Vue {
   contests: Contests | null = null;
   profile: ProfileInfoResponse | null = null;
   showLoading = false;
@@ -103,7 +104,7 @@ export default class HomeContests extends Vue {
   }
 
   async loadProfile() {
-    if (this.$store.getters.isProxyAuth) {
+    if (useStore().isProxyAuth) {
       this.profile = {} as ProfileInfoResponse;
       return;
     }
@@ -118,6 +119,7 @@ export default class HomeContests extends Vue {
     await Promise.all([this.loadContests(), this.loadProfile()]);
   }
 }
+export default toNative(HomeContests)
 </script>
 
 <style scoped>

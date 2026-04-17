@@ -171,7 +171,7 @@ import {
   AdminContestRanking,
 } from "@/types/cmsadmin";
 import { AdminUser as AdminRegisterUser } from "@/types/admin";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import PointsBar from "../PointsBar.vue";
 import UserContest from "./UserContestComponent.vue";
 
@@ -181,7 +181,7 @@ import UserContest from "./UserContestComponent.vue";
     UserContest,
   },
 })
-export default class AdminValidityHelperView extends Vue {
+class AdminValidityHelperView extends Vue {
   get contestId(): number {
     return +this.$route.params.contestId;
   }
@@ -404,4 +404,5 @@ export default class AdminValidityHelperView extends Vue {
     document.body.removeChild(anchor);
   }
 }
+export default toNative(AdminValidityHelperView)
 </script>

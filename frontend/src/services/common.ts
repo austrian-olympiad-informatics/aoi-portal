@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from "axios";
-import store from "@/store/index";
+import { useStore } from "@/store/index";
+import { watch } from "vue";
 const apiClient: AxiosInstance = axios.create({
   headers: {
     "Content-type": "application/json",
@@ -14,9 +15,16 @@ const updateAuthToken = (authToken: string) => {
     apiClient.defaults.headers.common = {};
   }
 };
-store.subscribe((mutation, state) => {
-  if (mutation.type === "setAuthToken" || mutation.type === "restoreState") {
-    updateAuthToken(state.authToken);
-  }
-});
+
+export function initApiClient() {
+  const store = useStore();
+  // Set initial token
+  updateAuthToken(store.authToken);
+  // Watch for changes
+  watch(
+    () => store.authToken,
+    (newToken) => updateAuthToken(newToken),
+  );
+}
+
 export default apiClient;

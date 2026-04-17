@@ -118,14 +118,15 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
+import { useStore } from "@/store";
 import contests from "@/services/contests";
 import { ContestDetail } from "@/types/contests";
 import profile from "@/services/profile";
 import { ProfileInfoResponse } from "@/types/profile";
 
 @Component
-export default class ContestView extends Vue {
+class ContestView extends Vue {
   contestUuid!: string;
   contest: ContestDetail | null = null;
   profile: ProfileInfoResponse | null = null;
@@ -150,7 +151,7 @@ export default class ContestView extends Vue {
     this.contest = await contests.getContest(this.contestUuid);
   }
   async loadProfile() {
-    if (this.$store.getters.isProxyAuth) {
+    if (useStore().isProxyAuth) {
       this.profile = {} as ProfileInfoResponse;
       return;
     }
@@ -159,7 +160,7 @@ export default class ContestView extends Vue {
 
   async mounted() {
     setTimeout(() => (this.showLoading = true), 500);
-    this.contestUuid = this.$route.params.contestUuid;
+    this.contestUuid = this.$route.params.contestUuid as string;
     await Promise.all([this.loadContest(), this.loadProfile()]);
   }
 
@@ -202,4 +203,5 @@ export default class ContestView extends Vue {
     }
   }
 }
+export default toNative(ContestView)
 </script>

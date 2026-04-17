@@ -30,7 +30,7 @@
 <script lang="ts">
 import { SubmissionShort, Task } from "@/types/cms";
 import cms from "@/services/cms";
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import DescriptionPanel from "./DescriptionPanel.vue";
 import CodePanel from "./CodePanel.vue";
 import CheckNotifications from "./CheckNotifications.vue";
@@ -43,12 +43,12 @@ import SuccessModal from "./SuccessModal.vue";
     CheckNotifications,
   },
 })
-export default class TaskView extends Vue {
+class TaskView extends Vue {
   get contestName(): string {
-    return this.$route.params.contestName;
+    return this.$route.params.contestName as string;
   }
   get taskName(): string {
-    return this.$route.params.taskName;
+    return this.$route.params.taskName as string;
   }
   task: Task | null = null;
 
@@ -105,7 +105,6 @@ export default class TaskView extends Vue {
       }
 
       this.$buefy.modal.open({
-        parent: this,
         component: SuccessModal,
         trapFocus: true,
         props: {
@@ -117,6 +116,7 @@ export default class TaskView extends Vue {
     }
   }
 }
+export default toNative(TaskView)
 </script>
 
 <style scoped lang="scss">

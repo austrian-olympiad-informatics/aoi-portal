@@ -91,7 +91,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import {  Component, Vue, toNative } from "vue-facing-decorator";
 import { AdminContests } from "@/types/admin";
 import AdminCard from "@/components/admin/AdminCard.vue";
 import admin from "@/services/admin";
@@ -101,7 +101,7 @@ import admin from "@/services/admin";
     AdminCard,
   },
 })
-export default class ContestsView extends Vue {
+class ContestsView extends Vue {
   contests: AdminContests | null = null;
 
   async loadContests() {
@@ -121,6 +121,7 @@ export default class ContestsView extends Vue {
     await this.loadContests();
   }
 }
+export default toNative(ContestsView)
 </script>
 
 <style scoped>
