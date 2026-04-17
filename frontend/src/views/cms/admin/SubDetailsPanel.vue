@@ -557,6 +557,10 @@ export default toNative(AdminSubmissionDetailsPanel)
 .st-head-result {
   margin-top: -0.2rem;
 }
+.panel-heading {
+  background-color: #ededed;
+  color: #363636;
+}
 .download-button {
   position: absolute;
   top: 16px;
