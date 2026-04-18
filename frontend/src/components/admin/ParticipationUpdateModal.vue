@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-card" style="width: auto">
+  <div class="modal-card" style="width: 480px">
     <header class="modal-card-head">
       <p class="modal-card-title">Update Participant</p>
       <button type="button" class="delete" @click="$emit('close')" />
