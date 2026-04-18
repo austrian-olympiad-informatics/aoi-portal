@@ -8,37 +8,33 @@
   </AdminCard>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useToast } from "buefy";
 import AdminCard from "@/components/admin/AdminCard.vue";
 import GroupForm, { GroupFormData } from "@/components/admin/GroupForm.vue";
 import admin from "@/services/admin";
 
-@Component({
-  components: {
-    AdminCard,
-    GroupForm,
-  },
-})
-class GroupCreateView extends Vue {
-  data: GroupFormData = {
-    name: "",
-    description: "",
-    users: [],
-  };
+const router = useRouter();
+const toast = useToast();
 
-  async createGroup(data: GroupFormData) {
-    await admin.createGroup({
-      name: data.name,
-      description: data.description,
-      users: data.users,
-    });
-    this.$buefy.toast.open({
-      message: "Group has been added!",
-      type: "is-success",
-    });
-    this.$router.push({ name: "AdminGroups" });
-  }
+const data = ref<GroupFormData>({
+  name: "",
+  description: "",
+  users: [],
+});
+
+async function createGroup(d: GroupFormData) {
+  await admin.createGroup({
+    name: d.name,
+    description: d.description,
+    users: d.users,
+  });
+  toast.open({
+    message: "Group has been added!",
+    type: "is-success",
+  });
+  router.push({ name: "AdminGroups" });
 }
-export default toNative(GroupCreateView)
 </script>

@@ -42,48 +42,44 @@
   </center-box-layout>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
+import { useToast } from "buefy";
 import auth from "@/services/auth";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 import { matchError } from "@/util/errors";
 
-@Component({
-  components: {
-    CenterBoxLayout,
-  },
-})
-class ChangePasswordView extends Vue {
-  currentPassword = "";
-  newPassword = "";
-  newPasswordConfirm = "";
+const router = useRouter();
+const toast = useToast();
 
-  get newPasswordsMatch(): boolean {
-    return this.newPassword === this.newPasswordConfirm;
-  }
+const currentPassword = ref("");
+const newPassword = ref("");
+const newPasswordConfirm = ref("");
 
-  async submit() {
-    if (!this.newPasswordsMatch) return;
-    try {
-      await auth.changePassword({
-        old_password: this.currentPassword,
-        new_password: this.newPassword,
-      });
-    } catch (err) {
-      matchError(err, {
-        invalid_password: "Das aktuelle Passwort ist inkorrekt.",
-        default:
-          "Beim Passwort Ändern ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      return;
-    }
+const newPasswordsMatch = computed(
+  () => newPassword.value === newPasswordConfirm.value,
+);
 
-    this.$buefy.toast.open({
-      message: "Passwort geändert!",
-      type: "is-success",
+async function submit() {
+  if (!newPasswordsMatch.value) return;
+  try {
+    await auth.changePassword({
+      old_password: currentPassword.value,
+      new_password: newPassword.value,
     });
-    this.$router.push({ name: "Profile" });
+  } catch (err) {
+    matchError(err, {
+      invalid_password: "Das aktuelle Passwort ist inkorrekt.",
+      default:
+        "Beim Passwort Ändern ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    });
+    return;
   }
+  toast.open({
+    message: "Passwort geändert!",
+    type: "is-success",
+  });
+  router.push({ name: "Profile" });
 }
-export default toNative(ChangePasswordView)
 </script>

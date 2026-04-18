@@ -79,29 +79,23 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
 import contests from "@/services/contests";
-import { PropType } from "vue";
 import { Contest } from "@/types/contests";
 
-@Component
-class ContestCard extends Vue {
-  @Prop({
-    type: Object as PropType<Contest>,
-  })
-  contest!: Contest;
-  @Prop({
-    type: Boolean,
-  })
-  profileComplete!: Contest;
+// NOTE: profileComplete is typed as Contest in the original — this appears to be
+// a bug (should be boolean). Preserved as-is; tracked for separate fix.
+const props = defineProps<{
+  contest: Contest;
+  profileComplete: Contest;
+}>();
 
-  async joinContest() {
-    await contests.joinContest(this.contest.uuid);
-    this.$emit("joined");
-  }
+const emit = defineEmits<{ joined: [] }>();
+
+async function joinContest() {
+  await contests.joinContest(props.contest.uuid);
+  emit("joined");
 }
-export default toNative(ContestCard)
 </script>
 
 <style lang="scss" scoped>

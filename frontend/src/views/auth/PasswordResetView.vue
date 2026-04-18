@@ -23,49 +23,45 @@
   </center-box-layout>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 import auth from "@/services/auth";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 import { useStore } from "@/store";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 import { AuthRequestPasswordResetResult } from "@/types/auth";
 import { matchError } from "@/util/errors";
 
-@Component({
-  components: {
-    CenterBoxLayout,
-  },
-})
-class PasswordResetView extends Vue {
-  email = "";
-  submitButtonLoading = false;
+const router = useRouter();
+const store = useStore();
 
-  async submit() {
-    let resp: AuthRequestPasswordResetResult;
-    this.submitButtonLoading = true;
-    try {
-      resp = await auth.requestPasswordReset({
-        email: this.email,
-      });
-    } catch (err) {
-      matchError(err, {
-        user_not_found: "Diese E-Mail-Adresse ist noch nicht registriert.",
-        rate_limit:
-          "Zu viele Passwort zurücksetzen Anfragen für diese E-Mail-Adresse.",
-        default:
-          "Beim Passwort zurücksetzen ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      return;
-    } finally {
-      this.submitButtonLoading = false;
-    }
+const email = ref("");
+const submitButtonLoading = ref(false);
 
-    useStore().setPasswordResetVerifyState({
-      passwordResetVerifyEmail: this.email,
-      passwordResetVerifyUuid: resp.uuid,
+async function submit() {
+  let resp: AuthRequestPasswordResetResult;
+  submitButtonLoading.value = true;
+  try {
+    resp = await auth.requestPasswordReset({
+      email: email.value,
     });
-    this.$router.push({ name: "PasswordResetVerify" });
+  } catch (err) {
+    matchError(err, {
+      user_not_found: "Diese E-Mail-Adresse ist noch nicht registriert.",
+      rate_limit:
+        "Zu viele Passwort zurücksetzen Anfragen für diese E-Mail-Adresse.",
+      default:
+        "Beim Passwort zurücksetzen ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    });
+    return;
+  } finally {
+    submitButtonLoading.value = false;
   }
+
+  store.setPasswordResetVerifyState({
+    passwordResetVerifyEmail: email.value,
+    passwordResetVerifyUuid: resp.uuid,
+  });
+  router.push({ name: "PasswordResetVerify" });
 }
-export default toNative(PasswordResetView)
 </script>

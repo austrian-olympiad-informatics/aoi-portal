@@ -19,15 +19,7 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 
-@Component({
-  components: {},
-})
-class ErrorView extends Vue {}
-export default toNative(ErrorView)
-</script>
 
 <style scoped>
 .hero {

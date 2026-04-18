@@ -81,46 +81,33 @@
   </b-navbar>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { computed } from "vue";
 import auth from "@/services/auth";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 import { useStore } from "@/store";
+import { useRouter, useRoute } from "vue-router";
 
-@Component
-class Navbar extends Vue {
-  get isAdmin(): boolean {
-    return useStore().isAdmin;
-  }
-  get isCMS(): boolean {
-    return this.$route.matched.some((x) => x.meta.isCMS);
-  }
-  get isAuthenticated(): boolean {
-    return useStore().isAuthenticated;
-  }
-  get isProxyAuth(): boolean {
-    return useStore().isProxyAuth;
-  }
-  get isNavbarSmall(): boolean {
-    return this.$route.matched.some((x) => x.meta.navbarSmall);
-  }
-  get isDiscordLinked(): boolean {
-    return !!useStore().discordUsername;
-  }
-  get getDiscordUsername(): string {
-    return useStore().discordUsername;
-  }
+const store = useStore();
+const router = useRouter();
+const route = useRoute();
 
-  get name(): string {
-    return `${useStore().firstName} ${useStore().lastName}`;
-  }
-  async logout(): Promise<void> {
-    await auth.logout();
-    useStore().setAuthToken("");
-    useStore().checkStatus();
-    this.$router.push("/");
-  }
+const isAdmin = computed(() => store.isAdmin);
+const isCMS = computed(() => route.matched.some((x) => x.meta.isCMS));
+const isAuthenticated = computed(() => store.isAuthenticated);
+const isProxyAuth = computed(() => store.isProxyAuth);
+const isNavbarSmall = computed(() =>
+  route.matched.some((x) => x.meta.navbarSmall),
+);
+const isDiscordLinked = computed(() => !!store.discordUsername);
+const getDiscordUsername = computed(() => store.discordUsername);
+const name = computed(() => `${store.firstName} ${store.lastName}`);
+
+async function logout(): Promise<void> {
+  await auth.logout();
+  store.setAuthToken("");
+  store.checkStatus();
+  router.push("/");
 }
-export default toNative(Navbar)
 </script>
 
 <style scoped>
