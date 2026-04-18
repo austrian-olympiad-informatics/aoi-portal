@@ -92,7 +92,7 @@ in
   processes.backend = {
     cwd = "backend";
     exec = "watchexec -r -e py,yaml -- python3 run.py --config $DEVENV_STATE/config/backend-dev.yaml wsgi";
-    after = ["portal:sync-contests@completed"];
+    after = ["portal:sync-contests"];
   };
 
   processes.frontend = {
@@ -133,6 +133,16 @@ in
   tasks."db:init" = {
     exec = ''
       set -eu
+      # Wait until the aoi-portal database is actually connectable
+      for i in $(seq 1 30); do
+        if psql -d aoi-portal -c "SELECT 1" >/dev/null 2>&1; then
+          break
+        fi
+        echo "Waiting for aoi-portal database to become available... ($i/30)"
+        sleep 1
+      done
+      psql -d aoi-portal -c "SELECT 1" >/dev/null 2>&1 || { echo "❌ Database not available after 30s"; exit 1; }
+
       if [ ! -f $DEVENV_STATE/db_initialized ]; then
         echo "🔧 Initializing database for the first time..."
         cd backend
@@ -150,6 +160,16 @@ in
   tasks."cms:init" = {
     exec = ''
       set -eu
+      # Wait until the cmsuser database is actually connectable
+      for i in $(seq 1 30); do
+        if psql -d cmsuser -c "SELECT 1" >/dev/null 2>&1; then
+          break
+        fi
+        echo "Waiting for cmsuser database to become available... ($i/30)"
+        sleep 1
+      done
+      psql -d cmsuser -c "SELECT 1" >/dev/null 2>&1 || { echo "❌ Database not available after 30s"; exit 1; }
+
       mkdir -p "$DEVENV_STATE/cms"/{log,lib,cache,run}
 
       if [ ! -f "$DEVENV_STATE/cms_initialized" ]; then
@@ -190,7 +210,7 @@ in
       python3 run.py --config $DEVENV_STATE/config/backend-dev.yaml refreshcmscontests
       echo "✅ Portal contests synced from CMS!"
     '';
-    after = ["db:init@completed" "cms:init@completed"];
+    after = ["db:init" "cms:import-tasks"];
   };
 
   tasks."cms:import-tasks" = {
@@ -208,7 +228,7 @@ in
         echo "✓ Test tasks already imported"
       fi
     '';
-    after = ["cms:init@completed" "devenv:processes:cmsResourceService@ready"];
+    after = ["cms:init" "devenv:processes:cmsResourceService"];
   };
 
   # See full reference at https://devenv.sh/reference/options/
