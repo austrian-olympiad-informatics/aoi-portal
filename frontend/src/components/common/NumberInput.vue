@@ -21,12 +21,16 @@ class NumberInput extends Vue {
 
   setValue(val: string) {
     this.valueStr = val;
-    this.$emit("update:modelValue", val ? +val : null);
+    const num = val === "" ? null : Number(val);
+    if (num !== null && isNaN(num)) return;
+    this.$emit("update:modelValue", num);
   }
 
   @Watch("modelValue")
   onValueChanged(val: number | null) {
-    this.valueStr = val === null ? "" : val.toString();
+    const expected = val === null ? "" : val.toString();
+    if (this.valueStr === expected) return;
+    this.valueStr = expected;
   }
 
   mounted() {
