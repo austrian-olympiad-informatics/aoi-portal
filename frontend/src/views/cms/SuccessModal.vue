@@ -12,26 +12,26 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
 import confetti from "canvas-confetti";
 
-@Component
-class SuccessModal extends Vue {
-  @Prop({
-    type: String,
-  })
-  headerText!: string;
-  @Prop({ type: String, default: null })
-  memeUrl!: string | null;
+const props = withDefaults(
+  defineProps<{
+    headerText: string;
+    memeUrl?: string | null;
+  }>(),
+  { memeUrl: null },
+);
 
-  onAnimationEnd() {
-    this.showConfetti();
-  }
-  memeUrlLoaded() {
-    if (this.memeUrl !== null) URL.revokeObjectURL(this.memeUrl);
-  }
-  showConfetti() {
+function onAnimationEnd() {
+  showConfetti();
+}
+
+function memeUrlLoaded() {
+  if (props.memeUrl != null) URL.revokeObjectURL(props.memeUrl);
+}
+
+function showConfetti() {
     const count = 200;
     const defaults = {
       origin: { y: 0.9 },
@@ -75,9 +75,7 @@ class SuccessModal extends Vue {
       spread: 120,
       startVelocity: 45,
     });
-  }
 }
-export default toNative(SuccessModal)
 </script>
 
 <style scoped>

@@ -13,28 +13,25 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
 import ParticipationForm, {
   ParticipationFormData,
 } from "./ParticipationForm.vue";
 
-@Component({
-  components: {
-    ParticipationForm,
-  },
-})
-class ParticipationCreateModal extends Vue {
-  data: ParticipationFormData = {
-    user_id: null,
-    cms_id: null,
-    manual_password: null,
-  };
+const emit = defineEmits<{
+  submit: [data: ParticipationFormData];
+  close: [];
+}>();
 
-  async createParticipation() {
-    this.$emit("submit", this.data);
-    this.$emit("close");
-  }
+const data = ref<ParticipationFormData>({
+  user_id: null,
+  cms_id: null,
+  manual_password: null,
+});
+
+async function createParticipation() {
+  emit("submit", data.value);
+  emit("close");
 }
-export default toNative(ParticipationCreateModal)
 </script>

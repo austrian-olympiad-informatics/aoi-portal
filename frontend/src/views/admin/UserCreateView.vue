@@ -10,60 +10,57 @@
   </AdminCard>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useToast } from "buefy";
 import AdminCard from "@/components/admin/AdminCard.vue";
 import UserForm, { UserFormData } from "@/components/admin/UserForm.vue";
 import admin from "@/services/admin";
 
-@Component({
-  components: {
-    AdminCard,
-    UserForm,
-  },
-})
-class UserCreateView extends Vue {
-  data: UserFormData = {
-    first_name: "",
-    last_name: "",
-    password: null,
-    email: "",
-    is_admin: false,
-    birthday: null,
-    phone_nr: null,
-    address_street: null,
-    address_zip: null,
-    address_town: null,
-    school_name: null,
-    school_address: null,
-    cms_id: null,
-    cms_username: null,
-    groups: [],
-  };
-  async submit() {
-    await admin.createUser({
-      first_name: this.data.first_name,
-      last_name: this.data.last_name,
-      email: this.data.email,
-      password: this.data.password!,
-      is_admin: this.data.is_admin,
-      birthday: this.data.birthday,
-      phone_nr: this.data.phone_nr,
-      address_street: this.data.address_street,
-      address_zip: this.data.address_zip,
-      address_town: this.data.address_town,
-      school_name: this.data.school_name,
-      school_address: this.data.school_address,
-      cms_id: this.data.cms_id,
-      cms_username: this.data.cms_username,
-      groups: this.data.groups,
-    });
-    this.$buefy.toast.open({
-      message: "User has been added!",
-      type: "is-success",
-    });
-    this.$router.push({ name: "AdminUsers" });
-  }
+const router = useRouter();
+const toast = useToast();
+
+const data = ref<UserFormData>({
+  first_name: "",
+  last_name: "",
+  password: null,
+  email: "",
+  is_admin: false,
+  birthday: null,
+  phone_nr: null,
+  address_street: null,
+  address_zip: null,
+  address_town: null,
+  school_name: null,
+  school_address: null,
+  cms_id: null,
+  cms_username: null,
+  groups: [],
+});
+
+async function submit() {
+  await admin.createUser({
+    first_name: data.value.first_name,
+    last_name: data.value.last_name,
+    email: data.value.email,
+    password: data.value.password!,
+    is_admin: data.value.is_admin,
+    birthday: data.value.birthday,
+    phone_nr: data.value.phone_nr,
+    address_street: data.value.address_street,
+    address_zip: data.value.address_zip,
+    address_town: data.value.address_town,
+    school_name: data.value.school_name,
+    school_address: data.value.school_address,
+    cms_id: data.value.cms_id,
+    cms_username: data.value.cms_username,
+    groups: data.value.groups,
+  });
+  toast.open({
+    message: "User has been added!",
+    type: "is-success",
+  });
+  router.push({ name: "AdminUsers" });
 }
-export default toNative(UserCreateView)
 </script>

@@ -14,8 +14,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { computed } from "vue";
 
 export interface Subtask {
   max_score: number;
@@ -23,101 +23,85 @@ export interface Subtask {
   score?: number;
 }
 
-@Component
-class PointsBar extends Vue {
-  @Prop({
-    type: Array,
-    default: null,
-  })
-  subtasks!: Subtask[] | null;
+const props = withDefaults(
+  defineProps<{
+    subtasks?: Subtask[] | null;
+    scorePrecision?: number;
+    score?: number;
+    maxScore?: number;
+    showMaxScore?: boolean;
+  }>(),
+  {
+    subtasks: null,
+    scorePrecision: 0,
+    score: 0,
+    maxScore: 0,
+    showMaxScore: false,
+  },
+);
 
-  @Prop({
-    type: Number,
-    default: 0,
-  })
-  scorePrecision!: number;
-
-  @Prop({
-    type: Number,
-    default: 0,
-  })
-  score!: number;
-
-  @Prop({
-    type: Number,
-    default: 0,
-  })
-  maxScore!: number;
-
-  @Prop({
-    type: Boolean,
-    default: false,
-  })
-  showMaxScore!: boolean;
-
-  get subtaskData() {
-    let subtasks: Subtask[];
-    if (this.subtasks === null || !this.subtasks.length)
-      subtasks = [
-        { max_score: this.maxScore, fraction: this.score / this.maxScore },
-      ];
-    else subtasks = this.subtasks;
-    let cumw = 0;
-    const res = [];
-    const mul = 100 / this.maxScore;
-    const isMoreThanHalf = [];
-    for (const st of subtasks) {
-      let fraction = st.fraction;
-      if (st.fraction === undefined && st.score !== undefined) {
-        fraction = st.score / st.max_score;
-      }
-      if (fraction === undefined) fraction = 0.0;
-      const posWidth = fraction * st.max_score * mul;
-      const negWidth = (1 - fraction) * st.max_score * mul;
-      const posClass = "is-success";
-      const posStart = cumw;
-      const posEnd = cumw + posWidth;
-      if (
-        (posWidth > 0 && posEnd >= 45 && posEnd <= 55) ||
-        (posWidth > 0 && posStart >= 45 && posStart <= 55) ||
-        (posWidth > 0 && posStart <= 45 && posEnd >= 55)
-      ) {
-        isMoreThanHalf.push(posClass);
-      }
-      res.push(
-        {
-          width: `${posWidth}%`,
-          class: ["is-success"],
-        },
-        {
-          width: `${negWidth}%`,
-          class: ["is-grey"],
-        },
-      );
-      cumw += posWidth + negWidth;
+const subtaskData = computed(() => {
+  let subtasks: Subtask[];
+  if (props.subtasks === null || !props.subtasks.length)
+    subtasks = [
+      { max_score: props.maxScore, fraction: props.score / props.maxScore },
+    ];
+  else subtasks = props.subtasks;
+  let cumw = 0;
+  const res = [];
+  const mul = 100 / props.maxScore;
+  const isMoreThanHalf = [];
+  for (const st of subtasks) {
+    let fraction = st.fraction;
+    if (st.fraction === undefined && st.score !== undefined) {
+      fraction = st.score / st.max_score;
     }
-    return { isMoreThanHalf, bars: res };
-  }
-  get subtaskBars() {
-    return this.subtaskData.bars;
-  }
-  get subtaskMoreThanHalfClass() {
-    const v = this.subtaskData.isMoreThanHalf;
-    if (!v.length) return "";
-    return "is-more-than-half-success";
-  }
-  get scoreShow(): string {
-    const a = parseFloat(this.score.toFixed(this.scorePrecision)).toString();
-    if (this.showMaxScore) {
-      const b = parseFloat(
-        this.maxScore.toFixed(this.scorePrecision),
-      ).toString();
-      return `${a} / ${b}`;
+    if (fraction === undefined) fraction = 0.0;
+    const posWidth = fraction * st.max_score * mul;
+    const negWidth = (1 - fraction) * st.max_score * mul;
+    const posClass = "is-success";
+    const posStart = cumw;
+    const posEnd = cumw + posWidth;
+    if (
+      (posWidth > 0 && posEnd >= 45 && posEnd <= 55) ||
+      (posWidth > 0 && posStart >= 45 && posStart <= 55) ||
+      (posWidth > 0 && posStart <= 45 && posEnd >= 55)
+    ) {
+      isMoreThanHalf.push(posClass);
     }
-    return a;
+    res.push(
+      {
+        width: `${posWidth}%`,
+        class: ["is-success"],
+      },
+      {
+        width: `${negWidth}%`,
+        class: ["is-grey"],
+      },
+    );
+    cumw += posWidth + negWidth;
   }
-}
-export default toNative(PointsBar)
+  return { isMoreThanHalf, bars: res };
+});
+
+const subtaskBars = computed(() => subtaskData.value.bars);
+
+const subtaskMoreThanHalfClass = computed(() => {
+  const v = subtaskData.value.isMoreThanHalf;
+  if (!v.length) return "";
+  return "is-more-than-half-success";
+});
+
+const scoreShow = computed((): string => {
+  const a = parseFloat(props.score.toFixed(props.scorePrecision)).toString();
+  if (props.showMaxScore) {
+    const b = parseFloat(
+      props.maxScore.toFixed(props.scorePrecision),
+    ).toString();
+    return `${a} / ${b}`;
+  }
+  return a;
+});
 </script>
 
 <style scoped>

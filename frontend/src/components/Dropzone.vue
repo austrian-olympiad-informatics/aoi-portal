@@ -16,33 +16,31 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
 
-@Component
-class Dropzone extends Vue {
-  dropzoneActive = false;
+const emit = defineEmits<{ drop: [files: FileList] }>();
 
-  dropzoneDragenter(e: DragEvent) {
-    this.dropzoneActive = true;
-    if (e.dataTransfer !== null) e.dataTransfer.dropEffect = "copy";
-    e.preventDefault();
-  }
-  dropzoneDragover(e: DragEvent) {
-    this.dropzoneActive = true;
-    if (e.dataTransfer !== null) e.dataTransfer.dropEffect = "copy";
-    e.preventDefault();
-  }
-  dropzoneDragleave() {
-    this.dropzoneActive = false;
-  }
-  dropzoneDrop(e: DragEvent) {
-    this.dropzoneActive = false;
-    if (e.dataTransfer === null) return;
-    this.$emit("drop", e.dataTransfer.files);
-  }
+const dropzoneActive = ref(false);
+
+function dropzoneDragenter(e: DragEvent) {
+  dropzoneActive.value = true;
+  if (e.dataTransfer !== null) e.dataTransfer.dropEffect = "copy";
+  e.preventDefault();
 }
-export default toNative(Dropzone)
+function dropzoneDragover(e: DragEvent) {
+  dropzoneActive.value = true;
+  if (e.dataTransfer !== null) e.dataTransfer.dropEffect = "copy";
+  e.preventDefault();
+}
+function dropzoneDragleave() {
+  dropzoneActive.value = false;
+}
+function dropzoneDrop(e: DragEvent) {
+  dropzoneActive.value = false;
+  if (e.dataTransfer === null) return;
+  emit("drop", e.dataTransfer.files);
+}
 </script>
 
 <style scoped>

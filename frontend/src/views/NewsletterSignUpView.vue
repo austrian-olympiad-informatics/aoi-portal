@@ -29,38 +29,37 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { useToast } from "buefy";
 import newsletter from "@/services/newsletter";
 import { matchError } from "@/util/errors";
 
-@Component
-class NewsletterSignUpView extends Vue {
-  email = "";
-  finished = false;
-  loading = false;
+const toast = useToast();
 
-  async submit() {
-    this.loading = true;
-    try {
-      await newsletter.signUp({
-        email: this.email,
-      });
-    } catch (err) {
-      matchError(err, {
-        default:
-          "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      return;
-    } finally {
-      this.loading = false;
-    }
-    this.finished = true;
-    this.$buefy.toast.open({
-      message: "Erfolgreich beim Newsletter angemeldet!",
-      type: "is-success",
+const email = ref("");
+const finished = ref(false);
+const loading = ref(false);
+
+async function submit() {
+  loading.value = true;
+  try {
+    await newsletter.signUp({
+      email: email.value,
     });
+  } catch (err) {
+    matchError(err, {
+      default:
+        "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    });
+    return;
+  } finally {
+    loading.value = false;
   }
+  finished.value = true;
+  toast.open({
+    message: "Erfolgreich beim Newsletter angemeldet!",
+    type: "is-success",
+  });
 }
-export default toNative(NewsletterSignUpView)
 </script>

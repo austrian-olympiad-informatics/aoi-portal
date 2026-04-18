@@ -31,50 +31,46 @@
   </center-box-layout>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 import auth from "@/services/auth";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 import { useStore } from "@/store";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 import { AuthChangeEmailResult } from "@/types/auth";
 import { matchError } from "@/util/errors";
 
-@Component({
-  components: {
-    CenterBoxLayout,
-  },
-})
-class ChangeEmailView extends Vue {
-  currentPassword = "";
-  newEmail = "";
-  submitButtonLoading = false;
+const router = useRouter();
+const store = useStore();
 
-  async submit() {
-    let resp: AuthChangeEmailResult;
-    this.submitButtonLoading = true;
-    try {
-      resp = await auth.changeEmail({
-        email: this.newEmail,
-        password: this.currentPassword,
-      });
-    } catch (err) {
-      matchError(err, {
-        invalid_password: "Das aktuelle Passwort ist inkorrekt.",
-        email_exists: "Diese E-Mail-Adresse ist bereits in Verwendung.",
-        rate_limit: "Zu viele Anfragen für diese E-Mail-Adresse.",
-        default:
-          "Beim Ändern der E-Mail-Adresse ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      return;
-    } finally {
-      this.submitButtonLoading = false;
-    }
-    useStore().setChangeEmailVerifyState({
-      changeEmailVerifyEmail: this.newEmail,
-      changeEmailVerifyUuid: resp.uuid,
+const currentPassword = ref("");
+const newEmail = ref("");
+const submitButtonLoading = ref(false);
+
+async function submit() {
+  let resp: AuthChangeEmailResult;
+  submitButtonLoading.value = true;
+  try {
+    resp = await auth.changeEmail({
+      email: newEmail.value,
+      password: currentPassword.value,
     });
-    this.$router.push({ name: "ChangeEmailVerify" });
+  } catch (err) {
+    matchError(err, {
+      invalid_password: "Das aktuelle Passwort ist inkorrekt.",
+      email_exists: "Diese E-Mail-Adresse ist bereits in Verwendung.",
+      rate_limit: "Zu viele Anfragen für diese E-Mail-Adresse.",
+      default:
+        "Beim Ändern der E-Mail-Adresse ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    });
+    return;
+  } finally {
+    submitButtonLoading.value = false;
   }
+  store.setChangeEmailVerifyState({
+    changeEmailVerifyEmail: newEmail.value,
+    changeEmailVerifyUuid: resp.uuid,
+  });
+  router.push({ name: "ChangeEmailVerify" });
 }
-export default toNative(ChangeEmailView)
 </script>

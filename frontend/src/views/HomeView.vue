@@ -5,22 +5,12 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { computed } from "vue";
 import { useStore } from "@/store";
 import HomeHero from "@/components/HomeHero.vue";
 import HomeContests from "@/components/HomeContests.vue";
 
-@Component({
-  components: {
-    HomeHero,
-    HomeContests,
-  },
-})
-class HomeView extends Vue {
-  get isAuthenticated(): boolean {
-    return useStore().isAuthenticated;
-  }
-}
-export default toNative(HomeView)
+const store = useStore();
+const isAuthenticated = computed(() => store.isAuthenticated);
 </script>

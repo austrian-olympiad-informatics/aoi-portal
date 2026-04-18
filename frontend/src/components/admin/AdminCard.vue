@@ -14,16 +14,6 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
-
-@Component
-class AdminCard extends Vue {
-  @Prop({
-    type: Boolean,
-    default: false,
-  })
-  loading!: boolean;
-}
-export default toNative(AdminCard)
+<script setup lang="ts">
+withDefaults(defineProps<{ loading?: boolean }>(), { loading: false });
 </script>
