@@ -8,8 +8,9 @@
   ></div>
 </template>
 
-<script lang="ts">
-import {  Component, Prop, Vue, Watch, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref, computed, watch } from "vue";
+import { onMounted } from "vue";
 import {
   Decoration,
   DecorationSet,
@@ -97,6 +98,7 @@ const fontTheme = EditorView.theme({
 });
 
 function italicAll(view: EditorView) {
+  if (view.state.doc.length === 0) return;
   const effects: StateEffect<unknown>[] = [
     addItalic.of({ from: 0, to: view.state.doc.length }),
   ];
@@ -105,174 +107,140 @@ function italicAll(view: EditorView) {
   view.dispatch({ effects });
 }
 
-@Component
-class CodeMirror extends Vue {
-  @Prop({
-    type: String,
-    default: "",
-  })
-  modelValue!: string;
-  doc: string | null = null;
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string;
+    lang?: Language;
+    darkTheme?: boolean;
+    fullheight?: boolean;
+    editable?: boolean;
+    readonly?: boolean;
+    italic?: boolean;
+  }>(),
+  {
+    modelValue: "",
+    lang: Language.None,
+    darkTheme: true,
+    fullheight: true,
+    editable: true,
+    readonly: false,
+    italic: false,
+  },
+);
 
-  @Prop({
-    type: String,
-    default: Language.None,
-  })
-  lang!: Language;
+const emit = defineEmits<{ "update:modelValue": [string] }>();
 
-  @Prop({
-    type: Boolean,
-    default: true,
-  })
-  darkTheme!: boolean;
+const codemirror = ref<HTMLElement | null>(null);
+let doc: string | null = null;
+let view: EditorView;
 
-  @Prop({
-    type: Boolean,
-    default: true,
-  })
-  fullheight!: boolean;
-  @Prop({
-    type: Boolean,
-    default: true,
-  })
-  editable!: boolean;
-  @Prop({
-    type: Boolean,
-    default: false,
-  })
-  readonly!: boolean;
-  @Prop({
-    type: Boolean,
-    default: false,
-  })
-  italic!: boolean;
+const extensions = computed<Extension[]>(() =>
+  [
+    lineNumbers(),
+    highlightActiveLineGutter(),
+    highlightSpecialChars(),
+    history(),
+    foldGutter(),
+    drawSelection(),
+    dropCursor(),
+    EditorState.allowMultipleSelections.of(true),
+    indentOnInput(),
+    syntaxHighlighting(
+      props.darkTheme ? oneDarkHighlightStyle : defaultHighlightStyle,
+      { fallback: true },
+    ),
+    props.darkTheme ? oneDark : undefined,
+    fontTheme,
+    bracketMatching(),
+    closeBrackets(),
+    autocompletion(),
+    rectangularSelection(),
+    crosshairCursor(),
+    highlightActiveLine(),
+    highlightSelectionMatches(),
+    props.readonly ? EditorState.readOnly.of(props.readonly) : undefined,
+    props.editable ? EditorView.editable.of(props.editable) : undefined,
+    props.lang === Language.Python ? EditorState.tabSize.of(4) : undefined,
+    props.lang === Language.Python ? indentUnit.of("    ") : undefined,
+    keymap.of([
+      ...closeBracketsKeymap,
+      ...defaultKeymap,
+      ...searchKeymap,
+      ...historyKeymap,
+      ...foldKeymap,
+      ...completionKeymap,
+      ...lintKeymap,
+    ]),
+    keymap.of([indentWithTab]),
+    props.lang === Language.CSharp ? StreamLanguage.define(csharp) : undefined,
+    props.lang === Language.C ? StreamLanguage.define(c) : undefined,
+    props.lang === Language.Cpp ? cpp() : undefined,
+    props.lang === Language.Go ? StreamLanguage.define(go) : undefined,
+    props.lang === Language.Haskell
+      ? StreamLanguage.define(haskell)
+      : undefined,
+    props.lang === Language.Haskell
+      ? StreamLanguage.define(haskell)
+      : undefined,
+    props.lang === Language.Java ? java() : undefined,
+    props.lang === Language.Javascript ? javascript() : undefined,
+    props.lang === Language.Kotlin ? StreamLanguage.define(kotlin) : undefined,
+    props.lang === Language.Python ? python() : undefined,
+    props.lang === Language.Rust ? rust() : undefined,
+    props.lang === Language.Typescript
+      ? javascript({ typescript: true })
+      : undefined,
+  ].filter((x): x is Extension => x !== undefined),
+);
 
-  view!: EditorView;
+function makeUpdateListener() {
+  return EditorView.updateListener.of((update) => {
+    if (!update.docChanged) return;
+    doc = update.state.doc.toString();
+    emit("update:modelValue", doc);
+  });
+}
 
-  get extensions(): Extension[] {
-    return [
-      lineNumbers(),
-      highlightActiveLineGutter(),
-      highlightSpecialChars(),
-      history(),
-      foldGutter(),
-      drawSelection(),
-      dropCursor(),
-      EditorState.allowMultipleSelections.of(true),
-      indentOnInput(),
-      syntaxHighlighting(
-        this.darkTheme ? oneDarkHighlightStyle : defaultHighlightStyle,
-        { fallback: true },
-      ),
-      this.darkTheme ? oneDark : undefined,
-      fontTheme,
-      bracketMatching(),
-      closeBrackets(),
-      autocompletion(),
-      rectangularSelection(),
-      crosshairCursor(),
-      highlightActiveLine(),
-      highlightSelectionMatches(),
-      this.readonly ? EditorState.readOnly.of(this.readonly) : undefined,
-      this.editable ? EditorView.editable.of(this.editable) : undefined,
-      this.lang === Language.Python ? EditorState.tabSize.of(4) : undefined,
-      this.lang === Language.Python ? indentUnit.of("    ") : undefined,
-      keymap.of([
-        ...closeBracketsKeymap,
-        ...defaultKeymap,
-        ...searchKeymap,
-        ...historyKeymap,
-        ...foldKeymap,
-        ...completionKeymap,
-        ...lintKeymap,
-      ]),
-      keymap.of([indentWithTab]),
-      this.lang === Language.CSharp ? StreamLanguage.define(csharp) : undefined,
-      this.lang === Language.C ? StreamLanguage.define(c) : undefined,
-      this.lang === Language.Cpp ? cpp() : undefined,
-      this.lang === Language.Go ? StreamLanguage.define(go) : undefined,
-      this.lang === Language.Haskell
-        ? StreamLanguage.define(haskell)
-        : undefined,
-      this.lang === Language.Haskell
-        ? StreamLanguage.define(haskell)
-        : undefined,
-      this.lang === Language.Java ? java() : undefined,
-      this.lang === Language.Javascript ? javascript() : undefined,
-      this.lang === Language.Kotlin ? StreamLanguage.define(kotlin) : undefined,
-      this.lang === Language.Python ? python() : undefined,
-      this.lang === Language.Rust ? rust() : undefined,
-      this.lang === Language.Typescript
-        ? javascript({ typescript: true })
-        : undefined,
-    ].filter((x): x is Extension => x !== undefined);
-  }
-
-  mounted() {
-    this.doc = this.modelValue;
-    this.view = new EditorView({
-      state: EditorState.create({
-        doc: this.doc,
-        extensions: [
-          ...this.extensions,
-          EditorView.updateListener.of((update) => {
-            if (!update.docChanged) return;
-            this.doc = update.state.doc.toString();
-            this.$emit("update:modelValue", this.doc);
-          }),
-        ],
-      }),
-      parent: this.$refs.codemirror as Element,
-    });
-    if (this.italic) {
-      italicAll(this.view);
-    }
-  }
-
-  resetState() {
-    this.view.setState(
-      EditorState.create({
-        doc: this.doc || "",
-        extensions: [
-          ...this.extensions,
-          EditorView.updateListener.of((update) => {
-            if (!update.docChanged) return;
-            this.doc = update.state.doc.toString();
-            this.$emit("update:modelValue", this.doc);
-          }),
-        ],
-        selection: this.view.state.selection,
-      }),
-    );
-    if (this.italic) {
-      italicAll(this.view);
-    }
-  }
-
-  @Watch("italic")
-  watchItalic() {
-    this.resetState();
-  }
-
-  @Watch("modelValue")
-  watchValue(value: string) {
-    if (value === this.doc) return;
-    this.doc = value;
-    this.view.dispatch({
-      changes: {
-        from: 0,
-        to: this.view.state.doc.length,
-        insert: this.doc,
-      },
-    });
-  }
-
-  @Watch("lang")
-  watchLang() {
-    this.resetState();
+function resetState() {
+  view.setState(
+    EditorState.create({
+      doc: doc || "",
+      extensions: [...extensions.value, makeUpdateListener()],
+      selection: view.state.selection,
+    }),
+  );
+  if (props.italic) {
+    italicAll(view);
   }
 }
-export default toNative(CodeMirror)
+
+onMounted(() => {
+  doc = props.modelValue;
+  view = new EditorView({
+    state: EditorState.create({
+      doc: doc,
+      extensions: [...extensions.value, makeUpdateListener()],
+    }),
+    parent: codemirror.value as Element,
+  });
+  if (props.italic) {
+    italicAll(view);
+  }
+});
+
+watch(() => props.italic, resetState);
+watch(() => props.lang, resetState);
+watch(() => props.modelValue, (value) => {
+  if (value === doc) return;
+  doc = value;
+  view.dispatch({
+    changes: {
+      from: 0,
+      to: view.state.doc.length,
+      insert: doc,
+    },
+  });
+});
 </script>
 
 <style>

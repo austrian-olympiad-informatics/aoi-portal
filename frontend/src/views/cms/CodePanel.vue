@@ -81,15 +81,17 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import {
   SubmitResult,
   Task,
   UserEval,
   UserEvalSubmitResult,
 } from "@/types/cms";
-import {  Component, Prop, Vue, Watch, toNative } from "vue-facing-decorator";
+import { ref, computed, watch, onMounted } from "vue";
 import { PropType } from "vue";
+import { useRoute } from "vue-router";
+import { useDialog } from "buefy";
 import CodeMirror from "@/components/CodeMirror.vue";
 import Dropzone from "@/components/Dropzone.vue";
 import cms from "@/services/cms";
@@ -105,277 +107,269 @@ interface CodeStorage {
   testInput: string;
 }
 
-@Component({
-  components: {
-    CodeMirror,
-    Dropzone,
-  },
-})
-class CodePanel extends Vue {
-  @Prop({
-    type: Object as PropType<Task>,
-  })
-  task!: Task;
-  get contestName(): string {
-    return this.$route.params.contestName as string;
-  }
-  get taskName(): string {
-    return this.$route.params.taskName as string;
-  }
+const props = defineProps<{ task: Task }>();
+const emit = defineEmits<{ "new-submission": [unknown] }>();
 
-  code = "";
-  lang = "";
-  testInput = "";
-  testEvalUuid: string | null = null;
-  testEvalTimeoutHandle: number | null = null;
-  testEval: UserEval | null = null;
-  testEvalLoading = false;
-  submitLoading = false;
-  get testOutput(): string | null {
-    if (this.testEval === null) return "Noch nicht ausgeführt";
-    if (this.testEval.result.status === "compilation_failed")
-      return (
-        this.testEval.result.compilation_stderr +
-        "\n" +
-        this.testEval.result.compilation_stdout
-      );
-    if (this.testEval.result.status !== "evaluated")
-      return "Wird ausgeführt...";
-    const translatedEvalText = translateText(
-      this.testEval.result.evaluation_text,
+const route = useRoute();
+const dialog = useDialog();
+
+const contestName = computed(() => route.params.contestName as string);
+const taskName = computed(() => route.params.taskName as string);
+
+const code = ref("");
+const lang = ref("");
+const testInput = ref("");
+const testEvalUuid = ref<string | null>(null);
+const testEvalTimeoutHandle = ref<number | null>(null);
+const testEval = ref<UserEval | null>(null);
+const testEvalLoading = ref(false);
+const submitLoading = ref(false);
+const isTestMode = ref(false);
+
+const testOutput = computed<string | null>(() => {
+  if (testEval.value === null) return "Noch nicht ausgeführt";
+  if (testEval.value.result.status === "compilation_failed")
+    return (
+      testEval.value.result.compilation_stderr +
+      "\n" +
+      testEval.value.result.compilation_stdout
     );
-    if (this.testEval.result.output === undefined) return translatedEvalText;
-    const decodedOutput = b64DecodeUnicode(this.testEval.result.output);
-    if (
-      this.testEval.result.evaluation_text[0] ===
-      "Execution completed successfully"
-    )
-      return decodedOutput;
-    return `(${translatedEvalText})\n\n${decodedOutput}`;
-  }
-  get testOutputItalic(): boolean {
-    if (this.testEval === null) return true;
-    if (this.testEval.result.status === "compilation_failed") return false;
-    if (this.testEval.result.status !== "evaluated") return true;
-    if (this.testEval.result.output === undefined) return true;
-    return false;
-  }
-  isTestMode = false;
+  if (testEval.value.result.status !== "evaluated") return "Wird ausgeführt...";
+  const translatedEvalText = translateText(
+    testEval.value.result.evaluation_text,
+  );
+  if (testEval.value.result.output === undefined) return translatedEvalText;
+  const decodedOutput = b64DecodeUnicode(testEval.value.result.output);
+  if (
+    testEval.value.result.evaluation_text[0] ===
+    "Execution completed successfully"
+  )
+    return decodedOutput;
+  return `(${translatedEvalText})\n\n${decodedOutput}`;
+});
 
-  get languageTemplatesByCMSLang(): Map<
-    string,
-    { filename: string; digest: string }
-  > {
-    return new Map(
-      this.task.language_templates.map((x) => {
+const testOutputItalic = computed<boolean>(() => {
+  if (testEval.value === null) return true;
+  if (testEval.value.result.status === "compilation_failed") return false;
+  if (testEval.value.result.status !== "evaluated") return true;
+  if (testEval.value.result.output === undefined) return true;
+  return false;
+});
+
+const languageTemplatesByCMSLang = computed(
+  () =>
+    new Map(
+      props.task.language_templates.map((x) => {
         const ext = x.filename.substr(x.filename.lastIndexOf("."));
-        return [langToCMSLang(extToLang(ext), this.task.languages), x];
+        return [langToCMSLang(extToLang(ext), props.task.languages), x];
       }),
-    );
-  }
+    ),
+);
 
-  async setDefaults() {
-    if (!this.lang.length || !this.task.languages.includes(this.lang)) {
-      const order = [
-        "C++20 / g++",
-        "C++17 / g++",
-        "C++11 / g++",
-        "Python 3 / CPython",
-        ...this.task.languages,
-      ];
-      for (const l of order) {
-        if (this.task.languages.includes(l)) {
-          this.lang = l;
-          break;
-        }
+const codemirrorLang = computed(() => lookupCMSLang(lang.value));
+
+const storageKey = computed(
+  () => `cms$${contestName.value}$${taskName.value}`,
+);
+
+function saveStorageData() {
+  const data: CodeStorage = {
+    language: lang.value,
+    code: code.value,
+    isTestMode: isTestMode.value,
+    testInput: testInput.value,
+  };
+  window.localStorage.setItem(storageKey.value, JSON.stringify(data));
+}
+
+function restoreStorageData() {
+  const s = window.localStorage.getItem(storageKey.value);
+  if (s === null) return;
+  const data: CodeStorage = JSON.parse(s);
+  lang.value = data.language;
+  code.value = data.code;
+  isTestMode.value = data.isTestMode;
+  testInput.value = data.testInput;
+}
+
+function codeChanged() {
+  saveStorageData();
+}
+
+watch(lang, () => {
+  saveStorageData();
+});
+
+watch(isTestMode, () => {
+  saveStorageData();
+  loadDefaultInput();
+});
+
+async function loadDefaultInput() {
+  if (testInput.value !== "" || props.task.default_input_digest === null)
+    return;
+  const resp = await cms.getDefaultInput(
+    contestName.value,
+    taskName.value,
+    props.task.default_input_digest,
+  );
+  testInput.value = await resp.text();
+}
+
+async function setDefaults() {
+  if (!lang.value.length || !props.task.languages.includes(lang.value)) {
+    const order = [
+      "C++20 / g++",
+      "C++17 / g++",
+      "C++11 / g++",
+      "Python 3 / CPython",
+      ...props.task.languages,
+    ];
+    for (const l of order) {
+      if (props.task.languages.includes(l)) {
+        lang.value = l;
+        break;
       }
     }
-    if (!this.code.length) {
-      const lt = this.languageTemplatesByCMSLang.get(this.lang);
-      if (lt !== undefined) {
-        const resp = await cms.getLanguageTemplate(
-          this.contestName,
-          this.taskName,
-          lt.filename,
-          lt.digest,
-        );
-        this.code = await resp.text();
-        this.codeChanged();
-      }
+  }
+  if (!code.value.length) {
+    const lt = languageTemplatesByCMSLang.value.get(lang.value);
+    if (lt !== undefined) {
+      const resp = await cms.getLanguageTemplate(
+        contestName.value,
+        taskName.value,
+        lt.filename,
+        lt.digest,
+      );
+      code.value = await resp.text();
+      codeChanged();
     }
-  }
-
-  get storageKey() {
-    return `cms$${this.contestName}$${this.taskName}`;
-  }
-  saveStorageData() {
-    const data: CodeStorage = {
-      language: this.lang,
-      code: this.code,
-      isTestMode: this.isTestMode,
-      testInput: this.testInput,
-    };
-    window.localStorage.setItem(this.storageKey, JSON.stringify(data));
-  }
-  restoreStorageData() {
-    const s = window.localStorage.getItem(this.storageKey);
-    if (s === null) return;
-    const data: CodeStorage = JSON.parse(s);
-    this.lang = data.language;
-    this.code = data.code;
-    this.isTestMode = data.isTestMode;
-    this.testInput = data.testInput;
-  }
-  codeChanged() {
-    this.saveStorageData();
-  }
-  @Watch("lang")
-  langChanged() {
-    this.saveStorageData();
-  }
-  @Watch("isTestMode")
-  testModeChanged() {
-    this.saveStorageData();
-    this.loadDefaultInput();
-  }
-  async loadDefaultInput() {
-    if (this.testInput !== "" || this.task.default_input_digest === null)
-      return;
-    const resp = await cms.getDefaultInput(
-      this.contestName,
-      this.taskName,
-      this.task.default_input_digest,
-    );
-    this.testInput = await resp.text();
-  }
-  get codemirrorLang() {
-    return lookupCMSLang(this.lang);
-  }
-
-  async submitCode() {
-    this.submitLoading = true;
-    let resp: SubmitResult;
-    try {
-      resp = await cms.submit(this.contestName!, this.taskName!, {
-        language: this.lang,
-        files: [
-          {
-            filename: this.task!.submission_format[0],
-            content: b64EncodeUnicode(this.code),
-          },
-        ],
-      });
-    } catch (err) {
-      matchError(err, {
-        throttled: "Einsendungen zu schnell hintereinander!",
-        default:
-          "Beim Abschicken ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      return;
-    } finally {
-      this.submitLoading = false;
-    }
-    this.$emit("new-submission", resp.submission);
-  }
-
-  async mounted() {
-    this.restoreStorageData();
-    await this.setDefaults();
-    await this.loadDefaultInput();
-  }
-
-  async onMainDrop(files: FileList) {
-    for (const file of files) {
-      const fname = file.name;
-      const ext = fname.substr(fname.lastIndexOf("."));
-      const lang = extToLang(ext);
-      this.lang = langToCMSLang(lang, this.task.languages);
-      this.code = await file.text();
-      this.codeChanged();
-    }
-  }
-  async onInputDrop(files: FileList) {
-    for (const file of files) {
-      this.testInput = await file.text();
-      this.testInputChanged();
-    }
-  }
-
-  newLangSelected() {
-    const lt = this.languageTemplatesByCMSLang.get(this.lang);
-    if (lt === undefined) return;
-    this.$buefy.dialog.confirm({
-      message: "Möchtest du die Vorlage für diese Sprache laden?",
-      onConfirm: async () => {
-        const resp = await cms.getLanguageTemplate(
-          this.contestName,
-          this.taskName,
-          lt.filename,
-          lt.digest,
-        );
-        this.code = await resp.text();
-        this.codeChanged();
-      },
-    });
-  }
-
-  testInputChanged() {
-    this.saveStorageData();
-  }
-
-  async testCode() {
-    if (this.testEvalTimeoutHandle !== null)
-      clearTimeout(this.testEvalTimeoutHandle);
-
-    this.submitLoading = true;
-    let resp: UserEvalSubmitResult;
-    try {
-      resp = await cms.userEval(this.contestName!, this.taskName!, {
-        language: this.lang,
-        files: [
-          {
-            filename: this.task!.submission_format[0],
-            content: b64EncodeUnicode(this.code),
-          },
-        ],
-        input: b64EncodeUnicode(this.testInput),
-      });
-    } catch (err) {
-      matchError(err, {
-        throttled: "Einsendungen zu schnell hintereinander!",
-        default:
-          "Beim Abschicken ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      return;
-    } finally {
-      this.submitLoading = false;
-    }
-    this.testEval = null;
-    this.testEvalUuid = resp.uuid;
-    this.testEvalLoading = true;
-
-    const reschedule = (time: number) => {
-      this.testEvalTimeoutHandle = window.setTimeout(async () => {
-        const resp = await cms.getUserEval(
-          this.contestName,
-          this.taskName,
-          this.testEvalUuid!,
-        );
-        const oldStatus = this.testEval?.result.status || "";
-        this.testEval = resp;
-        if (["compilation_failed", "evaluated"].includes(resp.result.status)) {
-          this.testEvalLoading = false;
-          return;
-        }
-        const newStatus = this.testEval.result.status;
-        const newTime = newStatus !== oldStatus ? 1000 : time * 1.2;
-        reschedule(newTime);
-      }, time);
-    };
-    reschedule(1000);
   }
 }
-export default toNative(CodePanel)
+
+async function submitCode() {
+  submitLoading.value = true;
+  let resp: SubmitResult;
+  try {
+    resp = await cms.submit(contestName.value!, taskName.value!, {
+      language: lang.value,
+      files: [
+        {
+          filename: props.task!.submission_format[0],
+          content: b64EncodeUnicode(code.value),
+        },
+      ],
+    });
+  } catch (err) {
+    matchError(err, {
+      throttled: "Einsendungen zu schnell hintereinander!",
+      default:
+        "Beim Abschicken ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    });
+    return;
+  } finally {
+    submitLoading.value = false;
+  }
+  emit("new-submission", resp.submission);
+}
+
+onMounted(async () => {
+  restoreStorageData();
+  await setDefaults();
+  await loadDefaultInput();
+});
+
+async function onMainDrop(files: FileList) {
+  for (const file of files) {
+    const fname = file.name;
+    const ext = fname.substr(fname.lastIndexOf("."));
+    const fileLang = extToLang(ext);
+    lang.value = langToCMSLang(fileLang, props.task.languages);
+    code.value = await file.text();
+    codeChanged();
+  }
+}
+
+async function onInputDrop(files: FileList) {
+  for (const file of files) {
+    testInput.value = await file.text();
+    testInputChanged();
+  }
+}
+
+function newLangSelected() {
+  const lt = languageTemplatesByCMSLang.value.get(lang.value);
+  if (lt === undefined) return;
+  dialog.confirm({
+    message: "Möchtest du die Vorlage für diese Sprache laden?",
+    onConfirm: async () => {
+      const resp = await cms.getLanguageTemplate(
+        contestName.value,
+        taskName.value,
+        lt.filename,
+        lt.digest,
+      );
+      code.value = await resp.text();
+      codeChanged();
+    },
+  });
+}
+
+function testInputChanged() {
+  saveStorageData();
+}
+
+async function testCode() {
+  if (testEvalTimeoutHandle.value !== null)
+    clearTimeout(testEvalTimeoutHandle.value);
+
+  submitLoading.value = true;
+  let resp: UserEvalSubmitResult;
+  try {
+    resp = await cms.userEval(contestName.value!, taskName.value!, {
+      language: lang.value,
+      files: [
+        {
+          filename: props.task!.submission_format[0],
+          content: b64EncodeUnicode(code.value),
+        },
+      ],
+      input: b64EncodeUnicode(testInput.value),
+    });
+  } catch (err) {
+    matchError(err, {
+      throttled: "Einsendungen zu schnell hintereinander!",
+      default:
+        "Beim Abschicken ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    });
+    return;
+  } finally {
+    submitLoading.value = false;
+  }
+  testEval.value = null;
+  testEvalUuid.value = resp.uuid;
+  testEvalLoading.value = true;
+
+  const reschedule = (time: number) => {
+    testEvalTimeoutHandle.value = window.setTimeout(async () => {
+      const resp = await cms.getUserEval(
+        contestName.value,
+        taskName.value,
+        testEvalUuid.value!,
+      );
+      const oldStatus = testEval.value?.result.status || "";
+      testEval.value = resp;
+      if (["compilation_failed", "evaluated"].includes(resp.result.status)) {
+        testEvalLoading.value = false;
+        return;
+      }
+      const newStatus = testEval.value.result.status;
+      const newTime = newStatus !== oldStatus ? 1000 : time * 1.2;
+      reschedule(newTime);
+    }, time);
+  };
+  reschedule(1000);
+}
 </script>
 
 <style scoped lang="scss">

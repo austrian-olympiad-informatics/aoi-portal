@@ -37,129 +37,92 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { Contest } from "@/types/cms";
-import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 import {
   formatDateLong,
   formatFromNow,
-  formatToDate,
+  formatToDate as formatToDateUtil,
   isAfter,
   isBefore,
 } from "@/util/dt";
 import { PropType } from "vue";
 
-@Component
-class ContestStartStop extends Vue {
-  @Prop({
-    type: Object as PropType<Contest>,
-  })
-  contest!: Contest;
-  now: Date = new Date();
+const props = defineProps<{ contest: Contest }>();
 
-  formatFromDate(date: Date) {
-    return `${formatFromNow(this.now, date)} (${this.formatDate(date)})`;
-  }
-  formatToDate(date: Date) {
-    return `${formatToDate(this.now, date)} (${this.formatDate(date)})`;
-  }
-  formatDate(date: Date) {
-    return formatDateLong(date);
-  }
+const now = ref<Date>(new Date());
 
-  get isActive(): boolean {
-    return this.contest.is_active;
-  }
-  get isBeforeStart(): boolean {
-    return this.contestStart === null
-      ? false
-      : isBefore(this.now, this.contestStart);
-  }
-  get isDuringContest(): boolean {
-    return this.contest === null
-      ? false
-      : isAfter(this.now, this.contestStart!) &&
-          isBefore(this.now, this.contestStop!);
-  }
-  get isAfterContest(): boolean {
-    return this.contest === null ? false : isAfter(this.now, this.contestStop!);
-  }
-  get hasAnalysis(): boolean {
-    return this.contest !== null && this.contest.analysis !== null;
-  }
-  get isBeforeAnalysis(): boolean {
-    return this.contest === null || this.contest.analysis === null
-      ? false
-      : isBefore(this.now, this.analysisStart!);
-  }
-  get isDuringAnalysis(): boolean {
-    return this.contest === null || this.contest.analysis === null
-      ? false
-      : isAfter(this.now, this.analysisStart!) &&
-          isBefore(this.now, this.analysisStop!);
-  }
-  get isAfterAnalysis(): boolean {
-    return this.contest === null || this.contest.analysis === null
-      ? false
-      : isAfter(this.now, this.analysisStop!);
-  }
-  get contestStart(): Date {
-    return new Date(this.contest.start);
-  }
-  get isContestStartDefault(): boolean {
-    return this.contestStart.getFullYear() === 2000;
-  }
-  get contestStop(): Date {
-    return new Date(this.contest.stop);
-  }
-  get isContestStopDefault(): boolean {
-    return this.contestStop.getFullYear() === 2030;
-  }
-  get hasExtraTime(): boolean {
-    return this.contest.extra_time > 0;
-  }
-  get userContestStop(): Date {
-    return new Date(this.contestStop.getTime() + this.contest.extra_time * 1000);
-  }
-  get isDuringExtraTime(): boolean {
-    return (
-      this.hasExtraTime &&
-      isAfter(this.now, this.contestStop) &&
-      isBefore(this.now, this.userContestStop)
-    );
-  }
-  get analysisStart(): Date | null {
-    return this.contest.analysis === null
-      ? null
-      : new Date(this.contest.analysis.start);
-  }
-  get isAnalysisStartDefault(): boolean {
-    return this.analysisStart === null
-      ? false
-      : this.analysisStart.getFullYear() === 2000;
-  }
-  get analysisStop(): Date | null {
-    return this.contest.analysis === null
-      ? null
-      : new Date(this.contest.analysis.stop);
-  }
-  get isAnalysisStopDefault(): boolean {
-    return this.analysisStop === null
-      ? false
-      : this.analysisStop.getFullYear() === 2030;
-  }
-
-  nowHandle: number | null = null;
-
-  async mounted() {
-    this.nowHandle = window.setInterval(() => {
-      this.now = new Date();
-    }, 1000);
-  }
-
-  unmounted() {
-    if (this.nowHandle !== null) clearInterval(this.nowHandle);
-  }
+function formatFromDate(date: Date) {
+  return `${formatFromNow(now.value, date)} (${formatDateLong(date)})`;
 }
-export default toNative(ContestStartStop)
+function formatToDate(date: Date) {
+  return `${formatToDateUtil(now.value, date)} (${formatDateLong(date)})`;
+}
+
+const contestStart = computed(() => new Date(props.contest.start));
+const isContestStartDefault = computed(
+  () => contestStart.value.getFullYear() === 2000,
+);
+const contestStop = computed(() => new Date(props.contest.stop));
+const isContestStopDefault = computed(
+  () => contestStop.value.getFullYear() === 2030,
+);
+const hasExtraTime = computed(() => props.contest.extra_time > 0);
+const userContestStop = computed(
+  () => new Date(contestStop.value.getTime() + props.contest.extra_time * 1000),
+);
+const isBeforeStart = computed(() =>
+  isBefore(now.value, contestStart.value),
+);
+const isDuringContest = computed(() =>
+  isAfter(now.value, contestStart.value) &&
+  isBefore(now.value, contestStop.value),
+);
+const isDuringExtraTime = computed(
+  () =>
+    hasExtraTime.value &&
+    isAfter(now.value, contestStop.value) &&
+    isBefore(now.value, userContestStop.value),
+);
+const hasAnalysis = computed(
+  () => props.contest.analysis !== null,
+);
+const analysisStart = computed(() =>
+  props.contest.analysis === null
+    ? null
+    : new Date(props.contest.analysis.start),
+);
+const analysisStop = computed(() =>
+  props.contest.analysis === null
+    ? null
+    : new Date(props.contest.analysis.stop),
+);
+const isAnalysisStopDefault = computed(
+  () => analysisStop.value === null ? false : analysisStop.value.getFullYear() === 2030,
+);
+const isBeforeAnalysis = computed(() =>
+  analysisStart.value === null ? false : isBefore(now.value, analysisStart.value),
+);
+const isDuringAnalysis = computed(() =>
+  analysisStart.value === null || analysisStop.value === null
+    ? false
+    : isAfter(now.value, analysisStart.value) &&
+      isBefore(now.value, analysisStop.value),
+);
+const isAfterAnalysis = computed(() =>
+  analysisStop.value === null ? false : isAfter(now.value, analysisStop.value),
+);
+
+let nowHandle: number | null = null;
+
+onMounted(() => {
+  nowHandle = window.setInterval(() => {
+    now.value = new Date();
+  }, 1000);
+});
+
+onUnmounted(() => {
+  if (nowHandle !== null) clearInterval(nowHandle);
+});
 </script>

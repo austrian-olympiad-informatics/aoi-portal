@@ -45,11 +45,11 @@
   </section>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
 import admin from "@/services/admin";
 import { AdminUser, AdminUsers } from "@/types/admin";
-import { PropType } from "vue";
-import {  Component, VModel, Vue, toNative } from "vue-facing-decorator";
 
 export interface GroupFormData {
   name: string;
@@ -57,47 +57,39 @@ export interface GroupFormData {
   users: number[];
 }
 
-@Component
-class GroupForm extends Vue {
-  @VModel({
-    type: Object as PropType<GroupFormData>,
-  })
-  data!: GroupFormData;
+const data = defineModel<GroupFormData>({ required: true });
 
-  users: AdminUsers | null = null;
-  filterText: string = "";
+const users = ref<AdminUsers | null>(null);
+const filterText = ref("");
 
-  async loadUsers() {
-    this.users = await admin.getUsers();
-  }
+onMounted(async () => {
+  users.value = await admin.getUsers();
+});
 
-  async mounted() {
-    await this.loadUsers();
-  }
-
-  onTyping(text: string) {
-    this.filterText = text;
-  }
-
-  get filteredUsers(): AdminUser[] {
-    const uids = new Set(this.data.users);
-    const search = this.filterText.toLowerCase();
-    return this.users!.filter(
-      (u) =>
-        !uids.has(u.id) &&
-        (search === "" ||
-          u.first_name.toLowerCase().includes(search) ||
-          u.last_name.toLowerCase().includes(search) ||
-          u.email.toLowerCase().includes(search)),
-    );
-  }
-  get selectedUsers(): AdminUser[] {
-    const idToUser = new Map(this.users!.map((u) => [u.id, u]));
-    return this.data.users.map((i) => idToUser.get(i)!);
-  }
-  set selectedUsers(selected: AdminUser[]) {
-    this.data.users = selected.map((u) => u.id);
-  }
+function onTyping(text: string) {
+  filterText.value = text;
 }
-export default toNative(GroupForm)
+
+const filteredUsers = computed<AdminUser[]>(() => {
+  const uids = new Set(data.value.users);
+  const search = filterText.value.toLowerCase();
+  return users.value!.filter(
+    (u) =>
+      !uids.has(u.id) &&
+      (search === "" ||
+        u.first_name.toLowerCase().includes(search) ||
+        u.last_name.toLowerCase().includes(search) ||
+        u.email.toLowerCase().includes(search)),
+  );
+});
+
+const selectedUsers = computed<AdminUser[]>({
+  get: () => {
+    const idToUser = new Map(users.value!.map((u) => [u.id, u]));
+    return data.value.users.map((i) => idToUser.get(i)!);
+  },
+  set: (selected: AdminUser[]) => {
+    data.value.users = selected.map((u) => u.id);
+  },
+});
 </script>

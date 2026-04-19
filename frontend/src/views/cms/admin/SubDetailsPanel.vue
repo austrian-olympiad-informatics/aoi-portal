@@ -372,8 +372,9 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, Watch, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { formatDateShort } from "@/util/dt";
 import { langToExt, lookupCMSLang } from "@/util/lang-table";
 import CodeMirror from "@/components/CodeMirror.vue";
@@ -389,140 +390,124 @@ import {
 } from "@/types/cmsadmin";
 import PointsBar from "../PointsBar.vue";
 
-@Component({
-  components: {
-    CodeMirror,
-    PointsBar,
-  },
-})
-class AdminSubmissionDetailsPanel extends Vue {
-  now: Date = new Date();
-  get submissionUuid(): string {
-    return this.$route.params.submissionUuid as string;
-  }
-  submission: AdminSubmissionDetailed | null = null;
-  files: Record<string, string> | null = null;
-  memeUrl: string | null = null;
-  scores: AdminParticipationScore | null = null;
+const route = useRoute();
 
-  async loadMeme() {
-    if (this.submission!.result.meme_digest === null) return;
-    const blob = await cmsadmin.getDigest(this.submission!.result.meme_digest);
-    this.memeUrl = URL.createObjectURL(blob);
-  }
+const now = ref<Date>(new Date());
+const submissionUuid = computed(() => route.params.submissionUuid as string);
+const submission = ref<AdminSubmissionDetailed | null>(null);
+const files = ref<Record<string, string> | null>(null);
+const memeUrl = ref<string | null>(null);
+const scores = ref<AdminParticipationScore | null>(null);
 
-  async loadSubmission() {
-    this.submission = await cmsadmin.getSubmission(this.submissionUuid);
-    await Promise.all([this.loadMeme(), this.loadFiles(), this.loadScores()]);
-  }
-  async loadScores() {
-    this.scores = await cmsadmin.getParticipationScore(
-      this.submission!.participation.id,
-    );
-  }
-  get scoreTaskScore() {
-    return this.scores?.task_scores.find(
-      (task) => task.id === this.submission!.task.id,
-    );
-  }
-  get scoreTaskInfo() {
-    return this.scores?.tasks.find(
-      (task) => task.id === this.submission!.task.id,
-    );
-  }
-  get scoreSubtasks() {
-    return this.scoreTaskInfo?.subtask_max_scores?.map((x, i) => {
-      return {
-        max_score: x,
-        score: this.scoreTaskScore?.subtask_scores?.[i] || 0.0,
-      };
-    });
-  }
-  memeUrlLoaded() {
-    if (this.memeUrl !== null) URL.revokeObjectURL(this.memeUrl);
-  }
-  async loadFiles() {
-    if (this.files !== null) return;
-    this.files = Object.fromEntries(
-      await Promise.all(
-        this.submission!.files.map(async (file) => {
-          const resp = await cmsadmin.getDigest(file.digest);
-          return [file.filename, await resp.text()];
-        }),
-      ),
-    );
-  }
-
-  async mounted() {
-    this.now = new Date();
-    await this.loadSubmission();
-    this.scheduleCheckSubmissions(1000);
-  }
-
-  formatSubDate(date: Date) {
-    return formatDateShort(this.now, date);
-  }
-  translateText(text: string[]) {
-    return translateText(text);
-  }
-  formatUser(user: AdminUserShort) {
-    return `${user.first_name} ${user.last_name} (${user.username})`;
-  }
-
-  async downloadExecutable(exe: AdminExecutable) {
-    const blob = await cmsadmin.getDigest(exe.digest);
-    downloadBlob(blob, exe.filename);
-  }
-
-  subtaskPoints(st: { max_score: number; fraction: number }): number {
-    const res = this.submission?.result as AdminSubmissionResultScoredShort;
-    return parseFloat(
-      (st.max_score * st.fraction).toFixed(res.score_precision),
-    );
-  }
-
-  get codeLang() {
-    return lookupCMSLang(this.submission?.language || "");
-  }
-
-  checkSubTimeout: number | null = null;
-
-  scheduleCheckSubmissions(timeout: number) {
-    if (this.checkSubTimeout !== null) clearTimeout(this.checkSubTimeout);
-    this.checkSubTimeout = window.setTimeout(
-      () => this.checkSubmissions(timeout),
-      timeout,
-    );
-  }
-
-  async checkSubmissions(prevTime: number) {
-    if (
-      ["compilation_failed", "scored"].includes(
-        this.submission!.result.status || "",
-      )
-    )
-      return;
-    const prevState = this.submission!.result.status;
-    await this.loadSubmission();
-    const newState = this.submission!.result.status;
-    this.scheduleCheckSubmissions(
-      prevState === newState ? prevTime * 1.2 : 1000,
-    );
-  }
-
-  @Watch("task.submissions")
-  submissionsChanged() {
-    this.scheduleCheckSubmissions(1000);
-  }
-
-  downloadFile(fname: string, value: string) {
-    const blob = new Blob([value]);
-    const lang = lookupCMSLang(this.submission!.language);
-    fname = fname.replaceAll(".%l", langToExt(lang));
-    downloadBlob(blob, fname);
-  }
+async function loadMeme() {
+  if (submission.value!.result.meme_digest === null) return;
+  const blob = await cmsadmin.getDigest(submission.value!.result.meme_digest);
+  memeUrl.value = URL.createObjectURL(blob);
 }
-export default toNative(AdminSubmissionDetailsPanel)
+
+async function loadSubmission() {
+  submission.value = await cmsadmin.getSubmission(submissionUuid.value);
+  await Promise.all([loadMeme(), loadFiles(), loadScores()]);
+}
+
+async function loadScores() {
+  scores.value = await cmsadmin.getParticipationScore(
+    submission.value!.participation.id,
+  );
+}
+
+const scoreTaskScore = computed(() =>
+  scores.value?.task_scores.find(
+    (task) => task.id === submission.value!.task.id,
+  ),
+);
+
+const scoreTaskInfo = computed(() =>
+  scores.value?.tasks.find((task) => task.id === submission.value!.task.id),
+);
+
+const scoreSubtasks = computed(() =>
+  scoreTaskInfo.value?.subtask_max_scores?.map((x, i) => ({
+    max_score: x,
+    score: scoreTaskScore.value?.subtask_scores?.[i] || 0.0,
+  })),
+);
+
+function memeUrlLoaded() {
+  if (memeUrl.value !== null) URL.revokeObjectURL(memeUrl.value);
+}
+
+async function loadFiles() {
+  if (files.value !== null) return;
+  files.value = Object.fromEntries(
+    await Promise.all(
+      submission.value!.files.map(async (file) => {
+        const resp = await cmsadmin.getDigest(file.digest);
+        return [file.filename, await resp.text()];
+      }),
+    ),
+  );
+}
+
+let checkSubTimeout: number | null = null;
+
+function scheduleCheckSubmissions(timeout: number) {
+  if (checkSubTimeout !== null) clearTimeout(checkSubTimeout);
+  checkSubTimeout = window.setTimeout(
+    () => checkSubmissions(timeout),
+    timeout,
+  );
+}
+
+async function checkSubmissions(prevTime: number) {
+  if (
+    ["compilation_failed", "scored"].includes(
+      submission.value!.result.status || "",
+    )
+  )
+    return;
+  const prevState = submission.value!.result.status;
+  await loadSubmission();
+  const newState = submission.value!.result.status;
+  scheduleCheckSubmissions(prevState === newState ? prevTime * 1.2 : 1000);
+}
+
+onMounted(async () => {
+  now.value = new Date();
+  await loadSubmission();
+  scheduleCheckSubmissions(1000);
+});
+
+function formatSubDate(date: Date) {
+  return formatDateShort(now.value, date);
+}
+
+function formatUser(user: AdminUserShort) {
+  return `${user.first_name} ${user.last_name} (${user.username})`;
+}
+
+async function downloadExecutable(exe: AdminExecutable) {
+  const blob = await cmsadmin.getDigest(exe.digest);
+  downloadBlob(blob, exe.filename);
+}
+
+function subtaskPoints(st: { max_score: number; fraction: number }): number {
+  const res = submission.value?.result as AdminSubmissionResultScoredShort;
+  return parseFloat(
+    (st.max_score * st.fraction).toFixed(res.score_precision),
+  );
+}
+
+const codeLang = computed(() =>
+  lookupCMSLang(submission.value?.language || ""),
+);
+
+function downloadFile(fname: string, value: string) {
+  const blob = new Blob([value]);
+  const lang = lookupCMSLang(submission.value!.language);
+  fname = fname.replaceAll(".%l", langToExt(lang));
+  downloadBlob(blob, fname);
+}
 </script>
 
 <style scoped lang="scss">

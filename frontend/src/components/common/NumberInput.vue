@@ -7,35 +7,31 @@
   />
 </template>
 
-<script lang="ts">
-import {  Vue, Component, Watch, Prop, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref, watch, onMounted } from "vue";
 
-@Component
-class NumberInput extends Vue {
-  @Prop({
-    type: Number,
-  })
-  readonly modelValue!: number | null;
+const props = defineProps<{ modelValue?: number | null }>();
+const emit = defineEmits<{ "update:modelValue": [number | null] }>();
 
-  valueStr: string | null = null;
+const valueStr = ref<string | null>(null);
 
-  setValue(val: string) {
-    this.valueStr = val;
-    const num = val === "" ? null : Number(val);
-    if (num !== null && isNaN(num)) return;
-    this.$emit("update:modelValue", num);
-  }
-
-  @Watch("modelValue")
-  onValueChanged(val: number | null) {
-    const expected = val === null ? "" : val.toString();
-    if (this.valueStr === expected) return;
-    this.valueStr = expected;
-  }
-
-  mounted() {
-    this.valueStr = this.modelValue === null ? "" : this.modelValue.toString();
-  }
+function setValue(val: string) {
+  valueStr.value = val;
+  const num = val === "" ? null : Number(val);
+  if (num !== null && isNaN(num)) return;
+  emit("update:modelValue", num);
 }
-export default toNative(NumberInput)
+
+watch(
+  () => props.modelValue,
+  (val) => {
+    const expected = val == null ? "" : val.toString();
+    if (valueStr.value === expected) return;
+    valueStr.value = expected;
+  },
+);
+
+onMounted(() => {
+  valueStr.value = props.modelValue == null ? "" : props.modelValue.toString();
+});
 </script>

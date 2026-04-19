@@ -41,7 +41,6 @@
     "sass": "^1.71.1",
     "sass-loader": "^14.1.1",
     "vue": "^3.4.0",
-    "vue-facing-decorator": "^4.0.1",
     "vue-matomo": "^4.2.0",
     "vue-router": "^4.2.0"
   },

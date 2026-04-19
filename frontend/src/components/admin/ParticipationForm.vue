@@ -25,12 +25,12 @@
   </section>
 </template>
 
-<script lang="ts">
-import {  Component, Prop, VModel, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
 import { AdminUser, AdminUsers } from "@/types/admin";
 import NumberInput from "../common/NumberInput.vue";
 import admin from "@/services/admin";
-import { PropType } from "vue";
 
 export interface ParticipationFormData {
   user_id: number | null;
@@ -38,60 +38,44 @@ export interface ParticipationFormData {
   manual_password: string | null;
 }
 
-@Component({
-  components: {
-    NumberInput,
-  },
-})
-class ParticipationForm extends Vue {
-  @VModel({
-    type: Object as PropType<ParticipationFormData>,
-  })
-  data!: ParticipationFormData;
+const data = defineModel<ParticipationFormData>({ required: true });
 
-  @Prop({
-    default: false,
-  })
-  userEditable!: boolean;
+const props = withDefaults(defineProps<{ userEditable?: boolean }>(), {
+  userEditable: false,
+});
 
-  users: AdminUsers | null = null;
-  filterText: string = "";
+const users = ref<AdminUsers | null>(null);
+const filterText = ref("");
 
-  onTyping(text: string) {
-    this.filterText = text;
-  }
+onMounted(async () => {
+  users.value = await admin.getUsers();
+});
 
-  get filteredUsers(): AdminUser[] {
-    if (this.users === null) return [];
-    const search = this.filterText.toLowerCase();
-    if (search === "") return this.users;
-    return this.users.filter(
-      (u) =>
-        u.first_name.toLowerCase().includes(search) ||
-        u.last_name.toLowerCase().includes(search) ||
-        u.email.toLowerCase().includes(search),
-    );
-  }
-
-  formatUser(user: AdminUser): string {
-    return `${user.first_name} ${user.last_name} (${user.email})`;
-  }
-
-  get userValue(): string {
-    if (this.data.user_id === null || this.users === null) return "";
-    const uidMap = new Map(this.users.map((u) => [u.id, u]));
-    return this.formatUser(uidMap.get(this.data.user_id)!);
-  }
-
-  async loadUsers() {
-    this.users = await admin.getUsers();
-  }
-
-  async mounted() {
-    await this.loadUsers();
-  }
+function onTyping(text: string) {
+  filterText.value = text;
 }
-export default toNative(ParticipationForm)
+
+const filteredUsers = computed<AdminUser[]>(() => {
+  if (users.value === null) return [];
+  const search = filterText.value.toLowerCase();
+  if (search === "") return users.value;
+  return users.value.filter(
+    (u) =>
+      u.first_name.toLowerCase().includes(search) ||
+      u.last_name.toLowerCase().includes(search) ||
+      u.email.toLowerCase().includes(search),
+  );
+});
+
+function formatUser(user: AdminUser): string {
+  return `${user.first_name} ${user.last_name} (${user.email})`;
+}
+
+const userValue = computed<string>(() => {
+  if (data.value.user_id === null || users.value === null) return "";
+  const uidMap = new Map(users.value.map((u) => [u.id, u]));
+  return formatUser(uidMap.get(data.value.user_id)!);
+});
 </script>
 
 <style scoped></style>

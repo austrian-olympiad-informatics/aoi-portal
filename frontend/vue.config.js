@@ -1,4 +1,3 @@
-const path = require("path");
 const { defineConfig } = require("@vue/cli-service");
 module.exports = defineConfig({
   transpileDependencies: true,
@@ -11,14 +10,4 @@ module.exports = defineConfig({
     },
   },
   productionSourceMap: false,
-  configureWebpack: {
-    resolve: {
-      alias: {
-        "vue-facing-decorator": path.resolve(
-          __dirname,
-          "node_modules/vue-facing-decorator/dist/cjs/index.js",
-        ),
-      },
-    },
-  },
 });

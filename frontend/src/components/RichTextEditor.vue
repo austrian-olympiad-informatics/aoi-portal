@@ -242,81 +242,78 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, shallowRef, watch } from "vue";
+import { onMounted, onBeforeUnmount } from "vue";
+import { useDialog } from "buefy";
 import { Editor, EditorContent, BubbleMenu } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
-import {  Component, Prop, Vue, Watch, toNative } from "vue-facing-decorator";
 
-@Component({
-  components: {
-    EditorContent,
-    BubbleMenu,
-  },
-})
-class RichTextEditor extends Vue {
-  editor: Editor | null = null;
-  @Prop({
-    type: String,
-    default: "",
-  })
-  modelValue!: string;
+const props = withDefaults(defineProps<{ modelValue?: string }>(), {
+  modelValue: "",
+});
 
-  headingDropDownActive = false;
+const emit = defineEmits<{ "update:modelValue": [string] }>();
 
-  @Watch("modelValue")
-  watchValue(value: string) {
-    const isSame = this.editor?.getHTML() === value;
+const dialog = useDialog();
+
+const editor = shallowRef<Editor | null>(null);
+const headingDropDownActive = ref(false);
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    const isSame = editor.value?.getHTML() === value;
     if (!isSame) {
-      this.editor?.commands.setContent(value, false);
+      editor.value?.commands.setContent(value, false);
     }
-  }
+  },
+);
 
-  mounted() {
-    this.editor = new Editor({
-      content: this.modelValue,
-      extensions: [StarterKit, Underline, Link],
-      onUpdate: () => {
-        this.$emit("update:modelValue", this.editor?.getHTML());
+onMounted(() => {
+  editor.value = new Editor({
+    content: props.modelValue,
+    extensions: [StarterKit, Underline, Link],
+    onUpdate: () => {
+      emit("update:modelValue", editor.value?.getHTML() ?? "");
+    },
+    editorProps: {
+      attributes: {
+        class: "content",
       },
-      editorProps: {
-        attributes: {
-          class: "content",
-        },
-      },
-    });
-  }
+    },
+  });
+});
 
-  onLink() {
-    if (this.editor?.isActive("link")) {
-      this.editor?.chain().focus().unsetLink().run();
-      return;
-    }
-    this.$buefy.dialog.prompt({
-      message: `Apply Link`,
-      inputAttrs: {
-        placeholder: "e.g. https://informatikolympiade.at/AOI/",
-      },
-      trapFocus: true,
-      onConfirm: (value) => {
-        this.editor
-          ?.chain()
-          .focus()
-          .toggleLink({
-            href: value,
-            target: "_blank",
-          })
-          .run();
-      },
-    });
-  }
+onBeforeUnmount(() => {
+  editor.value?.destroy();
+});
 
-  beforeUnmount() {
-    this.editor?.destroy();
+function onLink() {
+  if (editor.value?.isActive("link")) {
+    editor.value?.chain().focus().unsetLink().run();
+    return;
   }
+  dialog.prompt({
+    message: `Apply Link`,
+    inputAttrs: {
+      placeholder: "e.g. https://informatikolympiade.at/AOI/",
+    },
+    trapFocus: true,
+    onConfirm: (value) => {
+      editor.value
+        ?.chain()
+        .focus()
+        .toggleLink({
+          href: value,
+          target: "_blank",
+        })
+        .run();
+    },
+  });
 }
-export default toNative(RichTextEditor)
 </script>
 
 <style>

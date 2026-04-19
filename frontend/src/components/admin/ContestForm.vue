@@ -91,11 +91,11 @@
   </section>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
 import admin from "@/services/admin";
 import { AdminGroups } from "@/types/admin";
-import { PropType } from "vue";
-import {  Component, VModel, Vue, toNative } from "vue-facing-decorator";
 import RichTextEditor from "@/components/RichTextEditor.vue";
 
 export interface ContestFormData {
@@ -118,33 +118,18 @@ export interface ContestFormData {
   auto_add_to_group_id: number | null;
 }
 
-@Component({
-  components: {
-    RichTextEditor,
-  },
-})
-class ContestForm extends Vue {
-  @VModel({
-    type: Object as PropType<ContestFormData>,
-  })
-  data!: ContestFormData;
+const data = defineModel<ContestFormData>({ required: true });
 
-  groups: AdminGroups | null = null;
+const groups = ref<AdminGroups | null>(null);
 
-  async loadGroups() {
-    this.groups = await admin.getGroups();
-  }
+onMounted(async () => {
+  groups.value = await admin.getGroups();
+});
 
-  async mounted() {
-    await this.loadGroups();
-  }
-
-  onAutoaddInput(event: InputEvent) {
-    const val = (event.target as HTMLSelectElement).value;
-    this.data.auto_add_to_group_id = val ? +val : null;
-  }
+function onAutoaddInput(event: InputEvent) {
+  const val = (event.target as HTMLSelectElement).value;
+  data.value.auto_add_to_group_id = val ? +val : null;
 }
-export default toNative(ContestForm)
 </script>
 
 <style scoped>
