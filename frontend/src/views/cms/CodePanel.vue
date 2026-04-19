@@ -26,7 +26,7 @@
           <div class="test-head">Test Output</div>
           <div class="code-test-output-wrap">
             <CodeMirror
-              :value="testOutput"
+              :model-value="testOutput"
               :editable="false"
               :readonly="true"
               :italic="testOutputItalic"

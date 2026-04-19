@@ -75,7 +75,7 @@
       <b-select
         placeholder="Select a group"
         :loading="groups === null"
-        :value="
+        :model-value="
           data.auto_add_to_group_id === null ? '' : data.auto_add_to_group_id
         "
         @input="onAutoaddInput"

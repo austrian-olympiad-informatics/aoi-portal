@@ -198,7 +198,7 @@
               @click="downloadFile(fname, value)"
             />
             <CodeMirror
-              :value="value"
+              :model-value="value"
               :lang="codeLang"
               :fullheight="false"
               :editable="false"

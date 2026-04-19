@@ -194,7 +194,7 @@
                     <CodeMirror
                       :editable="false"
                       :readonly="true"
-                      :value="testcaseDigests.get(props.row.input_digest) || ''"
+                      :model-value="testcaseDigests.get(props.row.input_digest) || ''"
                     />
                   </div>
                   <div class="testcase testcase-output">
@@ -207,7 +207,7 @@
                     <CodeMirror
                       :editable="false"
                       :readonly="true"
-                      :value="
+                      :model-value="
                         testcaseDigests.get(props.row.output_digest) || ''
                       "
                     />
