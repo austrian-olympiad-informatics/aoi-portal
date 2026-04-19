@@ -80,66 +80,49 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { Contest, ContestTaskScore, ContestTaskScores } from "@/types/cms";
 import cms from "@/services/cms";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 import CheckNotifications from "./CheckNotifications.vue";
 import ContestStartStop from "./ContestStartStop.vue";
 import NotificationsSection from "./NotificationsSection.vue";
 import PointsBar from "./PointsBar.vue";
 
-@Component({
-  components: {
-    CheckNotifications,
-    ContestStartStop,
-    NotificationsSection,
-    PointsBar,
-  },
-})
-class ContestView extends Vue {
-  get contestName(): string {
-    return this.$route.params.contestName as string;
-  }
-  contest: Contest | null = null;
-  scores: ContestTaskScores | null = null;
+const route = useRoute();
 
-  async loadContest() {
-    this.contest = await cms.getContest(this.contestName);
-  }
-  async loadScores() {
-    this.scores = await cms.getContestScores(this.contestName);
-  }
+const contestName = computed(() => route.params.contestName as string);
+const contest = ref<Contest | null>(null);
+const scores = ref<ContestTaskScores | null>(null);
 
-  get isActive(): boolean {
-    return this.contest === null ? false : this.contest.is_active;
-  }
-
-  async mounted() {
-    await Promise.all([this.loadContest(), this.loadScores()]);
-  }
-
-  get tasksWithScores() {
-    if (this.contest === null || this.contest.is_active === false) return null;
-    const scoreByTask = new Map(this.scores?.tasks.map((s) => [s.task, s]));
-    return this.contest.tasks.map((t) => {
-      return {
-        task: t,
-        score: scoreByTask.get(t.name) || null,
-      };
-    });
-  }
-
-  getSubtasks(row: ContestTaskScore) {
-    return row.subtask_max_scores?.map((x, i) => {
-      return {
-        max_score: x,
-        score: row.subtask_scores?.[i] || 0.0,
-      };
-    });
-  }
+async function loadContest() {
+  contest.value = await cms.getContest(contestName.value);
 }
-export default toNative(ContestView)
+async function loadScores() {
+  scores.value = await cms.getContestScores(contestName.value);
+}
+
+onMounted(async () => {
+  await Promise.all([loadContest(), loadScores()]);
+});
+
+const tasksWithScores = computed(() => {
+  if (contest.value === null || contest.value.is_active === false) return null;
+  const scoreByTask = new Map(scores.value?.tasks.map((s) => [s.task, s]));
+  return contest.value.tasks.map((t) => ({
+    task: t,
+    score: scoreByTask.get(t.name) || null,
+  }));
+});
+
+function getSubtasks(row: ContestTaskScore) {
+  return row.subtask_max_scores?.map((x, i) => ({
+    max_score: x,
+    score: row.subtask_scores?.[i] || 0.0,
+  }));
+}
 </script>
 
 <style scoped>

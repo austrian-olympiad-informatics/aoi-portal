@@ -162,7 +162,10 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
 import cmsadmin from "@/services/cmsadmin";
 import admin from "@/services/admin";
 import {
@@ -171,238 +174,220 @@ import {
   AdminContestRanking,
 } from "@/types/cmsadmin";
 import { AdminUser as AdminRegisterUser } from "@/types/admin";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 import PointsBar from "../PointsBar.vue";
 import UserContest from "./UserContestComponent.vue";
 
-@Component({
-  components: {
-    PointsBar,
-    UserContest,
-  },
-})
-class AdminValidityHelperView extends Vue {
-  get contestId(): number {
-    return +this.$route.params.contestId;
-  }
-  contest: AdminContest | null = null;
-  registerDatas: Map<number, AdminRegisterUser> | null = null;
-  participations: AdminContestParticipations | null = null;
-  scores: AdminContestRanking | null = null;
+const route = useRoute();
 
-  async loadContest() {
-    this.contest = await cmsadmin.getContest(this.contestId);
-  }
-  async loadParticipations() {
-    this.participations = await cmsadmin.getContestParticipations(
-      this.contestId,
-    );
-  }
-  async loadRegisterData() {
-    const users = await admin.getUsers();
-    this.registerDatas = new Map(
-      users
-        .filter((u) => u.cms_id !== null)
-        .map((u) => [u.cms_id as number, u]),
-    );
-  }
-  async loadScores() {
-    this.scores = await cmsadmin.getContestRanking(this.contestId);
-  }
+const contestId = computed(() => +route.params.contestId);
+const contest = ref<AdminContest | null>(null);
+const registerDatas = ref<Map<number, AdminRegisterUser> | null>(null);
+const participations = ref<AdminContestParticipations | null>(null);
+const scores = ref<AdminContestRanking | null>(null);
 
-  get scoresByPart() {
-    if (this.scores === null) {
-      return null;
-    }
-    return new Map(this.scores.results.map((p) => [p.id, p]));
-  }
+async function loadContest() {
+  contest.value = await cmsadmin.getContest(contestId.value);
+}
+async function loadParticipations() {
+  participations.value = await cmsadmin.getContestParticipations(contestId.value);
+}
+async function loadRegisterData() {
+  const users = await admin.getUsers();
+  registerDatas.value = new Map(
+    users
+      .filter((u) => u.cms_id !== null)
+      .map((u) => [u.cms_id as number, u]),
+  );
+}
+async function loadScores() {
+  scores.value = await cmsadmin.getContestRanking(contestId.value);
+}
 
-  get tableData() {
-    const scoresPart = this.scoresByPart;
-    if (
-      this.participations === null ||
-      this.registerDatas === null ||
-      this.scores === null ||
-      scoresPart === null
-    ) {
-      return [];
-    }
-    const res = this.participations.map((p) => {
-      const score = scoresPart.get(p.id);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let x: any = {
-        id: p.id,
-        hidden: p.hidden,
-        user_id: p.user.id,
-        first_name: p.user.first_name,
-        last_name: p.user.last_name,
-        username: p.user.username,
+const scoresByPart = computed(() => {
+  if (scores.value === null) return null;
+  return new Map(scores.value.results.map((p) => [p.id, p]));
+});
+
+const tableData = computed(() => {
+  const scoresPart = scoresByPart.value;
+  if (
+    participations.value === null ||
+    registerDatas.value === null ||
+    scores.value === null ||
+    scoresPart === null
+  ) {
+    return [];
+  }
+  const res = participations.value.map((p) => {
+    const score = scoresPart.get(p.id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let x: any = {
+      id: p.id,
+      hidden: p.hidden,
+      user_id: p.user.id,
+      first_name: p.user.first_name,
+      last_name: p.user.last_name,
+      username: p.user.username,
+    };
+    const user = registerDatas.value!.get(p.user.id);
+    if (user !== undefined) {
+      x = {
+        ...x,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        created_at: user.created_at,
+        last_login: user.last_login,
+        is_admin: user.is_admin,
+        birthday: user.birthday,
+        phone_nr: user.phone_nr,
+        address_street: user.address_street,
+        address_zip: user.address_zip,
+        address_town: user.address_town,
+        school_name: user.school_name,
+        school_address: user.school_address,
+        portal_id: user.id,
+        eligibility: user.eligibility,
       };
-      const user = this.registerDatas!.get(p.user.id);
-      if (user !== undefined) {
-        x = {
-          ...x,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          email: user.email,
-          created_at: user.created_at,
-          last_login: user.last_login,
-          is_admin: user.is_admin,
-          birthday: user.birthday,
-          phone_nr: user.phone_nr,
-          address_street: user.address_street,
-          address_zip: user.address_zip,
-          address_town: user.address_town,
-          school_name: user.school_name,
-          school_address: user.school_address,
-          portal_id: user.id,
-          eligibility: user.eligibility,
-        };
-      }
-      if (score !== undefined) {
-        x = {
-          ...x,
-          score: score.score,
-          rank: score.rank,
-          task_scores: score.task_scores,
-        };
-      }
-      return x;
-    });
-    res.sort((a, b) => {
-      if (a.score === undefined) {
-        return 1;
-      }
-      if (b.score === undefined) {
-        return -1;
-      }
-      return b.score - a.score;
-    });
-    return res;
-  }
+    }
+    if (score !== undefined) {
+      x = {
+        ...x,
+        score: score.score,
+        rank: score.rank,
+        task_scores: score.task_scores,
+      };
+    }
+    return x;
+  });
+  res.sort((a, b) => {
+    if (a.score === undefined) return 1;
+    if (b.score === undefined) return -1;
+    return b.score - a.score;
+  });
+  return res;
+});
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  warnShouldBeHidden(row: any) {
-    if (row.portal_id === undefined) return !row.hidden;
-    if (row.hidden) return false;
-    if (!row.school_name) return true;
-    if (!row.birthday) return true;
-    const birthday = new Date(row.birthday);
-    if (birthday.getFullYear() < 2003) return true;
-    return false;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  warnShouldNotBeHidden(row: any) {
-    if (row.portal_id === undefined) return false;
-    if (!row.hidden) return false;
-    if (!row.school_name) return false;
-    if (!row.birthday) return false;
-    const birthday = new Date(row.birthday);
-    return birthday.getFullYear() >= 2003 && birthday.getFullYear() <= 2016;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  warnBadBirthday(row: any) {
-    if (row.portal_id === undefined) return false;
-    if (!row.birthday) return false;
-    const birthday = new Date(row.birthday);
-    return birthday.getFullYear() > 2016;
-  }
+const maxScore = computed(() => {
+  if (scores.value === null) return 0;
+  return scores.value.tasks.reduce((acc, task) => acc + task.max_score, 0);
+});
 
-  get maxScore() {
-    if (this.scores === null) return 0;
-    return this.scores.tasks.reduce((acc, task) => acc + task.max_score, 0);
-  }
-  get scorePrecision() {
-    if (this.scores === null) return 0;
-    return this.scores.score_precision;
-  }
+const scorePrecision = computed(() => {
+  if (scores.value === null) return 0;
+  return scores.value.score_precision;
+});
 
-  async changeHidden(partId: number, hidden: boolean) {
-    await cmsadmin.updateParticipation(partId, { hidden });
-    await this.loadParticipations();
-  }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function warnShouldBeHidden(row: any) {
+  if (row.portal_id === undefined) return !row.hidden;
+  if (row.hidden) return false;
+  if (!row.school_name) return true;
+  if (!row.birthday) return true;
+  const birthday = new Date(row.birthday);
+  if (birthday.getFullYear() < 2003) return true;
+  return false;
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function warnShouldNotBeHidden(row: any) {
+  if (row.portal_id === undefined) return false;
+  if (!row.hidden) return false;
+  if (!row.school_name) return false;
+  if (!row.birthday) return false;
+  const birthday = new Date(row.birthday);
+  return birthday.getFullYear() >= 2003 && birthday.getFullYear() <= 2016;
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function warnBadBirthday(row: any) {
+  if (row.portal_id === undefined) return false;
+  if (!row.birthday) return false;
+  const birthday = new Date(row.birthday);
+  return birthday.getFullYear() > 2016;
+}
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  eligibilityLabel(eligibility: any): string {
-    if (eligibility === "ioi") return "IOI";
-    if (eligibility === "ioi_egoi") return "IOI + EGOI";
-    return "-";
-  }
+async function changeHidden(partId: number, hidden: boolean) {
+  await cmsadmin.updateParticipation(partId, { hidden });
+  await loadParticipations();
+}
 
-  async mounted() {
-    await Promise.all([
-      this.loadContest(),
-      this.loadParticipations(),
-      this.loadRegisterData(),
-      this.loadScores(),
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function eligibilityLabel(eligibility: any): string {
+  if (eligibility === "ioi") return "IOI";
+  if (eligibility === "ioi_egoi") return "IOI + EGOI";
+  return "-";
+}
+
+onMounted(async () => {
+  await Promise.all([
+    loadContest(),
+    loadParticipations(),
+    loadRegisterData(),
+    loadScores(),
+  ]);
+});
+
+function downloadCSV() {
+  const encodeRow = (row: string[]): string => {
+    return row
+      .map((s) => {
+        s = s.replace(/"/g, '""');
+        if (s.search(/("|,|\n)/g) >= 0) s = `"${s}"`;
+        return s;
+      })
+      .join(",");
+  };
+  const header = [
+    "Rank",
+    "First Name",
+    "Last Name",
+    "Email",
+    "Created At",
+    "Birthday",
+    "Phone Nr",
+    "Address Street",
+    "Address Zip",
+    "Address Town",
+    "School Name",
+    "School Address",
+    "Username",
+    "Score",
+    ...scores.value!.tasks.map((x) => x.name),
+  ];
+  const rows = [header];
+  for (const row of tableData.value) {
+    if (row.hidden || row.created_at === undefined) continue;
+    rows.push([
+      row.rank.toString(),
+      row.first_name,
+      row.last_name,
+      row.email,
+      row.created_at,
+      row.birthday || "N/A",
+      row.phone_nr || "N/A",
+      row.address_street || "N/A",
+      row.address_zip || "N/A",
+      row.address_town || "N/A",
+      row.school_name || "N/A",
+      row.school_address || "N/A",
+      row.username,
+      row.score.toString(),
+      ...scores.value!.tasks.map((x) => {
+        return (
+          row
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .task_scores!.find((y: any) => x.id == y.id)
+            .score.toString()
+        );
+      }),
     ]);
   }
-
-  downloadCSV() {
-    // https://stackoverflow.com/a/20623188
-    const encodeRow = (row: string[]): string => {
-      return row
-        .map((s) => {
-          s = s.replace(/"/g, '""');
-          if (s.search(/("|,|\n)/g) >= 0) s = `"${s}"`;
-          return s;
-        })
-        .join(",");
-    };
-    const header = [
-      "Rank",
-      "First Name",
-      "Last Name",
-      "Email",
-      "Created At",
-      "Birthday",
-      "Phone Nr",
-      "Address Street",
-      "Address Zip",
-      "Address Town",
-      "School Name",
-      "School Address",
-      "Username",
-      "Score",
-      ...this.scores!.tasks.map((x) => x.name),
-    ];
-    const rows = [header];
-    for (const row of this.tableData) {
-      if (row.hidden || row.created_at === undefined) continue;
-      rows.push([
-        row.rank.toString(),
-        row.first_name,
-        row.last_name,
-        row.email,
-        row.created_at,
-        row.birthday || "N/A",
-        row.phone_nr || "N/A",
-        row.address_street || "N/A",
-        row.address_zip || "N/A",
-        row.address_town || "N/A",
-        row.school_name || "N/A",
-        row.school_address || "N/A",
-        row.username,
-        row.score.toString(),
-        ...this.scores!.tasks.map((x) => {
-          return (
-            row
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              .task_scores!.find((y: any) => x.id == y.id)
-              .score.toString()
-          );
-        }),
-      ]);
-    }
-    const csvContent = rows.map((r) => encodeRow(r)).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const anchor = document.createElement("a");
-    anchor.href = URL.createObjectURL(blob);
-    anchor.download = "ranking.csv";
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-  }
+  const csvContent = rows.map((r) => encodeRow(r)).join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv" });
+  const anchor = document.createElement("a");
+  anchor.href = URL.createObjectURL(blob);
+  anchor.download = "ranking.csv";
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
 }
-export default toNative(AdminValidityHelperView)
 </script>

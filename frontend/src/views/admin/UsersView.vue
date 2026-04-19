@@ -209,64 +209,57 @@
   </AdminCard>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
 import { AdminUser, AdminUsers } from "@/types/admin";
 import AdminCard from "@/components/admin/AdminCard.vue";
 import admin from "@/services/admin";
 import { downloadBlob } from "@/util/download";
 
-@Component({
-  components: {
-    AdminCard,
-  },
-})
-class UsersView extends Vue {
-  users: AdminUsers | null = null;
-  searchable = false;
-  showEmail = true;
-  showCMS = true;
-  showGroups = false;
-  showAdmin = false;
-  showCreatedAt = false;
-  showBirthday = false;
-  showPhoneNr = false;
-  showSchool = true;
+const users = ref<AdminUsers | null>(null);
+const searchable = ref(false);
+const showEmail = ref(true);
+const showCMS = ref(true);
+const showGroups = ref(false);
+const showAdmin = ref(false);
+const showCreatedAt = ref(false);
+const showBirthday = ref(false);
+const showPhoneNr = ref(false);
+const showSchool = ref(true);
 
-  async loadUsers() {
-    this.users = await admin.getUsers();
-  }
+async function loadUsers() {
+  users.value = await admin.getUsers();
+}
 
-  eligibilityLabel(eligibility: string | null): string {
-    if (eligibility === "ioi") return "IOI";
-    if (eligibility === "ioi_egoi") return "IOI + EGOI";
-    return "-";
-  }
+function eligibilityLabel(eligibility: string | null): string {
+  if (eligibility === "ioi") return "IOI";
+  if (eligibility === "ioi_egoi") return "IOI + EGOI";
+  return "-";
+}
 
-  async mounted() {
-    await this.loadUsers();
-  }
+onMounted(async () => {
+  await loadUsers();
+});
 
-  downloadVCard(row: AdminUser) {
-    let content = `BEGIN:VCARD
+function downloadVCard(row: AdminUser) {
+  let content = `BEGIN:VCARD
 VERSION:3.0
 N:${row.last_name} (AOI);${row.first_name};;;
 EMAIL:${row.email}
 `;
-    if (row.address_street !== null) {
-      content += `ADR;TYPE=HOME:;;${row.address_street};${row.address_town};;${row.address_zip};Österreich\n`;
-    }
-    if (row.phone_nr !== null) {
-      content += `TEL;TYPE=CELL:${row.phone_nr}\n`;
-    }
-    if (row.birthday !== null) {
-      content += `BDAY:${row.birthday.replaceAll("-", "")}\n`;
-    }
-    content += `END:VCARD`;
-    const blob = new Blob([content], { type: "text/vcard" });
-    const fname = `${row.first_name}_${row.last_name}.vcf`;
-    downloadBlob(blob, fname);
+  if (row.address_street !== null) {
+    content += `ADR;TYPE=HOME:;;${row.address_street};${row.address_town};;${row.address_zip};Österreich\n`;
   }
+  if (row.phone_nr !== null) {
+    content += `TEL;TYPE=CELL:${row.phone_nr}\n`;
+  }
+  if (row.birthday !== null) {
+    content += `BDAY:${row.birthday.replaceAll("-", "")}\n`;
+  }
+  content += `END:VCARD`;
+  const blob = new Blob([content], { type: "text/vcard" });
+  const fname = `${row.first_name}_${row.last_name}.vcf`;
+  downloadBlob(blob, fname);
 }
-export default toNative(UsersView)
 </script>

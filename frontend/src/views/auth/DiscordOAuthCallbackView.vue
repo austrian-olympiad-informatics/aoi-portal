@@ -6,59 +6,62 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { useStore } from "@/store";
+import { useToast } from "buefy";
 import oauth from "@/services/oauth";
 import { matchError, showErrorNotification } from "@/util/errors";
 import { DiscordAuthorizeResponse } from "@/types/oauth";
 
-@Component
-class DiscordOAuthCallbackView extends Vue {
-  async mounted() {
-    const err = this.$route.query.error as string | undefined;
-    if (err) {
-      console.error("OAuth error: ", err);
-      showErrorNotification(
-        "Beim Verlinken mit Discord ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      );
-      return;
-    }
-    const state = this.$route.query.state as string;
-    if (state !== sessionStorage.getItem("discordOAuthState")) {
-      console.error("Invalid OAuth state!");
-      showErrorNotification(
-        "Beim Verlinken mit Discord ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      );
-      return;
-    }
-    const code = this.$route.query.code as string;
-    const redirect_url = new URL(window.location.origin);
-    redirect_url.pathname = this.$router.resolve({
-      name: "DiscordOAuthCallback",
-    }).href;
+const route = useRoute();
+const router = useRouter();
+const store = useStore();
+const toast = useToast();
 
-    let resp: DiscordAuthorizeResponse;
-    try {
-      resp = await oauth.discordAuthorize({
-        code: code,
-        redirect_uri: redirect_url.toString(),
-      });
-    } catch (err) {
-      matchError(err, {
-        default:
-          "Beim Verlinken mit Discord ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      return;
-    }
-
-    useStore().setDiscordUsername(resp.username);
-    this.$buefy.toast.open({
-      message: "Erfolgreich mit Discord verlinkt!",
-      type: "is-success",
-    });
-    this.$router.push("/");
+onMounted(async () => {
+  const err = route.query.error as string | undefined;
+  if (err) {
+    console.error("OAuth error: ", err);
+    showErrorNotification(
+      "Beim Verlinken mit Discord ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    );
+    return;
   }
-}
-export default toNative(DiscordOAuthCallbackView)
+  const state = route.query.state as string;
+  if (state !== sessionStorage.getItem("discordOAuthState")) {
+    console.error("Invalid OAuth state!");
+    showErrorNotification(
+      "Beim Verlinken mit Discord ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    );
+    return;
+  }
+  const code = route.query.code as string;
+  const redirect_url = new URL(window.location.origin);
+  redirect_url.pathname = router.resolve({
+    name: "DiscordOAuthCallback",
+  }).href;
+
+  let resp: DiscordAuthorizeResponse;
+  try {
+    resp = await oauth.discordAuthorize({
+      code: code,
+      redirect_uri: redirect_url.toString(),
+    });
+  } catch (err) {
+    matchError(err, {
+      default:
+        "Beim Verlinken mit Discord ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    });
+    return;
+  }
+
+  store.setDiscordUsername(resp.username);
+  toast.open({
+    message: "Erfolgreich mit Discord verlinkt!",
+    type: "is-success",
+  });
+  router.push("/");
+});
 </script>

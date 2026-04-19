@@ -119,7 +119,10 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
 import cmsadmin from "@/services/cmsadmin";
 import {
   AdminContest,
@@ -128,49 +131,44 @@ import {
   AdminUserEvalsPaginated,
 } from "@/types/cmsadmin";
 import { formatDateShort } from "@/util/dt";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 
-@Component
-class AdminContestView extends Vue {
-  get contestId(): number {
-    return +this.$route.params.contestId;
-  }
-  contest: AdminContest | null = null;
-  participations: AdminContestParticipations | null = null;
-  submissions: AdminSubmissionsPaginated | null = null;
-  userEvals: AdminUserEvalsPaginated | null = null;
+const route = useRoute();
 
-  async loadContest() {
-    this.contest = await cmsadmin.getContest(this.contestId);
-  }
-  async loadParticipations() {
-    this.participations = await cmsadmin.getContestParticipations(
-      this.contestId,
-    );
-  }
-  async loadSubmissions() {
-    this.submissions = await cmsadmin.getSubmissions({
-      contestId: this.contestId,
-      perPage: 0,
-    });
-  }
-  async loadUserEvals() {
-    this.userEvals = await cmsadmin.getUserEvals({
-      contestId: this.contestId,
-      perPage: 0,
-    });
-  }
-  async mounted() {
-    await Promise.all([
-      this.loadContest(),
-      this.loadParticipations(),
-      this.loadSubmissions(),
-      this.loadUserEvals(),
-    ]);
-  }
-  formatDate(date: string) {
-    return formatDateShort(new Date(), new Date(date));
-  }
+const contestId = computed(() => +route.params.contestId);
+const contest = ref<AdminContest | null>(null);
+const participations = ref<AdminContestParticipations | null>(null);
+const submissions = ref<AdminSubmissionsPaginated | null>(null);
+const userEvals = ref<AdminUserEvalsPaginated | null>(null);
+
+async function loadContest() {
+  contest.value = await cmsadmin.getContest(contestId.value);
 }
-export default toNative(AdminContestView)
+async function loadParticipations() {
+  participations.value = await cmsadmin.getContestParticipations(contestId.value);
+}
+async function loadSubmissions() {
+  submissions.value = await cmsadmin.getSubmissions({
+    contestId: contestId.value,
+    perPage: 0,
+  });
+}
+async function loadUserEvals() {
+  userEvals.value = await cmsadmin.getUserEvals({
+    contestId: contestId.value,
+    perPage: 0,
+  });
+}
+
+onMounted(async () => {
+  await Promise.all([
+    loadContest(),
+    loadParticipations(),
+    loadSubmissions(),
+    loadUserEvals(),
+  ]);
+});
+
+function formatDate(date: string) {
+  return formatDateShort(new Date(), new Date(date));
+}
 </script>

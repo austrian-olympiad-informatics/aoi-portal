@@ -59,67 +59,63 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
 import { useStore } from "@/store";
 import { Contests } from "@/types/contests";
-import contests from "@/services/contests";
+import contestsService from "@/services/contests";
 import ContestCard from "./ContestCard.vue";
 import { ProfileInfoResponse } from "@/types/profile";
-import profile from "@/services/profile";
+import profileService from "@/services/profile";
 
-@Component({
-  components: {
-    ContestCard,
-  },
-})
-class HomeContests extends Vue {
-  contests: Contests | null = null;
-  profile: ProfileInfoResponse | null = null;
-  showLoading = false;
+const store = useStore();
 
-  get profileComplete(): boolean {
-    if (this.profile === null) return true;
-    return !!(
-      this.profile.first_name &&
-      this.profile.last_name &&
-      this.profile.birthday &&
-      this.profile.phone_nr &&
-      this.profile.address_street &&
-      this.profile.address_zip &&
-      this.profile.address_town &&
-      this.profile.school_name &&
-      this.profile.school_address
-    );
-  }
+const contests = ref<Contests | null>(null);
+const profile = ref<ProfileInfoResponse | null>(null);
+const showLoading = ref(false);
 
-  get activeContests(): Contests | null {
-    if (this.contests === null) return null;
-    return this.contests.filter((c) => !c.archived);
-  }
+const profileComplete = computed((): boolean => {
+  if (profile.value === null) return true;
+  return !!(
+    profile.value.first_name &&
+    profile.value.last_name &&
+    profile.value.birthday &&
+    profile.value.phone_nr &&
+    profile.value.address_street &&
+    profile.value.address_zip &&
+    profile.value.address_town &&
+    profile.value.school_name &&
+    profile.value.school_address
+  );
+});
 
-  get archivedContests(): Contests | null {
-    if (this.contests === null) return null;
-    return this.contests.filter((c) => c.archived);
-  }
+const activeContests = computed((): Contests | null => {
+  if (contests.value === null) return null;
+  return contests.value.filter((c) => !c.archived);
+});
 
-  async loadProfile() {
-    if (useStore().isProxyAuth) {
-      this.profile = {} as ProfileInfoResponse;
-      return;
-    }
-    this.profile = await profile.profileInfo();
-  }
-  async loadContests() {
-    this.contests = await contests.listContests();
-  }
+const archivedContests = computed((): Contests | null => {
+  if (contests.value === null) return null;
+  return contests.value.filter((c) => c.archived);
+});
 
-  async mounted() {
-    setTimeout(() => (this.showLoading = true), 500);
-    await Promise.all([this.loadContests(), this.loadProfile()]);
+async function loadProfile() {
+  if (store.isProxyAuth) {
+    profile.value = {} as ProfileInfoResponse;
+    return;
   }
+  profile.value = await profileService.profileInfo();
 }
-export default toNative(HomeContests)
+
+async function loadContests() {
+  contests.value = await contestsService.listContests();
+}
+
+onMounted(async () => {
+  setTimeout(() => (showLoading.value = true), 500);
+  await Promise.all([loadContests(), loadProfile()]);
+});
 </script>
 
 <style scoped>

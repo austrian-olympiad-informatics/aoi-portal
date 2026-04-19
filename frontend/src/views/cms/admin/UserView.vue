@@ -103,7 +103,10 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
 import cmsadmin from "@/services/cmsadmin";
 import admin from "@/services/admin";
 import {
@@ -112,66 +115,58 @@ import {
   AdminUserEvalsPaginated,
 } from "@/types/cmsadmin";
 import { AdminUser as AdminRegisterUser } from "@/types/admin";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 import UserContest from "./UserContestComponent.vue";
 
-@Component({
-  components: {
-    UserContest,
-  },
-})
-class AdminUserView extends Vue {
-  get userId(): number {
-    return +this.$route.params.userId;
-  }
-  user: AdminUser | null = null;
-  submissions: AdminSubmissionsPaginated | null = null;
-  userEvals: AdminUserEvalsPaginated | null = null;
-  registerInfo: AdminRegisterUser | null = null;
+const route = useRoute();
 
-  get fullName() {
-    if (this.user === null) return null;
-    return `${this.user.first_name} ${this.user.last_name} (${this.user.username})`;
-  }
+const userId = computed(() => +route.params.userId);
+const user = ref<AdminUser | null>(null);
+const submissions = ref<AdminSubmissionsPaginated | null>(null);
+const userEvals = ref<AdminUserEvalsPaginated | null>(null);
+const registerInfo = ref<AdminRegisterUser | null>(null);
 
-  async loadUser() {
-    this.user = await cmsadmin.getUser(this.userId);
-  }
-  async loadSubmissions() {
-    this.submissions = await cmsadmin.getSubmissions({
-      userId: this.userId,
-      perPage: 0,
-    });
-  }
-  async loadUserEvals() {
-    this.userEvals = await cmsadmin.getUserEvals({
-      userId: this.userId,
-      perPage: 0,
-    });
-  }
-  async loadRegisterData() {
-    const users = await admin.getUsers();
-    for (const user of users) {
-      if (user.cms_id === this.userId) {
-        this.registerInfo = user;
-        return;
-      }
+const fullName = computed(() => {
+  if (user.value === null) return null;
+  return `${user.value.first_name} ${user.value.last_name} (${user.value.username})`;
+});
+
+async function loadUser() {
+  user.value = await cmsadmin.getUser(userId.value);
+}
+async function loadSubmissions() {
+  submissions.value = await cmsadmin.getSubmissions({
+    userId: userId.value,
+    perPage: 0,
+  });
+}
+async function loadUserEvals() {
+  userEvals.value = await cmsadmin.getUserEvals({
+    userId: userId.value,
+    perPage: 0,
+  });
+}
+async function loadRegisterData() {
+  const users = await admin.getUsers();
+  for (const u of users) {
+    if (u.cms_id === userId.value) {
+      registerInfo.value = u;
+      return;
     }
   }
-  async mounted() {
-    await Promise.all([
-      this.loadUser(),
-      this.loadSubmissions(),
-      this.loadUserEvals(),
-      this.loadRegisterData(),
-    ]);
-  }
-
-  eligibilityLabel(eligibility: string | null): string {
-    if (eligibility === "ioi") return "IOI";
-    if (eligibility === "ioi_egoi") return "IOI + EGOI";
-    return "-";
-  }
 }
-export default toNative(AdminUserView)
+
+onMounted(async () => {
+  await Promise.all([
+    loadUser(),
+    loadSubmissions(),
+    loadUserEvals(),
+    loadRegisterData(),
+  ]);
+});
+
+function eligibilityLabel(eligibility: string | null): string {
+  if (eligibility === "ioi") return "IOI";
+  if (eligibility === "ioi_egoi") return "IOI + EGOI";
+  return "-";
+}
 </script>

@@ -128,86 +128,84 @@
   </center-box-layout>
 </template>
 
-<script lang="ts">
-import profile from "@/services/profile";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
+import { useToast } from "buefy";
+import profileService from "@/services/profile";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 
-@Component({
-  components: {
-    CenterBoxLayout,
-  },
-})
-class ProfileView extends Vue {
-  email = "";
-  firstName = "";
-  lastName = "";
-  birthday: Date | null = null;
-  phoneNr: string | null = null;
-  addressStreet: string | null = null;
-  addressZip: string | null = null;
-  addressTown: string | null = null;
-  schoolName: string | null = null;
-  schoolAddress: string | null = null;
-  eligibility: string | null = null;
-  missingFields: string[] = [];
+const toast = useToast();
 
-  calcMissingFields() {
-    const missing: string[] = [];
-    if (!this.birthday) missing.push("Geburtstag");
-    if (!this.phoneNr) missing.push("Telefonnummer");
-    if (!this.addressStreet) missing.push("Straße und Hausnummer");
-    if (!this.addressZip) missing.push("PLZ");
-    if (!this.addressTown) missing.push("Wohnort");
-    if (!this.schoolName) missing.push("Name der Schule");
-    if (!this.schoolAddress) missing.push("Adresse der Schule");
-    if (!this.eligibility) missing.push("Teilnahmeberechtigung");
-    this.missingFields = missing;
-  }
+const email = ref("");
+const firstName = ref("");
+const lastName = ref("");
+const birthday = ref<Date | null>(null);
+const phoneNr = ref<string | null>(null);
+const addressStreet = ref<string | null>(null);
+const addressZip = ref<string | null>(null);
+const addressTown = ref<string | null>(null);
+const schoolName = ref<string | null>(null);
+const schoolAddress = ref<string | null>(null);
+const eligibility = ref<string | null>(null);
+const missingFields = ref<string[]>([]);
 
-  async submit() {
-    let bstring = null;
-    if (this.birthday !== null) {
-      bstring = `${this.birthday.getFullYear()}-${
-        this.birthday.getMonth() + 1
-      }-${this.birthday.getDate()}`;
-    }
-    await profile.updateProfile({
-      first_name: this.firstName,
-      last_name: this.lastName,
-      birthday: bstring,
-      phone_nr: this.phoneNr || null,
-      address_street: this.addressStreet || null,
-      address_zip: this.addressZip || null,
-      address_town: this.addressTown || null,
-      school_name: this.schoolName || null,
-      school_address: this.schoolAddress || null,
-      eligibility: this.eligibility,
-    });
-    await this.loadProfile();
-    this.$buefy.toast.open({
-      message: "Profil wurde aktualisiert!",
-      type: "is-success",
-    });
-  }
-  async loadProfile() {
-    const data = await profile.profileInfo();
-    this.email = data.email;
-    this.firstName = data.first_name;
-    this.lastName = data.last_name;
-    this.birthday = data.birthday ? new Date(data.birthday) : null;
-    this.phoneNr = data.phone_nr;
-    this.addressStreet = data.address_street;
-    this.addressZip = data.address_zip;
-    this.addressTown = data.address_town;
-    this.schoolName = data.school_name;
-    this.schoolAddress = data.school_address;
-    this.eligibility = data.eligibility;
-    this.calcMissingFields();
-  }
-  async mounted() {
-    await this.loadProfile();
-  }
+function calcMissingFields() {
+  const missing: string[] = [];
+  if (!birthday.value) missing.push("Geburtstag");
+  if (!phoneNr.value) missing.push("Telefonnummer");
+  if (!addressStreet.value) missing.push("Straße und Hausnummer");
+  if (!addressZip.value) missing.push("PLZ");
+  if (!addressTown.value) missing.push("Wohnort");
+  if (!schoolName.value) missing.push("Name der Schule");
+  if (!schoolAddress.value) missing.push("Adresse der Schule");
+  if (!eligibility.value) missing.push("Teilnahmeberechtigung");
+  missingFields.value = missing;
 }
-export default toNative(ProfileView)
+
+async function submit() {
+  let bstring = null;
+  if (birthday.value !== null) {
+    bstring = `${birthday.value.getFullYear()}-${
+      birthday.value.getMonth() + 1
+    }-${birthday.value.getDate()}`;
+  }
+  await profileService.updateProfile({
+    first_name: firstName.value,
+    last_name: lastName.value,
+    birthday: bstring,
+    phone_nr: phoneNr.value || null,
+    address_street: addressStreet.value || null,
+    address_zip: addressZip.value || null,
+    address_town: addressTown.value || null,
+    school_name: schoolName.value || null,
+    school_address: schoolAddress.value || null,
+    eligibility: eligibility.value,
+  });
+  await loadProfile();
+  toast.open({
+    message: "Profil wurde aktualisiert!",
+    type: "is-success",
+  });
+}
+
+async function loadProfile() {
+  const data = await profileService.profileInfo();
+  email.value = data.email;
+  firstName.value = data.first_name;
+  lastName.value = data.last_name;
+  birthday.value = data.birthday ? new Date(data.birthday) : null;
+  phoneNr.value = data.phone_nr;
+  addressStreet.value = data.address_street;
+  addressZip.value = data.address_zip;
+  addressTown.value = data.address_town;
+  schoolName.value = data.school_name;
+  schoolAddress.value = data.school_address;
+  eligibility.value = data.eligibility;
+  calcMissingFields();
+}
+
+onMounted(async () => {
+  await loadProfile();
+});
 </script>

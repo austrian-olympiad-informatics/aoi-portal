@@ -51,65 +51,64 @@
   </center-box-layout>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { useStore } from "@/store";
+import { useToast } from "buefy";
 import LoginInput, { LoginInputData } from "@/components/LoginInput.vue";
 import { AuthLoginResult } from "@/types/auth";
 import auth from "@/services/auth";
 import { matchError } from "@/util/errors";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 
-@Component({
-  components: {
-    LoginInput,
-    CenterBoxLayout,
-  },
-})
-class LoginView extends Vue {
-  data: LoginInputData = {
-    email: "",
-    password: "",
-  };
-  unsuccessfulAttempts = 0;
-  mounted(): void {
-    if (useStore().isAuthenticated) {
-      this.$router.push("/");
-    }
+const router = useRouter();
+const store = useStore();
+const toast = useToast();
+
+const data = ref<LoginInputData>({
+  email: "",
+  password: "",
+});
+const unsuccessfulAttempts = ref(0);
+
+onMounted((): void => {
+  if (store.isAuthenticated) {
+    router.push("/");
   }
+});
 
-  async submit(): Promise<void> {
-    let resp: AuthLoginResult;
-    try {
-      resp = await auth.login({
-        email: this.data.email,
-        password: this.data.password,
-      });
-    } catch (error) {
-      matchError(error, {
-        already_logged_in: "Du bist bereits angemeldet.",
-        invalid_password:
-          "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
-        user_not_found:
-          "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
-        default:
-          "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      this.data.password = "";
-      this.unsuccessfulAttempts++;
-      return;
-    }
-
-    useStore().setAuthToken(resp.token);
-    await useStore().checkStatus();
-    this.$buefy.toast.open({
-      message: "Erfolgreich angemeldet!",
-      type: "is-success",
+async function submit(): Promise<void> {
+  let resp: AuthLoginResult;
+  try {
+    resp = await auth.login({
+      email: data.value.email,
+      password: data.value.password,
     });
-    this.$router.push("/");
+  } catch (error) {
+    matchError(error, {
+      already_logged_in: "Du bist bereits angemeldet.",
+      invalid_password:
+        "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
+      user_not_found:
+        "Die E-Mail-Adresse und/oder das Passwort ist/sind falsch.",
+      default:
+        "Beim Anmelden ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    });
+    data.value.password = "";
+    unsuccessfulAttempts.value++;
+    return;
   }
+
+  store.setAuthToken(resp.token);
+  await store.checkStatus();
+  toast.open({
+    message: "Erfolgreich angemeldet!",
+    type: "is-success",
+  });
+  router.push("/");
 }
-export default toNative(LoginView)
 </script>
 
 <style scoped>

@@ -31,73 +31,71 @@
   </center-box-layout>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "@/store";
+import { useToast } from "buefy";
 import auth from "@/services/auth";
 import { AuthRegisterVerifyResult } from "@/types/auth";
 import { matchError } from "@/util/errors";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
-import { useStore } from "@/store";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 
-@Component({
-  components: {
-    CenterBoxLayout,
-  },
-})
-class RegisterVerifyView extends Vue {
-  verifyCode = "";
-  showHelpText = false;
+const router = useRouter();
+const store = useStore();
+const toast = useToast();
 
-  get registerEmail(): string {
-    return useStore().registerVerifyEmail;
-  }
+const verifyCode = ref("");
+const showHelpText = ref(false);
 
-  async registerVerify() {
-    let resp: AuthRegisterVerifyResult;
-    try {
-      resp = await auth.registerVerify({
-        uuid: useStore().registerVerifyUuid,
-        verification_code: this.verifyCode,
-      });
-    } catch (err) {
-      matchError(err, {
-        // TODO: add endpoint to rerequest verification code
-        no_longer_valid: "Dieser Verifizierungscode ist nicht mehr gültig.",
-        too_many_attempts: "Zu viele falsche Versuche.",
-        invalid_verification_code:
-          "Der Verifizierunscode ist nicht korrekt. Bitte versuche es erneut.",
-        email_exists: "Diese E-Mail-Adresse ist bereits in Verwendung.",
-        default:
-          "Beim Verifizieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      return;
-    }
-    useStore().setAuthToken(resp.token);
-    useStore().setRegisterVerifyState({
-      registerVerifyEmail: "",
-      registerVerifyUuid: "",
+const registerEmail = computed(() => store.registerVerifyEmail);
+
+async function registerVerify() {
+  let resp: AuthRegisterVerifyResult;
+  try {
+    resp = await auth.registerVerify({
+      uuid: store.registerVerifyUuid,
+      verification_code: verifyCode.value,
     });
-    await useStore().checkStatus();
-    this.$buefy.toast.open({
-      message: "Erfolgreich registriert!",
-      type: "is-success",
+  } catch (err) {
+    matchError(err, {
+      // TODO: add endpoint to rerequest verification code
+      no_longer_valid: "Dieser Verifizierungscode ist nicht mehr gültig.",
+      too_many_attempts: "Zu viele falsche Versuche.",
+      invalid_verification_code:
+        "Der Verifizierunscode ist nicht korrekt. Bitte versuche es erneut.",
+      email_exists: "Diese E-Mail-Adresse ist bereits in Verwendung.",
+      default:
+        "Beim Verifizieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
     });
-    this.$router.push("/");
+    return;
   }
-  mounted(): void {
-    if (useStore().isAuthenticated) {
-      this.$router.push("/");
-    }
-    if (!useStore().registerVerifyUuid) {
-      this.$router.push("/");
-    }
-    setTimeout(
-      () => {
-        this.showHelpText = true;
-      },
-      2 * 60 * 1000,
-    );
-  }
+  store.setAuthToken(resp.token);
+  store.setRegisterVerifyState({
+    registerVerifyEmail: "",
+    registerVerifyUuid: "",
+  });
+  await store.checkStatus();
+  toast.open({
+    message: "Erfolgreich registriert!",
+    type: "is-success",
+  });
+  router.push("/");
 }
-export default toNative(RegisterVerifyView)
+
+onMounted((): void => {
+  if (store.isAuthenticated) {
+    router.push("/");
+  }
+  if (!store.registerVerifyUuid) {
+    router.push("/");
+  }
+  setTimeout(
+    () => {
+      showHelpText.value = true;
+    },
+    2 * 60 * 1000,
+  );
+});
 </script>

@@ -13,48 +13,42 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
 import admin from "@/services/admin";
 import { AdminContestParticipation } from "@/types/admin";
-import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
 import ParticipationForm, {
   ParticipationFormData,
 } from "./ParticipationForm.vue";
 
-@Component({
-  components: {
-    ParticipationForm,
-  },
-})
-class ParticipationUpdateModal extends Vue {
-  @Prop()
-  contestUuid!: string;
-  @Prop()
-  participationId!: number;
+const props = defineProps<{
+  contestUuid: string;
+  participationId: number;
+}>();
 
-  part: AdminContestParticipation | null = null;
-  data: ParticipationFormData | null = null;
+const emit = defineEmits<{
+  submit: [ParticipationFormData];
+  close: [];
+}>();
 
-  async mounted() {
-    await this.loadParticipation();
-  }
+const part = ref<AdminContestParticipation | null>(null);
+const data = ref<ParticipationFormData | null>(null);
 
-  async loadParticipation() {
-    this.part = await admin.getContestParticipation(
-      this.contestUuid,
-      this.participationId,
-    );
-    this.data = {
-      user_id: this.part.user.id,
-      cms_id: this.part.cms_id,
-      manual_password: this.part.manual_password,
-    };
-  }
+onMounted(async () => {
+  part.value = await admin.getContestParticipation(
+    props.contestUuid,
+    props.participationId,
+  );
+  data.value = {
+    user_id: part.value.user.id,
+    cms_id: part.value.cms_id,
+    manual_password: part.value.manual_password,
+  };
+});
 
-  async updateParticipation(data: ParticipationFormData) {
-    this.$emit("submit", data);
-    this.$emit("close");
-  }
+function updateParticipation(formData: ParticipationFormData) {
+  emit("submit", formData);
+  emit("close");
 }
-export default toNative(ParticipationUpdateModal)
 </script>

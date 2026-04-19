@@ -12,84 +12,61 @@
   </b-autocomplete>
 </template>
 
-<script lang="ts">
-import {  Vue, Component, Prop, Watch, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref, computed, watch } from "vue";
+import { onMounted } from "vue";
 
-@Component
-class SimpleAutoselect extends Vue {
-  @Prop({
-    type: Array,
-    default: () => [],
-  })
-  readonly data!: any[] | null; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-  @Prop()
-  readonly modelValue!: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-  @Prop({
-    type: Boolean,
-    default: false,
-  })
-  readonly loading!: boolean;
-
-  @Prop({
-    type: Boolean,
-    default: false,
-  })
-  readonly required!: boolean;
-
-  @Prop({
-    default: (x: any) => x, // eslint-disable-line @typescript-eslint/no-explicit-any
-  })
-  readonly valueFunc!: (val: any) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-  @Prop({
-    default: (x: any) => x, // eslint-disable-line @typescript-eslint/no-explicit-any
-  })
-  readonly formatter!: (val: any) => string; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-  bValue = "";
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const props = withDefaults(defineProps<{
+  data?: any[] | null;
+  modelValue?: any;
+  loading?: boolean;
+  required?: boolean;
+  valueFunc?: (val: any) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  formatter?: (val: any) => string; // eslint-disable-line @typescript-eslint/no-explicit-any
+}>(), {
+  data: () => [],
+  loading: false,
+  required: false,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  bSelect(newValue: any) {
-    this.$emit("update:modelValue", newValue === null ? null : this.valueFunc(newValue));
-  }
+  valueFunc: (x: any) => x,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  formatter: (x: any) => x,
+});
 
-  resetBValueFromValue() {
-    if (this.modelValue === null) {
-      this.bValue = "";
-      return;
+const emit = defineEmits<{ "update:modelValue": [any] }>(); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+const bValue = ref("");
+
+const filteredData = computed(() => {
+  if (props.data === null) return null;
+  return props.data!.filter((x) =>
+    props.formatter(x).toLowerCase().indexOf(bValue.value.toLowerCase()) >= 0,
+  );
+});
+
+function resetBValueFromValue() {
+  if (props.modelValue === null) {
+    bValue.value = "";
+    return;
+  }
+  if (filteredData.value === null) return;
+  for (const val of filteredData.value) {
+    if (props.valueFunc(val) === props.modelValue) {
+      bValue.value = props.formatter(val);
     }
-    if (this.filteredData === null) return;
-    for (const val of this.filteredData) {
-      if (this.valueFunc(val) === this.modelValue) {
-        this.bValue = this.formatter(val);
-      }
-    }
-  }
-
-  mounted() {
-    this.resetBValueFromValue();
-  }
-
-  @Watch("modelValue")
-  onValueChanged() {
-    this.resetBValueFromValue();
-  }
-
-  @Watch("data")
-  onDataChanged() {
-    this.resetBValueFromValue();
-  }
-
-  get filteredData() {
-    if (this.data === null) return null;
-    return this.data.filter((x) => {
-      return (
-        this.formatter(x).toLowerCase().indexOf(this.bValue.toLowerCase()) >= 0
-      );
-    });
   }
 }
-export default toNative(SimpleAutoselect)
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function bSelect(newValue: any) {
+  emit("update:modelValue", newValue === null ? null : props.valueFunc(newValue));
+}
+
+watch(() => props.modelValue, resetBValueFromValue);
+watch(() => props.data, resetBValueFromValue);
+
+onMounted(() => {
+  resetBValueFromValue();
+});
 </script>

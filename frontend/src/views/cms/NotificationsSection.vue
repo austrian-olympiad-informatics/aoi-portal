@@ -72,97 +72,85 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
+import { useToast } from "buefy";
 import { formatDateShort } from "@/util/dt";
 import { Announcement, Message, Question } from "@/types/cms";
 import cms from "@/services/cms";
 
-@Component
-class NotificationsSection extends Vue {
-  @Prop({
-    type: Array,
-    default: () => [],
-  })
-  announcements!: Announcement[];
+const props = withDefaults(
+  defineProps<{
+    announcements: Announcement[];
+    messages: Message[];
+    questions: Question[];
+    contestName: string;
+    taskName?: string | null;
+  }>(),
+  {
+    announcements: () => [],
+    messages: () => [],
+    questions: () => [],
+    taskName: null,
+  },
+);
 
-  @Prop({
-    type: Array,
-    default: () => [],
-  })
-  messages!: Message[];
+const emit = defineEmits<{ "new-question": [] }>();
 
-  @Prop({
-    type: Array,
-    default: () => [],
-  })
-  questions!: Question[];
+const toast = useToast();
 
-  @Prop({
-    type: String,
-  })
-  contestName!: string;
+const questionSubject = ref("");
+const questionText = ref("");
+const showNotificationSwitch = ref(false);
 
-  @Prop({
-    type: String,
-    default: null,
-  })
-  taskName!: string | null;
-
-  questionSubject = "";
-  questionText = "";
-
-  showNotificationSwitch = false;
-
-  updateShowNotificationSwitch() {
-    this.showNotificationSwitch =
-      "Notification" in window && window.Notification.permission === "default";
-  }
-
-  askNotificationPermission() {
-    window.Notification.requestPermission().then(
-      () => {
-        this.updateShowNotificationSwitch();
-        if (window.Notification.permission === "granted")
-          this.$buefy.toast.open({
-            message:
-              "Du erhälst jetzt bei neuen Ankündigungen eine Benachrichtigung",
-            type: "is-success",
-            duration: 5000,
-          });
-      },
-      () => {
-        this.updateShowNotificationSwitch();
-      },
-    );
-  }
-
-  mounted() {
-    this.updateShowNotificationSwitch();
-  }
-
-  formatDate(date: string) {
-    return formatDateShort(new Date(), new Date(date));
-  }
-
-  async askQuestion() {
-    if (this.taskName === null) {
-      await cms.askQuestion(this.contestName, {
-        subject: this.questionSubject,
-        text: this.questionText,
-      });
-    } else {
-      await cms.askQuestionTask(this.contestName, this.taskName, {
-        subject: this.questionSubject,
-        text: this.questionText,
-      });
-    }
-    this.questionSubject = "";
-    this.questionText = "";
-    this.$emit("new-question");
-  }
+function updateShowNotificationSwitch() {
+  showNotificationSwitch.value =
+    "Notification" in window && window.Notification.permission === "default";
 }
-export default toNative(NotificationsSection)
+
+function askNotificationPermission() {
+  window.Notification.requestPermission().then(
+    () => {
+      updateShowNotificationSwitch();
+      if (window.Notification.permission === "granted")
+        toast.open({
+          message:
+            "Du erhälst jetzt bei neuen Ankündigungen eine Benachrichtigung",
+          type: "is-success",
+          duration: 5000,
+        });
+    },
+    () => {
+      updateShowNotificationSwitch();
+    },
+  );
+}
+
+onMounted(() => {
+  updateShowNotificationSwitch();
+});
+
+function formatDate(date: string) {
+  return formatDateShort(new Date(), new Date(date));
+}
+
+async function askQuestion() {
+  if (props.taskName === null) {
+    await cms.askQuestion(props.contestName, {
+      subject: questionSubject.value,
+      text: questionText.value,
+    });
+  } else {
+    await cms.askQuestionTask(props.contestName, props.taskName, {
+      subject: questionSubject.value,
+      text: questionText.value,
+    });
+  }
+  questionSubject.value = "";
+  questionText.value = "";
+  emit("new-question");
+}
 </script>
 
 <style scoped>

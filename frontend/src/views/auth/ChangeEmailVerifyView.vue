@@ -30,54 +30,56 @@
   </section>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "@/store";
+import { useToast } from "buefy";
 import auth from "@/services/auth";
 import { matchError } from "@/util/errors";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
-import { useStore } from "@/store";
 
-@Component
-class ChangeEmailVerifyView extends Vue {
-  verifyCode = "";
+const router = useRouter();
+const store = useStore();
+const toast = useToast();
 
-  get newMail(): string {
-    return useStore().changeEmailVerifyEmail;
-  }
+const verifyCode = ref("");
 
-  async changeEmailVerify() {
-    try {
-      await auth.changeEmailVerify({
-        uuid: useStore().changeEmailVerifyUuid,
-        verification_code: this.verifyCode,
-      });
-    } catch (err) {
-      matchError(err, {
-        no_longer_valid: "Dieser Verifizierungscode ist nicht mehr gültig.",
-        too_many_attempts: "Zu viele falsche Versuche.",
-        invalid_verification_code:
-          "Der Verifizierunscode ist nicht korrekt. Bitte versuche es erneut.",
-        default:
-          "Beim Verifizieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      return;
-    }
+const newMail = computed(() => store.changeEmailVerifyEmail);
 
-    useStore().setChangeEmailVerifyState({
-      changeEmailVerifyEmail: "",
-      changeEmailVerifyUuid: "",
+async function changeEmailVerify() {
+  try {
+    await auth.changeEmailVerify({
+      uuid: store.changeEmailVerifyUuid,
+      verification_code: verifyCode.value,
     });
-    await useStore().checkStatus();
-    this.$buefy.toast.open({
-      message: "E-Mail-Adresse erfolgreich geändert!",
-      type: "is-success",
+  } catch (err) {
+    matchError(err, {
+      no_longer_valid: "Dieser Verifizierungscode ist nicht mehr gültig.",
+      too_many_attempts: "Zu viele falsche Versuche.",
+      invalid_verification_code:
+        "Der Verifizierunscode ist nicht korrekt. Bitte versuche es erneut.",
+      default:
+        "Beim Verifizieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
     });
-    this.$router.push("/");
+    return;
   }
-  mounted(): void {
-    if (!useStore().changeEmailVerifyUuid) {
-      this.$router.push("/");
-    }
-  }
+
+  store.setChangeEmailVerifyState({
+    changeEmailVerifyEmail: "",
+    changeEmailVerifyUuid: "",
+  });
+  await store.checkStatus();
+  toast.open({
+    message: "E-Mail-Adresse erfolgreich geändert!",
+    type: "is-success",
+  });
+  router.push("/");
 }
-export default toNative(ChangeEmailVerifyView)
+
+onMounted((): void => {
+  if (!store.changeEmailVerifyUuid) {
+    router.push("/");
+  }
+});
 </script>

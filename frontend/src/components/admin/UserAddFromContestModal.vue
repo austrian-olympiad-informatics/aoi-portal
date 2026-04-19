@@ -24,27 +24,26 @@
   </form>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
 import admin from "@/services/admin";
 import { AdminContests } from "@/types/admin";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 
-@Component
-class UserAddFromContestModal extends Vue {
-  contests: AdminContests | null = null;
-  selected: string | null = null;
+const emit = defineEmits<{
+  submit: [string | null];
+  close: [];
+}>();
 
-  async loadContests() {
-    this.contests = await admin.getContests();
-  }
+const contests = ref<AdminContests | null>(null);
+const selected = ref<string | null>(null);
 
-  async mounted() {
-    await this.loadContests();
-  }
-  submit() {
-    this.$emit("submit", this.selected);
-    this.$emit("close");
-  }
+onMounted(async () => {
+  contests.value = await admin.getContests();
+});
+
+function submit() {
+  emit("submit", selected.value);
+  emit("close");
 }
-export default toNative(UserAddFromContestModal)
 </script>

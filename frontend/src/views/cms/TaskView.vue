@@ -27,96 +27,91 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { useModal } from "buefy";
 import { SubmissionShort, Task } from "@/types/cms";
 import cms from "@/services/cms";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 import DescriptionPanel from "./DescriptionPanel.vue";
 import CodePanel from "./CodePanel.vue";
 import CheckNotifications from "./CheckNotifications.vue";
 import SuccessModal from "./SuccessModal.vue";
 
-@Component({
-  components: {
-    DescriptionPanel,
-    CodePanel,
-    CheckNotifications,
-  },
-})
-class TaskView extends Vue {
-  get contestName(): string {
-    return this.$route.params.contestName as string;
-  }
-  get taskName(): string {
-    return this.$route.params.taskName as string;
-  }
-  task: Task | null = null;
+const route = useRoute();
+const modal = useModal();
 
-  async loadTask() {
-    this.task = await cms.getTask(this.contestName, this.taskName);
-  }
-  async mounted() {
-    await this.loadTask();
-  }
-  onNewSubmission(sub: SubmissionShort) {
-    this.task?.submissions.push(sub);
-  }
-  async onSubmissionScored(sub: SubmissionShort) {
-    if (this.task === null) return;
+const contestName = computed(() => route.params.contestName as string);
+const taskName = computed(() => route.params.taskName as string);
+const task = ref<Task | null>(null);
 
-    let successModalText: string | null = null;
+async function loadTask() {
+  task.value = await cms.getTask(contestName.value, taskName.value);
+}
 
-    if (this.task.scoring.type === "sum") {
-      const scoreBefore = this.task.score;
-      await this.loadTask();
-      const scoreAfter = this.task.score;
+onMounted(async () => {
+  await loadTask();
+});
 
-      if (scoreBefore !== scoreAfter && scoreAfter >= this.task.max_score) {
-        successModalText = "Aufgabe gelöst! 🎉";
-      }
-    } else {
-      const calcScoreFractions = () => {
-        return this.task!.score_subtasks!.map((x) => x.fraction);
-      };
-      const stBefore = calcScoreFractions();
-      await this.loadTask();
-      const stAfter = calcScoreFractions();
-      const stSolved = [];
-      for (let i = 0; i < stAfter.length; i++) {
-        const x = stAfter[i];
-        const y = i >= stBefore.length ? 0 : stBefore[i];
-        if (x >= 1 && y < 1) stSolved.push(i + 1);
-      }
-      if (stSolved.length > 0) {
-        successModalText = `Teilaufgabe ${stSolved.join(", ")} gelöst! 🎉`;
-      }
+function onNewSubmission(sub: SubmissionShort) {
+  task.value?.submissions.push(sub);
+}
+
+async function onSubmissionScored(sub: SubmissionShort) {
+  if (task.value === null) return;
+
+  let successModalText: string | null = null;
+
+  if (task.value.scoring.type === "sum") {
+    const scoreBefore = task.value.score;
+    await loadTask();
+    const scoreAfter = task.value.score;
+
+    if (scoreBefore !== scoreAfter && scoreAfter >= task.value.max_score) {
+      successModalText = "Aufgabe gelöst! 🎉";
+    }
+  } else {
+    const calcScoreFractions = () => {
+      return task.value!.score_subtasks!.map((x) => x.fraction);
+    };
+    const stBefore = calcScoreFractions();
+    await loadTask();
+    const stAfter = calcScoreFractions();
+    const stSolved = [];
+    for (let i = 0; i < stAfter.length; i++) {
+      const x = stAfter[i];
+      const y = i >= stBefore.length ? 0 : stBefore[i];
+      if (x >= 1 && y < 1) stSolved.push(i + 1);
+    }
+    if (stSolved.length > 0) {
+      successModalText = `Teilaufgabe ${stSolved.join(", ")} gelöst! 🎉`;
+    }
+  }
+
+  if (successModalText !== null) {
+    let memeUrl = null;
+    if (sub.result.meme_digest !== null) {
+      const blob = await cms.getSubmissionMeme(
+        contestName.value,
+        taskName.value,
+        sub.uuid,
+        sub.result.meme_digest,
+      );
+      memeUrl = URL.createObjectURL(blob);
     }
 
-    if (successModalText !== null) {
-      let memeUrl = null;
-      if (sub.result.meme_digest !== null) {
-        const blob = await cms.getSubmissionMeme(
-          this.contestName,
-          this.taskName,
-          sub.uuid,
-          sub.result.meme_digest,
-        );
-        memeUrl = URL.createObjectURL(blob);
-      }
-
-      this.$buefy.modal.open({
-        component: SuccessModal,
-        trapFocus: true,
-        props: {
-          headerText: successModalText,
-          memeUrl: memeUrl,
-        },
-        animation: "success-modal",
-      });
-    }
+    modal.open({
+      component: SuccessModal,
+      trapFocus: true,
+      props: {
+        headerText: successModalText,
+        memeUrl: memeUrl,
+      },
+      animation: "success-modal",
+    });
   }
 }
-export default toNative(TaskView)
 </script>
 
 <style scoped lang="scss">
