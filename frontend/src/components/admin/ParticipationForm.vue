@@ -5,13 +5,13 @@
         :data="filteredUsers"
         :disabled="!userEditable"
         :loading="users === null"
-        :model-value="userValue"
+        v-model="inputText"
         field="id"
         :custom-formatter="formatUser"
         required
         open-on-focus
         @typing="onTyping"
-        @select="(u) => (data.user_id = u.id)"
+        @select="(u) => (data.user_id = u?.id ?? null)"
       >
       </b-autocomplete>
     </b-field>
@@ -46,9 +46,14 @@ const props = withDefaults(defineProps<{ userEditable?: boolean }>(), {
 
 const users = ref<AdminUsers | null>(null);
 const filterText = ref("");
+const inputText = ref("");
 
 onMounted(async () => {
   users.value = await admin.getUsers();
+  if (data.value.user_id !== null) {
+    const user = users.value.find((u) => u.id === data.value.user_id);
+    if (user) inputText.value = formatUser(user);
+  }
 });
 
 function onTyping(text: string) {
@@ -70,12 +75,6 @@ const filteredUsers = computed<AdminUser[]>(() => {
 function formatUser(user: AdminUser): string {
   return `${user.first_name} ${user.last_name} (${user.email})`;
 }
-
-const userValue = computed<string>(() => {
-  if (data.value.user_id === null || users.value === null) return "";
-  const uidMap = new Map(users.value.map((u) => [u.id, u]));
-  return formatUser(uidMap.get(data.value.user_id)!);
-});
 </script>
 
 <style scoped></style>
