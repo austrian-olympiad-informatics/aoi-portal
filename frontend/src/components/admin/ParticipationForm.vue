@@ -5,7 +5,7 @@
         :data="filteredUsers"
         :disabled="!userEditable"
         :loading="users === null"
-        :value="userValue"
+        :model-value="userValue"
         field="id"
         :custom-formatter="formatUser"
         required

@@ -108,7 +108,7 @@
               @click="downloadFile(fname, value)"
             />
             <CodeMirror
-              :value="value"
+              :model-value="value"
               :lang="codeLang"
               :fullheight="false"
               :editable="false"
@@ -128,7 +128,7 @@
                 @click="downloadFile('input', inputFile)"
               />
               <CodeMirror
-                :value="inputFile"
+                :model-value="inputFile"
                 :fullheight="false"
                 :editable="false"
                 :readonly="true"
@@ -208,7 +208,7 @@
                 @click="downloadFile('output', outputFile)"
               />
               <CodeMirror
-                :value="outputFile"
+                :model-value="outputFile"
                 :fullheight="false"
                 :editable="false"
                 :readonly="true"
