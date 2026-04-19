@@ -85,7 +85,9 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
 import cmsadmin from "@/services/cmsadmin";
 import {
   AdminContests,
@@ -93,35 +95,18 @@ import {
   AdminAllTasks,
   AdminMemes,
 } from "@/types/cmsadmin";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 
-@Component
-class AdminIndexView extends Vue {
-  contests: AdminContests | null = null;
-  tasks: AdminAllTasks | null = null;
-  users: AdminUsers | null = null;
-  memes: AdminMemes | null = null;
+const contests = ref<AdminContests | null>(null);
+const tasks = ref<AdminAllTasks | null>(null);
+const users = ref<AdminUsers | null>(null);
+const memes = ref<AdminMemes | null>(null);
 
-  async loadContests() {
-    this.contests = await cmsadmin.getContests();
-  }
-  async loadTasks() {
-    this.tasks = await cmsadmin.getTasks();
-  }
-  async loadUsers() {
-    this.users = await cmsadmin.getUsers();
-  }
-  async loadMemes() {
-    this.memes = await cmsadmin.getMemes();
-  }
-  async mounted() {
-    await Promise.all([
-      this.loadContests(),
-      this.loadTasks(),
-      this.loadUsers(),
-      this.loadMemes(),
-    ]);
-  }
-}
-export default toNative(AdminIndexView)
+onMounted(async () => {
+  await Promise.all([
+    cmsadmin.getContests().then((v) => { contests.value = v; }),
+    cmsadmin.getTasks().then((v) => { tasks.value = v; }),
+    cmsadmin.getUsers().then((v) => { users.value = v; }),
+    cmsadmin.getMemes().then((v) => { memes.value = v; }),
+  ]);
+});
 </script>

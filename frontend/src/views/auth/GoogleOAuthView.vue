@@ -6,32 +6,31 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
 import oauth from "@/services/oauth";
 
-@Component
-class GoogleOAuthView extends Vue {
-  async mounted() {
-    const resp = await oauth.getGoogleAuthorizeURL();
-    const url = new URL(resp.url);
-    const array = new Uint8Array(16);
-    window.crypto.getRandomValues(array);
-    const state = [...array]
-      .map((x) => x.toString(16).padStart(2, "0"))
-      .join("");
-    sessionStorage.setItem("googleOAuthState", state);
-    url.searchParams.append("state", state);
+const router = useRouter();
 
-    const redirect_url = new URL(window.location.origin);
-    redirect_url.pathname = this.$router.resolve({
-      name: "GoogleOAuthCallback",
-    }).href;
-    url.searchParams.append("redirect_uri", redirect_url.toString());
+onMounted(async () => {
+  const resp = await oauth.getGoogleAuthorizeURL();
+  const url = new URL(resp.url);
+  const array = new Uint8Array(16);
+  window.crypto.getRandomValues(array);
+  const state = [...array]
+    .map((x) => x.toString(16).padStart(2, "0"))
+    .join("");
+  sessionStorage.setItem("googleOAuthState", state);
+  url.searchParams.append("state", state);
 
-    // .replace to not affect browser history
-    window.location.replace(url);
-  }
-}
-export default toNative(GoogleOAuthView)
+  const redirect_url = new URL(window.location.origin);
+  redirect_url.pathname = router.resolve({
+    name: "GoogleOAuthCallback",
+  }).href;
+  url.searchParams.append("redirect_uri", redirect_url.toString());
+
+  // .replace to not affect browser history
+  window.location.replace(url);
+});
 </script>

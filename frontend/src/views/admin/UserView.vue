@@ -21,86 +21,84 @@
   </AdminCard>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useToast } from "buefy";
 import admin from "@/services/admin";
 import { AdminUserUpdateParams, AdminUserDetail } from "@/types/admin";
 import UserForm, { UserFormData } from "@/components/admin/UserForm.vue";
 import AdminCard from "@/components/admin/AdminCard.vue";
 
-@Component({
-  components: {
-    AdminCard,
-    UserForm,
-  },
-})
-class UserView extends Vue {
-  userId!: number;
-  user: AdminUserDetail | null = null;
-  data: UserFormData | null = null;
+const route = useRoute();
+const router = useRouter();
+const toast = useToast();
 
-  async mounted() {
-    this.userId = +this.$route.params.userId;
-    await this.loadUser();
-  }
+const userId = ref(0);
+const user = ref<AdminUserDetail | null>(null);
+const data = ref<UserFormData | null>(null);
 
-  async loadUser() {
-    this.user = await admin.getUser(this.userId);
-    this.data = {
-      first_name: this.user.first_name,
-      last_name: this.user.last_name,
-      email: this.user.email,
-      password: null,
-      is_admin: this.user.is_admin,
-      birthday: this.user.birthday,
-      phone_nr: this.user.phone_nr,
-      address_street: this.user.address_street,
-      address_zip: this.user.address_zip,
-      address_town: this.user.address_town,
-      school_name: this.user.school_name,
-      school_address: this.user.school_address,
-      cms_id: this.user.cms_id,
-      cms_username: this.user.cms_username,
-      groups: this.user.groups.map((g) => g.id),
-    };
-  }
+onMounted(async () => {
+  userId.value = +route.params.userId;
+  await loadUser();
+});
 
-  async deleteUser() {
-    await admin.deleteUser(this.userId);
-    this.$buefy.toast.open({
-      message: "User has been deleted!",
-      type: "is-success",
-    });
-    this.$router.push({ name: "AdminUsers" });
-  }
-
-  async submit() {
-    if (this.data === null) return;
-    const params: AdminUserUpdateParams = {
-      first_name: this.data.first_name,
-      last_name: this.data.last_name,
-      email: this.data.email,
-      is_admin: this.data.is_admin,
-      birthday: this.data.birthday,
-      phone_nr: this.data.phone_nr,
-      address_street: this.data.address_street,
-      address_zip: this.data.address_zip,
-      address_town: this.data.address_town,
-      school_name: this.data.school_name,
-      school_address: this.data.school_address,
-      cms_id: this.data.cms_id,
-      cms_username: this.data.cms_username,
-      groups: this.data.groups,
-    };
-    if (this.data.password) {
-      params.password = this.data.password;
-    }
-    await admin.updateUser(this.userId, params);
-    this.$buefy.toast.open({
-      message: "User has been updated!",
-      type: "is-success",
-    });
-  }
+async function loadUser() {
+  user.value = await admin.getUser(userId.value);
+  data.value = {
+    first_name: user.value.first_name,
+    last_name: user.value.last_name,
+    email: user.value.email,
+    password: null,
+    is_admin: user.value.is_admin,
+    birthday: user.value.birthday,
+    phone_nr: user.value.phone_nr,
+    address_street: user.value.address_street,
+    address_zip: user.value.address_zip,
+    address_town: user.value.address_town,
+    school_name: user.value.school_name,
+    school_address: user.value.school_address,
+    cms_id: user.value.cms_id,
+    cms_username: user.value.cms_username,
+    groups: user.value.groups.map((g) => g.id),
+  };
 }
-export default toNative(UserView)
+
+async function deleteUser() {
+  await admin.deleteUser(userId.value);
+  toast.open({
+    message: "User has been deleted!",
+    type: "is-success",
+  });
+  router.push({ name: "AdminUsers" });
+}
+
+async function submit() {
+  if (data.value === null) return;
+  const params: AdminUserUpdateParams = {
+    first_name: data.value.first_name,
+    last_name: data.value.last_name,
+    email: data.value.email,
+    is_admin: data.value.is_admin,
+    birthday: data.value.birthday,
+    phone_nr: data.value.phone_nr,
+    address_street: data.value.address_street,
+    address_zip: data.value.address_zip,
+    address_town: data.value.address_town,
+    school_name: data.value.school_name,
+    school_address: data.value.school_address,
+    cms_id: data.value.cms_id,
+    cms_username: data.value.cms_username,
+    groups: data.value.groups,
+  };
+  if (data.value.password) {
+    params.password = data.value.password;
+  }
+  await admin.updateUser(userId.value, params);
+  toast.open({
+    message: "User has been updated!",
+    type: "is-success",
+  });
+}
 </script>

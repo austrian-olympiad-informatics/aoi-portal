@@ -117,67 +117,74 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { useStore } from "@/store";
+import { useToast, useDialog } from "buefy";
 import contests from "@/services/contests";
 import { ContestDetail } from "@/types/contests";
-import profile from "@/services/profile";
+import profileService from "@/services/profile";
 import { ProfileInfoResponse } from "@/types/profile";
 
-@Component
-class ContestView extends Vue {
-  contestUuid!: string;
-  contest: ContestDetail | null = null;
-  profile: ProfileInfoResponse | null = null;
-  showLoading = false;
+const route = useRoute();
+const store = useStore();
+const toast = useToast();
+const dialog = useDialog();
 
-  get profileComplete(): boolean {
-    if (this.profile === null) return true;
-    return !!(
-      this.profile.first_name &&
-      this.profile.last_name &&
-      this.profile.birthday &&
-      this.profile.phone_nr &&
-      this.profile.address_street &&
-      this.profile.address_zip &&
-      this.profile.address_town &&
-      this.profile.school_name &&
-      this.profile.school_address
-    );
-  }
+const contestUuid = ref("");
+const contest = ref<ContestDetail | null>(null);
+const profile = ref<ProfileInfoResponse | null>(null);
+const showLoading = ref(false);
 
-  async loadContest() {
-    this.contest = await contests.getContest(this.contestUuid);
-  }
-  async loadProfile() {
-    if (useStore().isProxyAuth) {
-      this.profile = {} as ProfileInfoResponse;
-      return;
-    }
-    this.profile = await profile.profileInfo();
-  }
+const profileComplete = computed((): boolean => {
+  if (profile.value === null) return true;
+  return !!(
+    profile.value.first_name &&
+    profile.value.last_name &&
+    profile.value.birthday &&
+    profile.value.phone_nr &&
+    profile.value.address_street &&
+    profile.value.address_zip &&
+    profile.value.address_town &&
+    profile.value.school_name &&
+    profile.value.school_address
+  );
+});
 
-  async mounted() {
-    setTimeout(() => (this.showLoading = true), 500);
-    this.contestUuid = this.$route.params.contestUuid as string;
-    await Promise.all([this.loadContest(), this.loadProfile()]);
-  }
+async function loadContest() {
+  contest.value = await contests.getContest(contestUuid.value);
+}
 
-  async doJoinContest() {
-    await contests.joinContest(this.contestUuid);
-    this.$buefy.toast.open({
-      message: "Erfolgreich bei Wettbewerb registriert!",
-      type: "is-success",
-    });
-    await this.loadContest();
+async function loadProfile() {
+  if (store.isProxyAuth) {
+    profile.value = {} as ProfileInfoResponse;
+    return;
   }
+  profile.value = await profileService.profileInfo();
+}
 
-  async joinContest() {
-    if (this.contest?.quali_round && !this.profileComplete) {
-      this.$buefy.dialog.confirm({
-        title: "Ausgefülltes Profil notwendig",
-        message: `
+onMounted(async () => {
+  setTimeout(() => (showLoading.value = true), 500);
+  contestUuid.value = route.params.contestUuid as string;
+  await Promise.all([loadContest(), loadProfile()]);
+});
+
+async function doJoinContest() {
+  await contests.joinContest(contestUuid.value);
+  toast.open({
+    message: "Erfolgreich bei Wettbewerb registriert!",
+    type: "is-success",
+  });
+  await loadContest();
+}
+
+async function joinContest() {
+  if (contest.value?.quali_round && !profileComplete.value) {
+    dialog.confirm({
+      title: "Ausgefülltes Profil notwendig",
+      message: `
         <div class="content">
           <p>
             <strong>Dein Profil ist noch nicht vollständig ausgefüllt. </strong>
@@ -192,16 +199,14 @@ class ContestView extends Vue {
           </p>
         </div>
           `,
-        confirmText: "Trotzdem Weiter",
-        type: "is-warning",
-        onConfirm: () => {
-          this.doJoinContest();
-        },
-      });
-    } else {
-      await this.doJoinContest();
-    }
+      confirmText: "Trotzdem Weiter",
+      type: "is-warning",
+      onConfirm: () => {
+        doJoinContest();
+      },
+    });
+  } else {
+    await doJoinContest();
   }
 }
-export default toNative(ContestView)
 </script>

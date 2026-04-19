@@ -20,27 +20,26 @@
   </form>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
 import admin from "@/services/admin";
 import { AdminGroups } from "@/types/admin";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 
-@Component
-class UserAddFromGroupModal extends Vue {
-  groups: AdminGroups | null = null;
-  selected: number | null = null;
+const emit = defineEmits<{
+  submit: [number | null];
+  close: [];
+}>();
 
-  async loadGroups() {
-    this.groups = await admin.getGroups();
-  }
+const groups = ref<AdminGroups | null>(null);
+const selected = ref<number | null>(null);
 
-  async mounted() {
-    await this.loadGroups();
-  }
-  submit() {
-    this.$emit("submit", this.selected);
-    this.$emit("close");
-  }
+onMounted(async () => {
+  groups.value = await admin.getGroups();
+});
+
+function submit() {
+  emit("submit", selected.value);
+  emit("close");
 }
-export default toNative(UserAddFromGroupModal)
 </script>

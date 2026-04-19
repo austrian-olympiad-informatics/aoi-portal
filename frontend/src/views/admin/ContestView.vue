@@ -130,8 +130,11 @@
   </AdminCard>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { useToast, useDialog, useModal } from "buefy";
 import admin from "@/services/admin";
 import { AdminContestDetail, AdminContestUpdateParams } from "@/types/admin";
 import AdminCard from "@/components/admin/AdminCard.vue";
@@ -143,176 +146,181 @@ import ParticipationUpdateModal from "@/components/admin/ParticipationUpdateModa
 import ContestAddFromGroupModal from "@/components/admin/ContestAddFromGroupModal.vue";
 import { ParticipationFormData } from "@/components/admin/ParticipationForm.vue";
 
-@Component({
-  components: {
-    AdminCard,
-    ContestForm,
-  },
-})
-class ContestView extends Vue {
-  contestUuid!: string;
-  contest: AdminContestDetail | null = null;
-  data: ContestFormData | null = null;
+const route = useRoute();
+const toast = useToast();
+const dialog = useDialog();
+const modal = useModal();
 
-  async mounted() {
-    this.contestUuid = this.$route.params.contestUuid as string;
-    await this.loadContest();
-  }
+const contestUuid = ref("");
+const contest = ref<AdminContestDetail | null>(null);
+const data = ref<ContestFormData | null>(null);
 
-  async loadContest() {
-    this.contest = await admin.getContest(this.contestUuid);
-    this.data = {
-      cms_id: this.contest.cms_id,
-      cms_name: this.contest.cms_name,
-      cms_description: this.contest.cms_description,
-      cms_allow_sso_authentication: this.contest.cms_allow_sso_authentication,
-      cms_sso_secret_key: this.contest.cms_sso_secret_key,
-      cms_sso_redirect_url: this.contest.cms_sso_redirect_url,
-      cms_allow_frontendv2: this.contest.cms_allow_frontendv2,
-      url: this.contest.url,
-      open_signup: this.contest.open_signup,
-      quali_round: this.contest.quali_round,
-      name: this.contest.name,
-      teaser: this.contest.teaser,
-      description: this.contest.description,
-      archived: this.contest.archived,
-      deleted: this.contest.deleted,
-      order_priority: this.contest.order_priority,
-      auto_add_to_group_id:
-        this.contest.auto_add_to_group == null
-          ? null
-          : this.contest.auto_add_to_group.id,
-    };
-  }
+onMounted(async () => {
+  contestUuid.value = route.params.contestUuid as string;
+  await loadContest();
+});
 
-  async updateContest(data: ContestFormData) {
-    const params: AdminContestUpdateParams = {
-      open_signup: data.open_signup,
-      auto_add_to_group_id: data.auto_add_to_group_id,
-      url: data.url,
-      name: data.name,
-      teaser: data.teaser,
-      description: data.description,
-      quali_round: data.quali_round,
-      archived: data.archived,
-      order_priority: data.order_priority,
-    };
-    await admin.updateContest(this.contestUuid, params);
-    this.$buefy.toast.open({
-      message: "Contest has been updated!",
-      type: "is-success",
-    });
-  }
-
-  async provisionSSO() {
-    if (!this.contest?.url) {
-      this.$buefy.toast.open({
-        message: "Contest URL must be set to provision SSO!",
-        type: "is-danger",
-      });
-      return;
-    }
-    await admin.contestProvisionSSO(this.contestUuid);
-    await this.loadContest();
-  }
-  async removeSSO() {
-    await admin.contestRemoveSSO(this.contestUuid);
-    await this.loadContest();
-  }
-  async refreshCMS() {
-    await admin.refreshCMSContests();
-    await this.loadContest();
-    this.$buefy.toast.open({
-      message: "Contest loaded from CMS!",
-      type: "is-success",
-    });
-  }
-  async doCreateParticipation(data: ParticipationFormData) {
-    await admin.createContestParticipation(this.contestUuid, {
-      user_id: data.user_id!,
-      cms_id: data.cms_id ? +data.cms_id : null,
-      manual_password: data.manual_password ? data.manual_password : null,
-    });
-    await this.loadContest();
-    this.$buefy.toast.open({
-      message: "Participant has been added!",
-      type: "is-success",
-    });
-  }
-  async createParticipation() {
-    this.$buefy.modal.open({
-      component: ParticipationCreateModal,
-      hasModalCard: true,
-      trapFocus: true,
-      events: {
-        submit: (data: ParticipationFormData) => {
-          this.doCreateParticipation(data);
-        },
-      },
-    });
-  }
-  async doUpdateParticipation(id: number, data: ParticipationFormData) {
-    await admin.updateContestParticipation(this.contestUuid, id, {
-      cms_id: data.cms_id!,
-      manual_password: data.manual_password || null,
-    });
-    await this.loadContest();
-    this.$buefy.toast.open({
-      message: "Participant has been updated!",
-      type: "is-success",
-    });
-  }
-  async updateParticipation(id: number) {
-    this.$buefy.modal.open({
-      component: ParticipationUpdateModal,
-      props: {
-        contestUuid: this.contestUuid,
-        participationId: id,
-      },
-      hasModalCard: true,
-      trapFocus: true,
-      events: {
-        submit: (data: ParticipationFormData) => {
-          this.doUpdateParticipation(id, data);
-        },
-      },
-    });
-  }
-  async removeParticipation(id: number) {
-    this.$buefy.dialog.confirm({
-      message: "Remove this participation?",
-      onConfirm: async () => {
-        await admin.deleteContestParticipation(this.contestUuid, id);
-        this.$buefy.toast.open({
-          message: "Participant has been removed!",
-          type: "is-success",
-        });
-        await this.loadContest();
-      },
-    });
-  }
-  async doAddFromGroup(selected: number, randomPasswords: boolean) {
-    await admin.contestImportGroup(this.contestUuid, {
-      group_id: selected,
-      random_manual_passwords: randomPasswords,
-    });
-    await this.loadContest();
-    this.$buefy.toast.open({
-      message: "Group has been added!",
-      type: "is-success",
-    });
-  }
-  async addFromGroup() {
-    this.$buefy.modal.open({
-      component: ContestAddFromGroupModal,
-      hasModalCard: true,
-      trapFocus: true,
-      events: {
-        submit: (val: { selected: number; randomPasswords: boolean }) =>
-          this.doAddFromGroup(val.selected, val.randomPasswords),
-      },
-    });
-  }
+async function loadContest() {
+  contest.value = await admin.getContest(contestUuid.value);
+  data.value = {
+    cms_id: contest.value.cms_id,
+    cms_name: contest.value.cms_name,
+    cms_description: contest.value.cms_description,
+    cms_allow_sso_authentication: contest.value.cms_allow_sso_authentication,
+    cms_sso_secret_key: contest.value.cms_sso_secret_key,
+    cms_sso_redirect_url: contest.value.cms_sso_redirect_url,
+    cms_allow_frontendv2: contest.value.cms_allow_frontendv2,
+    url: contest.value.url,
+    open_signup: contest.value.open_signup,
+    quali_round: contest.value.quali_round,
+    name: contest.value.name,
+    teaser: contest.value.teaser,
+    description: contest.value.description,
+    archived: contest.value.archived,
+    deleted: contest.value.deleted,
+    order_priority: contest.value.order_priority,
+    auto_add_to_group_id:
+      contest.value.auto_add_to_group == null
+        ? null
+        : contest.value.auto_add_to_group.id,
+  };
 }
-export default toNative(ContestView)
+
+async function updateContest(formData: ContestFormData) {
+  const params: AdminContestUpdateParams = {
+    open_signup: formData.open_signup,
+    auto_add_to_group_id: formData.auto_add_to_group_id,
+    url: formData.url,
+    name: formData.name,
+    teaser: formData.teaser,
+    description: formData.description,
+    quali_round: formData.quali_round,
+    archived: formData.archived,
+    order_priority: formData.order_priority,
+  };
+  await admin.updateContest(contestUuid.value, params);
+  toast.open({
+    message: "Contest has been updated!",
+    type: "is-success",
+  });
+}
+
+async function provisionSSO() {
+  if (!contest.value?.url) {
+    toast.open({
+      message: "Contest URL must be set to provision SSO!",
+      type: "is-danger",
+    });
+    return;
+  }
+  await admin.contestProvisionSSO(contestUuid.value);
+  await loadContest();
+}
+
+async function removeSSO() {
+  await admin.contestRemoveSSO(contestUuid.value);
+  await loadContest();
+}
+
+async function refreshCMS() {
+  await admin.refreshCMSContests();
+  await loadContest();
+  toast.open({
+    message: "Contest loaded from CMS!",
+    type: "is-success",
+  });
+}
+
+async function doCreateParticipation(formData: ParticipationFormData) {
+  await admin.createContestParticipation(contestUuid.value, {
+    user_id: formData.user_id!,
+    cms_id: formData.cms_id ? +formData.cms_id : null,
+    manual_password: formData.manual_password ? formData.manual_password : null,
+  });
+  await loadContest();
+  toast.open({
+    message: "Participant has been added!",
+    type: "is-success",
+  });
+}
+
+function createParticipation() {
+  modal.open({
+    component: ParticipationCreateModal,
+    hasModalCard: true,
+    trapFocus: true,
+    events: {
+      submit: (formData: ParticipationFormData) => {
+        doCreateParticipation(formData);
+      },
+    },
+  });
+}
+
+async function doUpdateParticipation(id: number, formData: ParticipationFormData) {
+  await admin.updateContestParticipation(contestUuid.value, id, {
+    cms_id: formData.cms_id!,
+    manual_password: formData.manual_password || null,
+  });
+  await loadContest();
+  toast.open({
+    message: "Participant has been updated!",
+    type: "is-success",
+  });
+}
+
+function updateParticipation(id: number) {
+  modal.open({
+    component: ParticipationUpdateModal,
+    props: {
+      contestUuid: contestUuid.value,
+      participationId: id,
+    },
+    hasModalCard: true,
+    trapFocus: true,
+    events: {
+      submit: (formData: ParticipationFormData) => {
+        doUpdateParticipation(id, formData);
+      },
+    },
+  });
+}
+
+function removeParticipation(id: number) {
+  dialog.confirm({
+    message: "Remove this participation?",
+    onConfirm: async () => {
+      await admin.deleteContestParticipation(contestUuid.value, id);
+      toast.open({
+        message: "Participant has been removed!",
+        type: "is-success",
+      });
+      await loadContest();
+    },
+  });
+}
+
+async function doAddFromGroup(selected: number, randomPasswords: boolean) {
+  await admin.contestImportGroup(contestUuid.value, {
+    group_id: selected,
+    random_manual_passwords: randomPasswords,
+  });
+  await loadContest();
+  toast.open({
+    message: "Group has been added!",
+    type: "is-success",
+  });
+}
+
+function addFromGroup() {
+  modal.open({
+    component: ContestAddFromGroupModal,
+    hasModalCard: true,
+    trapFocus: true,
+    events: {
+      submit: (val: { selected: number; randomPasswords: boolean }) =>
+        doAddFromGroup(val.selected, val.randomPasswords),
+    },
+  });
+}
 </script>

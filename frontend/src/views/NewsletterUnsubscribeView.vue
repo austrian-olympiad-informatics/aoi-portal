@@ -9,36 +9,38 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { useToast } from "buefy";
 import newsletter from "@/services/newsletter";
 import { matchError } from "@/util/errors";
 
-@Component
-class NewsletterUnsubscribeView extends Vue {
-  finished = false;
+const route = useRoute();
+const toast = useToast();
 
-  async mounted() {
-    const email = this.$route.query.email;
-    const token = this.$route.query.token;
-    try {
-      await newsletter.unsubscribe({
-        email: email as string,
-        token: token as string,
-      });
-    } catch (err) {
-      matchError(err, {
-        default:
-          "Beim Abbestellen ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      return;
-    }
-    this.$buefy.toast.open({
-      message: "Erfolgreich vom Newsletter abgemeldet!",
-      type: "is-success",
+const finished = ref(false);
+
+onMounted(async () => {
+  const email = route.query.email;
+  const token = route.query.token;
+  try {
+    await newsletter.unsubscribe({
+      email: email as string,
+      token: token as string,
     });
-    this.finished = true;
+  } catch (err) {
+    matchError(err, {
+      default:
+        "Beim Abbestellen ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    });
+    return;
   }
-}
-export default toNative(NewsletterUnsubscribeView)
+  toast.open({
+    message: "Erfolgreich vom Newsletter abgemeldet!",
+    type: "is-success",
+  });
+  finished.value = true;
+});
 </script>

@@ -60,54 +60,39 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
 import cmsadmin from "@/services/cmsadmin";
 import { AdminParticipationScore, AdminContestShort } from "@/types/cmsadmin";
-import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
 import PointsBar from "../PointsBar.vue";
 
-@Component({
-  components: {
-    PointsBar,
-  },
-})
-class AdminUserContest extends Vue {
-  @Prop({
-    type: Number,
-  })
-  userId!: number;
-  @Prop({
-    type: Number,
-  })
-  partId!: number;
-  @Prop({
-    type: Object,
-  })
-  contest!: AdminContestShort;
-  scores: AdminParticipationScore | null = null;
+const props = defineProps<{
+  userId: number;
+  partId: number;
+  contest: AdminContestShort;
+}>();
 
-  async mounted() {
-    this.scores = await cmsadmin.getParticipationScore(this.partId);
-  }
+const scores = ref<AdminParticipationScore | null>(null);
 
-  get maxScore() {
-    if (this.scores === null) return 0;
+onMounted(async () => {
+  scores.value = await cmsadmin.getParticipationScore(props.partId);
+});
 
-    return this.scores.tasks.reduce((acc, task) => acc + task.max_score, 0);
-  }
-  getTask(id: number) {
-    if (this.scores === null) return null;
+const maxScore = computed(() => {
+  if (scores.value === null) return 0;
+  return scores.value.tasks.reduce((acc, task) => acc + task.max_score, 0);
+});
 
-    return this.scores.tasks.find((task) => task.id === id);
-  }
-  getSubtasks(row: { id: number; subtask_scores: number[] | null }) {
-    return this.getTask(row.id)?.subtask_max_scores?.map((x, i) => {
-      return {
-        max_score: x,
-        score: row.subtask_scores?.[i] || 0.0,
-      };
-    });
-  }
+function getTask(id: number) {
+  if (scores.value === null) return null;
+  return scores.value.tasks.find((task) => task.id === id);
 }
-export default toNative(AdminUserContest)
+
+function getSubtasks(row: { id: number; subtask_scores: number[] | null }) {
+  return getTask(row.id)?.subtask_max_scores?.map((x, i) => ({
+    max_score: x,
+    score: row.subtask_scores?.[i] || 0.0,
+  }));
+}
 </script>

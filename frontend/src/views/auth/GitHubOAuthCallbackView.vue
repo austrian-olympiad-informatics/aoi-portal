@@ -6,54 +6,57 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { useStore } from "@/store";
+import { useToast } from "buefy";
 import oauth from "@/services/oauth";
 import { matchError, showErrorNotification } from "@/util/errors";
 import { GitHubAuthorizeResponse } from "@/types/oauth";
 
-@Component
-class GitHubOAuthCallbackView extends Vue {
-  async mounted() {
-    const err = this.$route.query.error as string | undefined;
-    if (err) {
-      console.error("OAuth error: ", err);
-      showErrorNotification(
-        "Beim Anmelden mit GitHub ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      );
-      return;
-    }
-    const state = this.$route.query.state as string;
-    if (state !== sessionStorage.getItem("githubOAuthState")) {
-      console.error("Invalid OAuth state!");
-      showErrorNotification(
-        "Beim Anmelden mit GitHub ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      );
-      return;
-    }
-    const code = this.$route.query.code as string;
-    let resp: GitHubAuthorizeResponse;
-    try {
-      resp = await oauth.githubAuthorize({
-        code: code,
-      });
-    } catch (err) {
-      matchError(err, {
-        default:
-          "Beim Anmelden mit GitHub ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      return;
-    }
+const route = useRoute();
+const router = useRouter();
+const store = useStore();
+const toast = useToast();
 
-    useStore().setAuthToken(resp.token);
-    await useStore().checkStatus();
-    this.$buefy.toast.open({
-      message: "Erfolgreich angemeldet!",
-      type: "is-success",
-    });
-    this.$router.push("/");
+onMounted(async () => {
+  const err = route.query.error as string | undefined;
+  if (err) {
+    console.error("OAuth error: ", err);
+    showErrorNotification(
+      "Beim Anmelden mit GitHub ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    );
+    return;
   }
-}
-export default toNative(GitHubOAuthCallbackView)
+  const state = route.query.state as string;
+  if (state !== sessionStorage.getItem("githubOAuthState")) {
+    console.error("Invalid OAuth state!");
+    showErrorNotification(
+      "Beim Anmelden mit GitHub ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    );
+    return;
+  }
+  const code = route.query.code as string;
+  let resp: GitHubAuthorizeResponse;
+  try {
+    resp = await oauth.githubAuthorize({
+      code: code,
+    });
+  } catch (err) {
+    matchError(err, {
+      default:
+        "Beim Anmelden mit GitHub ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    });
+    return;
+  }
+
+  store.setAuthToken(resp.token);
+  await store.checkStatus();
+  toast.open({
+    message: "Erfolgreich angemeldet!",
+    type: "is-success",
+  });
+  router.push("/");
+});
 </script>

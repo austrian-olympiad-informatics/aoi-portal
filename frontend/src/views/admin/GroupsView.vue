@@ -67,29 +67,22 @@
   </AdminCard>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
 import { AdminGroups } from "@/types/admin";
 import AdminCard from "@/components/admin/AdminCard.vue";
 import admin from "@/services/admin";
 
-@Component({
-  components: {
-    AdminCard,
-  },
-})
-class GroupsView extends Vue {
-  groups: AdminGroups | null = null;
+const groups = ref<AdminGroups | null>(null);
 
-  async loadGroups() {
-    this.groups = await admin.getGroups();
-  }
-
-  async mounted() {
-    await this.loadGroups();
-  }
+async function loadGroups() {
+  groups.value = await admin.getGroups();
 }
-export default toNative(GroupsView)
+
+onMounted(async () => {
+  await loadGroups();
+});
 </script>
 
 <style scoped>

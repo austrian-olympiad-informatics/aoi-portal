@@ -13,50 +13,47 @@
   </AdminCard>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { useToast } from "buefy";
 import admin from "@/services/admin";
 import { AdminGroupDetail, AdminGroupUpdateParams } from "@/types/admin";
 import GroupForm, { GroupFormData } from "@/components/admin/GroupForm.vue";
 import AdminCard from "@/components/admin/AdminCard.vue";
 
-@Component({
-  components: {
-    AdminCard,
-    GroupForm,
-  },
-})
-class GroupView extends Vue {
-  groupId!: number;
-  group: AdminGroupDetail | null = null;
-  data: GroupFormData | null = null;
+const route = useRoute();
+const toast = useToast();
 
-  async mounted() {
-    this.groupId = +this.$route.params.groupId;
-    await this.loadGroup();
-  }
+const groupId = ref(0);
+const group = ref<AdminGroupDetail | null>(null);
+const data = ref<GroupFormData | null>(null);
 
-  async loadGroup() {
-    this.group = await admin.getGroup(this.groupId);
-    this.data = {
-      name: this.group.name,
-      description: this.group.description,
-      users: this.group.users.map((u) => u.id),
-    };
-  }
+onMounted(async () => {
+  groupId.value = +route.params.groupId;
+  await loadGroup();
+});
 
-  async updateGroup(data: GroupFormData) {
-    const params: AdminGroupUpdateParams = {
-      name: data.name,
-      description: data.description,
-      users: data.users,
-    };
-    await admin.updateGroup(this.groupId, params);
-    this.$buefy.toast.open({
-      message: "Group has been updated!",
-      type: "is-success",
-    });
-  }
+async function loadGroup() {
+  group.value = await admin.getGroup(groupId.value);
+  data.value = {
+    name: group.value.name,
+    description: group.value.description,
+    users: group.value.users.map((u) => u.id),
+  };
 }
-export default toNative(GroupView)
+
+async function updateGroup(formData: GroupFormData) {
+  const params: AdminGroupUpdateParams = {
+    name: formData.name,
+    description: formData.description,
+    users: formData.users,
+  };
+  await admin.updateGroup(groupId.value, params);
+  toast.open({
+    message: "Group has been updated!",
+    type: "is-success",
+  });
+}
 </script>

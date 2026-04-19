@@ -64,9 +64,10 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref } from "vue";
+import { useToast } from "buefy";
 import admin from "@/services/admin";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
 import RichTextEditor from "@/components/RichTextEditor.vue";
 
 interface Address {
@@ -74,35 +75,29 @@ interface Address {
   name: string;
 }
 
-@Component({
-  components: {
-    RichTextEditor,
-  },
-})
-class NewsletterMailView extends Vue {
-  subject = "";
-  reply_to: Address[] = [];
-  content = "";
-  loading = false;
+const toast = useToast();
 
-  async submit() {
-    this.loading = true;
-    try {
-      await admin.newsletterEmail({
-        subject: this.subject,
-        content: this.content,
-        reply_to: this.reply_to,
-      });
-    } finally {
-      this.loading = false;
-    }
-    this.$buefy.toast.open({
-      message: "Newsletter has been sent!",
-      type: "is-success",
+const subject = ref("");
+const reply_to = ref<Address[]>([]);
+const content = ref("");
+const loading = ref(false);
+
+async function submit() {
+  loading.value = true;
+  try {
+    await admin.newsletterEmail({
+      subject: subject.value,
+      content: content.value,
+      reply_to: reply_to.value,
     });
+  } finally {
+    loading.value = false;
   }
+  toast.open({
+    message: "Newsletter has been sent!",
+    type: "is-success",
+  });
 }
-export default toNative(NewsletterMailView)
 </script>
 
 <style scoped>

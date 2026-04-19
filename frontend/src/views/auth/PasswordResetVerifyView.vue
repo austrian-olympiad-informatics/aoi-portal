@@ -75,71 +75,74 @@
   </section>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "@/store";
+import { useToast } from "buefy";
 import auth from "@/services/auth";
 import { AuthResetPasswordResult } from "@/types/auth";
 import { matchError } from "@/util/errors";
-import {  Component, Vue, toNative } from "vue-facing-decorator";
-import { useStore } from "@/store";
 
-@Component
-class PasswordResetVerifyView extends Vue {
-  verifyCode = "";
-  stageVerifyMail = true;
-  newPassword = "";
-  newPasswordConfirm = "";
+const router = useRouter();
+const store = useStore();
+const toast = useToast();
 
-  get email(): string {
-    return useStore().passwordResetVerifyEmail;
-  }
-  get newPasswordsMatch(): boolean {
-    return this.newPassword === this.newPasswordConfirm;
-  }
+const verifyCode = ref("");
+const stageVerifyMail = ref(true);
+const newPassword = ref("");
+const newPasswordConfirm = ref("");
 
-  async passwordResetVerify() {
-    await auth.resetPassword({
-      uuid: useStore().passwordResetVerifyUuid,
-      verification_code: this.verifyCode,
-    });
-    this.stageVerifyMail = false;
-  }
-  async passwordResetComplete() {
-    if (!this.newPasswordsMatch) return;
-    let resp: AuthResetPasswordResult;
-    try {
-      resp = await auth.resetPassword({
-        uuid: useStore().passwordResetVerifyUuid,
-        verification_code: this.verifyCode,
-        new_password: this.newPassword,
-      });
-    } catch (err) {
-      matchError(err, {
-        no_longer_valid: "Dieser Verifizierungscode ist nicht mehr gültig.",
-        too_many_attempts: "Zu viele falsche Versuche.",
-        invalid_verification_code:
-          "Der Verifizierunscode ist nicht korrekt. Bitte versuche es erneut.",
-        default:
-          "Beim Verifizieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      return;
-    }
-    useStore().setAuthToken(resp.token);
-    useStore().setPasswordResetVerifyState({
-      passwordResetVerifyEmail: "",
-      passwordResetVerifyUuid: "",
-    });
-    await useStore().checkStatus();
-    this.$buefy.toast.open({
-      message: "Passwort wurde erfolgreich zurückgesetzt!",
-      type: "is-success",
-    });
-    this.$router.push("/");
-  }
-  mounted(): void {
-    if (!useStore().passwordResetVerifyUuid) {
-      this.$router.push("/");
-    }
-  }
+const email = computed(() => store.passwordResetVerifyEmail);
+const newPasswordsMatch = computed(
+  () => newPassword.value === newPasswordConfirm.value,
+);
+
+async function passwordResetVerify() {
+  await auth.resetPassword({
+    uuid: store.passwordResetVerifyUuid,
+    verification_code: verifyCode.value,
+  });
+  stageVerifyMail.value = false;
 }
-export default toNative(PasswordResetVerifyView)
+
+async function passwordResetComplete() {
+  if (!newPasswordsMatch.value) return;
+  let resp: AuthResetPasswordResult;
+  try {
+    resp = await auth.resetPassword({
+      uuid: store.passwordResetVerifyUuid,
+      verification_code: verifyCode.value,
+      new_password: newPassword.value,
+    });
+  } catch (err) {
+    matchError(err, {
+      no_longer_valid: "Dieser Verifizierungscode ist nicht mehr gültig.",
+      too_many_attempts: "Zu viele falsche Versuche.",
+      invalid_verification_code:
+        "Der Verifizierunscode ist nicht korrekt. Bitte versuche es erneut.",
+      default:
+        "Beim Verifizieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    });
+    return;
+  }
+  store.setAuthToken(resp.token);
+  store.setPasswordResetVerifyState({
+    passwordResetVerifyEmail: "",
+    passwordResetVerifyUuid: "",
+  });
+  await store.checkStatus();
+  toast.open({
+    message: "Passwort wurde erfolgreich zurückgesetzt!",
+    type: "is-success",
+  });
+  router.push("/");
+}
+
+onMounted((): void => {
+  if (!store.passwordResetVerifyUuid) {
+    router.push("/");
+  }
+});
 </script>

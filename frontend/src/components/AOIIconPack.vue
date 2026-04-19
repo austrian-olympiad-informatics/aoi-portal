@@ -14,8 +14,9 @@
   </svg>
 </template>
 
-<script lang="ts">
-import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { computed } from "vue";
+import { onMounted } from "vue";
 import {
   mdiAccount,
   mdiAccountCircle,
@@ -142,34 +143,19 @@ const ICON_LOOKUP: IconLookupType = {
   "alert-octagon": mdiAlertOctagon,
 };
 
-@Component
-class AOIIconPack extends Vue {
-  @Prop({
-    type: Array,
-  })
-  icon!: string[];
+const props = defineProps<{
+  icon: string[];
+  size: string;
+  customClass: string;
+}>();
 
-  @Prop({
-    type: String,
-  })
-  size!: string;
-
-  @Prop({
-    type: String,
-  })
-  customClass!: string;
-
-  mounted() {
-    if (!(this.icon[1] in ICON_LOOKUP)) {
-      console.warn(
-        `Unknown icon ${this.icon[1]}, please add it to the list in src/components/AOIIconPack.vue`,
-      );
-    }
+onMounted(() => {
+  if (!(props.icon[1] in ICON_LOOKUP)) {
+    console.warn(
+      `Unknown icon ${props.icon[1]}, please add it to the list in src/components/AOIIconPack.vue`,
+    );
   }
+});
 
-  get iconPath() {
-    return ICON_LOOKUP[this.icon[1]];
-  }
-}
-export default toNative(AOIIconPack)
+const iconPath = computed(() => ICON_LOOKUP[props.icon[1]]);
 </script>

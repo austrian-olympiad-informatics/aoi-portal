@@ -90,38 +90,34 @@
   </AdminCard>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
+import { useToast } from "buefy";
 import { AdminContests } from "@/types/admin";
 import AdminCard from "@/components/admin/AdminCard.vue";
 import admin from "@/services/admin";
 
-@Component({
-  components: {
-    AdminCard,
-  },
-})
-class ContestsView extends Vue {
-  contests: AdminContests | null = null;
+const toast = useToast();
 
-  async loadContests() {
-    this.contests = await admin.getContests();
-  }
+const contests = ref<AdminContests | null>(null);
 
-  async reloadContestsFromCMS() {
-    await admin.refreshCMSContests();
-    await this.loadContests();
-    this.$buefy.toast.open({
-      message: "Contests loaded from CMS!",
-      type: "is-success",
-    });
-  }
-
-  async mounted() {
-    await this.loadContests();
-  }
+async function loadContests() {
+  contests.value = await admin.getContests();
 }
-export default toNative(ContestsView)
+
+async function reloadContestsFromCMS() {
+  await admin.refreshCMSContests();
+  await loadContests();
+  toast.open({
+    message: "Contests loaded from CMS!",
+    type: "is-success",
+  });
+}
+
+onMounted(async () => {
+  await loadContests();
+});
 </script>
 
 <style scoped>
