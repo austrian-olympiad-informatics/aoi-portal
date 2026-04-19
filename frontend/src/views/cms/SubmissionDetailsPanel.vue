@@ -204,10 +204,11 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { Submission, Task } from "@/types/cms";
 import { PropType } from "vue";
-import {  Component, Prop, Vue, Watch, toNative } from "vue-facing-decorator";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import cms from "@/services/cms";
 import { formatDateShort } from "@/util/dt";
 import { langToExt, lookupCMSLang } from "@/util/lang-table";
@@ -215,148 +216,137 @@ import CodeMirror from "@/components/CodeMirror.vue";
 import { downloadBlob } from "@/util/download";
 import { translateText } from "@/util/cms";
 
-@Component({
-  components: {
-    CodeMirror,
-  },
-})
-class SubmissionDetailsPanel extends Vue {
-  @Prop({
-    type: Object as PropType<Task>,
-  })
-  task!: Task;
-  now: Date = new Date();
-  get contestName(): string {
-    return this.$route.params.contestName as string;
-  }
-  get taskName(): string {
-    return this.$route.params.taskName as string;
-  }
-  get submissionUuid(): string {
-    return this.$route.params.submissionUuid as string;
-  }
-  submission: Submission | null = null;
-  files: Record<string, string> | null = null;
-  memeUrl: string | null = null;
+const props = defineProps<{ task: Task }>();
 
-  async loadSubmission() {
-    this.submission = await cms.getSubmission(
-      this.contestName,
-      this.taskName,
-      this.submissionUuid,
+const route = useRoute();
+const router = useRouter();
+
+const contestName = computed(() => route.params.contestName as string);
+const taskName = computed(() => route.params.taskName as string);
+const submissionUuid = computed(() => route.params.submissionUuid as string);
+
+const now = ref<Date>(new Date());
+const submission = ref<Submission | null>(null);
+const files = ref<Record<string, string> | null>(null);
+const memeUrl = ref<string | null>(null);
+
+async function loadSubmission() {
+  submission.value = await cms.getSubmission(
+    contestName.value,
+    taskName.value,
+    submissionUuid.value,
+  );
+  if (submission.value.result.meme_digest !== null) {
+    const blob = await cms.getSubmissionMeme(
+      contestName.value,
+      taskName.value,
+      submissionUuid.value,
+      submission.value.result.meme_digest,
     );
-    if (this.submission.result.meme_digest !== null) {
-      const blob = await cms.getSubmissionMeme(
-        this.contestName,
-        this.taskName,
-        this.submissionUuid,
-        this.submission.result.meme_digest,
-      );
-      this.memeUrl = URL.createObjectURL(blob);
-    }
-  }
-  memeUrlLoaded() {
-    if (this.memeUrl !== null) URL.revokeObjectURL(this.memeUrl);
-  }
-  async loadFiles() {
-    this.files = Object.fromEntries(
-      await Promise.all(
-        this.submission!.files.map(async (file) => {
-          const resp = await cms.getSubmissionFile(
-            this.contestName,
-            this.taskName,
-            this.submissionUuid,
-            file.filename,
-            file.digest,
-          );
-          return [file.filename, await resp.text()];
-        }),
-      ),
-    );
-  }
-
-  async mounted() {
-    this.now = new Date();
-    await this.loadSubmission();
-    this.scheduleCheckSubmissions(1000);
-    await this.loadFiles();
-  }
-
-  formatSubDate(date: Date) {
-    return formatDateShort(this.now, date);
-  }
-  translateText(text: string[]) {
-    return translateText(text);
-  }
-
-  subtaskPoints(st: { max_score: number; fraction: number }): number {
-    return parseFloat(
-      (st.max_score * st.fraction).toFixed(this.task.score_precision),
-    );
-  }
-
-  get codeLang() {
-    return lookupCMSLang(this.submission?.language || "");
-  }
-
-  checkSubTimeout: number | null = null;
-
-  scheduleCheckSubmissions(timeout: number) {
-    if (this.checkSubTimeout !== null) clearTimeout(this.checkSubTimeout);
-    this.checkSubTimeout = window.setTimeout(
-      () => this.checkSubmissions(timeout),
-      timeout,
-    );
-  }
-
-  async checkSubmissions(prevTime: number) {
-    if (
-      ["compilation_failed", "scored"].includes(
-        this.submission!.result.status || "",
-      )
-    )
-      return;
-    const prevState = this.submission!.result.status;
-    await this.loadSubmission();
-    const newState = this.submission!.result.status;
-    this.scheduleCheckSubmissions(
-      prevState === newState ? prevTime * 1.2 : 1000,
-    );
-  }
-
-  @Watch("task.submissions")
-  submissionsChanged() {
-    this.scheduleCheckSubmissions(1000);
-  }
-
-  downloadFile(fname: string, value: string) {
-    const blob = new Blob([value]);
-    const lang = lookupCMSLang(this.submission!.language);
-    fname = fname.replaceAll(".%l", langToExt(lang));
-    downloadBlob(blob, fname);
-  }
-
-  onKeydown(event: KeyboardEvent) {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      event.stopPropagation();
-      this.$router.push({
-        name: "CMSTask",
-        params: {
-          contestName: this.contestName,
-          taskName: this.taskName,
-        },
-      });
-    }
-  }
-  created() {
-    document.addEventListener("keydown", this.onKeydown);
-  }
-  unmounted() {
-    document.removeEventListener("keydown", this.onKeydown);
+    memeUrl.value = URL.createObjectURL(blob);
   }
 }
-export default toNative(SubmissionDetailsPanel)
+
+function memeUrlLoaded() {
+  if (memeUrl.value !== null) URL.revokeObjectURL(memeUrl.value);
+}
+
+async function loadFiles() {
+  files.value = Object.fromEntries(
+    await Promise.all(
+      submission.value!.files.map(async (file) => {
+        const resp = await cms.getSubmissionFile(
+          contestName.value,
+          taskName.value,
+          submissionUuid.value,
+          file.filename,
+          file.digest,
+        );
+        return [file.filename, await resp.text()];
+      }),
+    ),
+  );
+}
+
+let checkSubTimeout: number | null = null;
+
+function scheduleCheckSubmissions(timeout: number) {
+  if (checkSubTimeout !== null) clearTimeout(checkSubTimeout);
+  checkSubTimeout = window.setTimeout(
+    () => checkSubmissions(timeout),
+    timeout,
+  );
+}
+
+async function checkSubmissions(prevTime: number) {
+  if (
+    ["compilation_failed", "scored"].includes(
+      submission.value!.result.status || "",
+    )
+  )
+    return;
+  const prevState = submission.value!.result.status;
+  await loadSubmission();
+  const newState = submission.value!.result.status;
+  scheduleCheckSubmissions(prevState === newState ? prevTime * 1.2 : 1000);
+}
+
+watch(
+  () => props.task.submissions,
+  () => {
+    scheduleCheckSubmissions(1000);
+  },
+);
+
+onMounted(async () => {
+  now.value = new Date();
+  await loadSubmission();
+  scheduleCheckSubmissions(1000);
+  await loadFiles();
+});
+
+function formatSubDate(date: Date) {
+  return formatDateShort(now.value, date);
+}
+
+function subtaskPoints(st: { max_score: number; fraction: number }): number {
+  return parseFloat(
+    (st.max_score * st.fraction).toFixed(props.task.score_precision),
+  );
+}
+
+const codeLang = computed(() =>
+  lookupCMSLang(submission.value?.language || ""),
+);
+
+function downloadFile(fname: string, value: string) {
+  const blob = new Blob([value]);
+  const lang = lookupCMSLang(submission.value!.language);
+  fname = fname.replaceAll(".%l", langToExt(lang));
+  downloadBlob(blob, fname);
+}
+
+function onKeydown(event: KeyboardEvent) {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    event.stopPropagation();
+    router.push({
+      name: "CMSTask",
+      params: {
+        contestName: contestName.value,
+        taskName: taskName.value,
+      },
+    });
+  }
+}
+
+onMounted(() => {
+  document.addEventListener("keydown", onKeydown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("keydown", onKeydown);
+});
 </script>
 
 <style scoped lang="scss">

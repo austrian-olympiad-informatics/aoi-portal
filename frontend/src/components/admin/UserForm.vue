@@ -109,11 +109,11 @@
   </section>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
 import admin from "@/services/admin";
 import { AdminGroup, AdminGroups } from "@/types/admin";
-import { PropType } from "vue";
-import {  Component, Prop, Vue, VModel, toNative } from "vue-facing-decorator";
 import NumberInput from "../common/NumberInput.vue";
 
 export interface UserFormData {
@@ -134,59 +134,46 @@ export interface UserFormData {
   groups: number[];
 }
 
-@Component({
-  components: {
-    NumberInput,
+const data = defineModel<UserFormData>({ required: true });
+
+const props = withDefaults(defineProps<{ passwordRequired?: boolean }>(), {
+  passwordRequired: false,
+});
+
+const groups = ref<AdminGroups | null>(null);
+
+onMounted(async () => {
+  groups.value = await admin.getGroups();
+});
+
+const birthday = computed<Date | null>({
+  get: () => {
+    if (data.value.birthday === null) return null;
+    return new Date(data.value.birthday);
   },
-})
-class UserForm extends Vue {
-  @VModel({
-    type: Object as PropType<UserFormData>,
-  })
-  data!: UserFormData;
-
-  @Prop({
-    default: false,
-  })
-  readonly passwordRequired!: boolean;
-
-  groups: AdminGroups | null = null;
-
-  get birthday(): Date | null {
-    if (this.data.birthday === null) return null;
-    return new Date(this.data.birthday);
-  }
-  set birthday(date: Date | null) {
-    if (this.birthday === null) {
-      this.data.birthday = null;
+  set: (date: Date | null) => {
+    if (date === null) {
+      data.value.birthday = null;
       return;
     }
-    this.data.birthday = `${this.birthday.getFullYear()}-${
-      this.birthday.getMonth() + 1
-    }-${this.birthday.getDate()}`;
-  }
+    data.value.birthday = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+  },
+});
 
-  get filteredGroups(): AdminGroup[] {
-    const gids = new Set(this.data.groups);
-    return this.groups!.filter((g) => !gids.has(g.id));
-  }
-  get selectedGroups(): AdminGroup[] {
-    const idToGroup = new Map(this.groups!.map((g) => [g.id, g]));
-    return this.data.groups.map((i) => idToGroup.get(i)!);
-  }
-  set selectedGroups(selected: AdminGroup[]) {
-    this.data.groups = selected.map((g) => g.id);
-  }
+const filteredGroups = computed<AdminGroup[]>(() => {
+  const gids = new Set(data.value.groups);
+  return groups.value!.filter((g) => !gids.has(g.id));
+});
 
-  async loadGroups() {
-    this.groups = await admin.getGroups();
-  }
-
-  async mounted() {
-    await this.loadGroups();
-  }
-}
-export default toNative(UserForm)
+const selectedGroups = computed<AdminGroup[]>({
+  get: () => {
+    const idToGroup = new Map(groups.value!.map((g) => [g.id, g]));
+    return data.value.groups.map((i) => idToGroup.get(i)!);
+  },
+  set: (selected: AdminGroup[]) => {
+    data.value.groups = selected.map((g) => g.id);
+  },
+});
 </script>
 
 <style scoped></style>

@@ -190,10 +190,11 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { SubmissionShort, Task } from "@/types/cms";
 import cms from "@/services/cms";
-import {  Component, Prop, Vue, Watch, toNative } from "vue-facing-decorator";
+import { ref, computed, watch, onMounted, nextTick } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { formatDateShort } from "@/util/dt";
 import { PropType } from "vue";
 import { downloadBlob } from "@/util/download";
@@ -201,169 +202,168 @@ import PointsBar from "./PointsBar.vue";
 import NotificationsSection from "./NotificationsSection.vue";
 import katex from "katex";
 
-@Component({
-  components: {
-    PointsBar,
-    NotificationsSection,
+const props = defineProps<{ task: Task }>();
+const emit = defineEmits<{
+  "show-submission": [];
+  "reload-task": [];
+  "submission-scored": [SubmissionShort];
+}>();
+
+const route = useRoute();
+const router = useRouter();
+
+const contestName = computed(() => route.params.contestName as string);
+const taskName = computed(() => route.params.taskName as string);
+
+const statement_html = ref<string | null>(null);
+const statementHtml = ref<HTMLElement | null>(null);
+const now = ref<Date>(new Date());
+
+const sortedSubmissions = computed(() =>
+  [...props.task.submissions].sort(
+    (a, b) =>
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+  ),
+);
+
+const taskScoreSubtasks = computed(() => {
+  if (props.task.scoring.type === "sum") return null;
+  const ourSt = props.task.score_subtasks!;
+  const maxSt = props.task.scoring.subtasks;
+  return maxSt.map((x, i) => ({
+    max_score: x,
+    fraction: i < ourSt.length ? ourSt[i].fraction : 0,
+  }));
+});
+
+async function downloadStatement(st: { language: string; digest: string }) {
+  const resp = await cms.getStatement(
+    contestName.value!,
+    taskName.value!,
+    st.language,
+    st.digest,
+  );
+  downloadBlob(resp, `${taskName.value} (${st.language.toUpperCase()}).pdf`);
+}
+
+async function downloadAttachment(att: { filename: string; digest: string }) {
+  const resp = await cms.getAttachment(
+    contestName.value!,
+    taskName.value!,
+    att.filename,
+    att.digest,
+  );
+  downloadBlob(resp, att.filename);
+}
+
+function formatSubDate(date: Date) {
+  return formatDateShort(now.value!, date);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function navgiateSubmission(event: any, navigate: any) {
+  navigate(event);
+  emit("show-submission");
+}
+
+function showCodePanel() {
+  router.push({
+    name: "CMSTask",
+    params: {
+      contestName: contestName.value,
+      taskName: taskName.value,
+    },
+  });
+}
+
+const pendingSubmissions = computed(() =>
+  props.task.submissions.filter((sub) =>
+    ["compiling", "evaluating", "scoring"].includes(sub.result.status),
+  ),
+);
+
+const hasPendingSubmissions = computed(
+  () => pendingSubmissions.value.length > 0,
+);
+
+const subStates = computed(() =>
+  props.task.submissions.map((sub) => sub.result.status),
+);
+
+let checkSubTimeout: number | null = null;
+
+function scheduleCheckSubmissions(timeout: number) {
+  if (checkSubTimeout !== null) clearTimeout(checkSubTimeout);
+  checkSubTimeout = window.setTimeout(
+    () => checkSubmissions(timeout),
+    timeout,
+  );
+}
+
+async function checkSubmissions(prevTime: number) {
+  if (!hasPendingSubmissions.value) return;
+  const beforeStates = subStates.value;
+  await Promise.all(
+    pendingSubmissions.value.map(async (sub) => {
+      const resp = await cms.getSubmissionShort(
+        contestName.value,
+        taskName.value,
+        sub.uuid,
+      );
+      for (let i = 0; i < props.task.submissions.length; i++) {
+        const x = props.task.submissions[i];
+        if (x.uuid === sub.uuid) {
+          props.task.submissions.splice(i, 1, resp);
+          if (resp.result.status === "scored") {
+            emit("submission-scored", resp);
+          }
+        }
+      }
+    }),
+  );
+  const afterStates = subStates.value;
+  const isSame =
+    beforeStates.length === afterStates.length &&
+    beforeStates.every((x, i) => x === afterStates[i]);
+  scheduleCheckSubmissions(isSame ? prevTime * 1.2 : 1000);
+}
+
+watch(
+  () => props.task.submissions,
+  () => {
+    scheduleCheckSubmissions(1000);
   },
-})
-class DescriptionPanel extends Vue {
-  @Prop({
-    type: Object as PropType<Task>,
-  })
-  task!: Task;
-  statement_html: string | null = null;
+  { deep: true },
+);
 
-  get contestName(): string {
-    return this.$route.params.contestName as string;
-  }
-  get taskName(): string {
-    return this.$route.params.taskName as string;
-  }
-  get sortedSubmissions(): SubmissionShort[] {
-    return this.task.submissions.sort((a, b) => {
-      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-    });
-  }
-  get taskScoreSubtasks() {
-    // reassemble score subtasks in submission subtasks format
-    if (this.task.scoring.type === "sum") return null;
-    const ourSt = this.task.score_subtasks!;
-    const maxSt = this.task.scoring.subtasks;
-    return maxSt.map((x, i) => {
-      return {
-        max_score: x,
-        fraction: i < ourSt.length ? ourSt[i].fraction : 0,
-      };
-    });
-  }
-
-  now: Date = new Date();
-
-  async downloadStatement(st: { language: string; digest: string }) {
-    const resp = await cms.getStatement(
-      this.contestName!,
-      this.taskName!,
-      st.language,
-      st.digest,
-    );
-    downloadBlob(resp, `${this.taskName} (${st.language.toUpperCase()}).pdf`);
-  }
-  async downloadAttachment(att: { filename: string; digest: string }) {
-    const resp = await cms.getAttachment(
-      this.contestName!,
-      this.taskName!,
-      att.filename,
-      att.digest,
-    );
-    downloadBlob(resp, att.filename);
-  }
-  async mounted() {
-    this.now = new Date();
-    this.scheduleCheckSubmissions(1000);
-    if (this.task.statement_html_digest !== null) {
-      this.statement_html = await (
-        await cms.getStatementHTML(
-          this.contestName!,
-          this.taskName!,
-          this.task.statement_html_digest,
-        )
-      ).text();
-      this.$nextTick(() => {
-        const root = this.$refs.statementHtml as Element;
-        const mathElems = root.querySelectorAll(".math");
-        const macros = {};
-        mathElems.forEach((elem) => {
-          const displayMode = elem.classList.contains("display");
-          const text = elem.textContent === null ? "" : elem.textContent;
-          katex.render(text, elem as HTMLElement, {
-            throwOnError: false,
-            displayMode: displayMode,
-            macros,
-          });
+onMounted(async () => {
+  now.value = new Date();
+  scheduleCheckSubmissions(1000);
+  if (props.task.statement_html_digest !== null) {
+    statement_html.value = await (
+      await cms.getStatementHTML(
+        contestName.value!,
+        taskName.value!,
+        props.task.statement_html_digest,
+      )
+    ).text();
+    await nextTick();
+    const root = statementHtml.value as Element;
+    if (root) {
+      const mathElems = root.querySelectorAll(".math");
+      const macros = {};
+      mathElems.forEach((elem) => {
+        const displayMode = elem.classList.contains("display");
+        const text = elem.textContent === null ? "" : elem.textContent;
+        katex.render(text, elem as HTMLElement, {
+          throwOnError: false,
+          displayMode: displayMode,
+          macros,
         });
       });
     }
   }
-
-  formatSubDate(date: Date) {
-    return formatDateShort(this.now!, date);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navgiateSubmission(event: any, navigate: any) {
-    navigate(event);
-    this.$emit("show-submission");
-  }
-
-  get pendingSubmissions(): SubmissionShort[] {
-    return this.task.submissions.filter((sub) =>
-      ["compiling", "evaluating", "scoring"].includes(sub.result.status),
-    );
-  }
-  get hasPendingSubmissions(): boolean {
-    return this.pendingSubmissions.length > 0;
-  }
-  get subStates(): string[] {
-    return this.task.submissions.map((sub) => sub.result.status);
-  }
-
-  checkSubTimeout: number | null = null;
-
-  scheduleCheckSubmissions(timeout: number) {
-    if (this.checkSubTimeout !== null) clearTimeout(this.checkSubTimeout);
-    this.checkSubTimeout = window.setTimeout(
-      () => this.checkSubmissions(timeout),
-      timeout,
-    );
-  }
-
-  async checkSubmissions(prevTime: number) {
-    if (!this.hasPendingSubmissions) return;
-    const beforeStates = this.subStates;
-    await Promise.all(
-      this.pendingSubmissions.map(async (sub) => {
-        const resp = await cms.getSubmissionShort(
-          this.contestName,
-          this.taskName,
-          sub.uuid,
-        );
-        for (let i = 0; i < this.task.submissions.length; i++) {
-          const x = this.task.submissions[i];
-          if (x.uuid === sub.uuid) {
-            this.task.submissions.splice(i, 1, resp);
-            if (resp.result.status === "scored") {
-              this.$emit("submission-scored", resp);
-            }
-          }
-        }
-      }),
-    );
-    const afterStates = this.subStates;
-    const isSame =
-      beforeStates.length === afterStates.length &&
-      beforeStates.every((x, i) => {
-        return x === afterStates[i];
-      });
-    this.scheduleCheckSubmissions(isSame ? prevTime * 1.2 : 1000);
-  }
-
-  @Watch("task.submissions", { deep: true })
-  submissionsChanged() {
-    this.scheduleCheckSubmissions(1000);
-  }
-
-  showCodePanel() {
-    this.$router.push({
-      name: "CMSTask",
-      params: {
-        contestName: this.contestName,
-        taskName: this.taskName,
-      },
-    });
-  }
-}
-export default toNative(DescriptionPanel)
+});
 </script>
 
 <style scoped lang="scss">

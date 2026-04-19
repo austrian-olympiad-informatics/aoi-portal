@@ -180,7 +180,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import cmsadmin from "@/services/cmsadmin";
 import {
   AdminParticipationShort,
@@ -191,155 +191,160 @@ import {
   AdminUserEvalShort,
 } from "@/types/cmsadmin";
 import { formatDateShort } from "@/util/dt";
-import {  Component, Vue, Watch, toNative } from "vue-facing-decorator";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import SimpleAutoselect from "./SimpleAutoselect.vue";
 
-@Component({
-  components: {
-    SimpleAutoselect,
-  },
-})
-class AdminUserEvalsView extends Vue {
-  data: AdminUserEvalsPaginated | null = null;
-  loading = true;
-  get userEvals(): AdminUserEvalShort[] {
-    return this.data === null ? [] : this.data.items;
-  }
-  get total(): number | null {
-    return this.data === null ? null : this.data.total;
-  }
-  perPage = 50;
-  page = 1;
+const route = useRoute();
+const router = useRouter();
 
-  contests: AdminContests | null = null;
-  users: AdminUsers | null = null;
-  tasks: AdminAllTasks | null = null;
+const data = ref<AdminUserEvalsPaginated | null>(null);
+const loading = ref(true);
+const perPage = ref(50);
+const page = ref(1);
 
-  filterByContestId: number | null = null;
-  filterByTaskId: number | null = null;
-  filterByUserId: number | null = null;
+const userEvals = computed<AdminUserEvalShort[]>(() =>
+  data.value === null ? [] : data.value.items,
+);
+const total = computed<number | null>(() =>
+  data.value === null ? null : data.value.total,
+);
 
-  async onPageChange(idx: number) {
-    this.page = idx;
-    await this.reloadUserEvals();
-  }
+const contests = ref<AdminContests | null>(null);
+const users = ref<AdminUsers | null>(null);
+const tasks = ref<AdminAllTasks | null>(null);
 
-  async loadUserEvals() {
-    this.data = await cmsadmin.getUserEvals({
-      page: this.page,
-      perPage: this.perPage,
-      contestId:
-        this.filterByContestId === null ? undefined : this.filterByContestId,
-      taskId: this.filterByTaskId === null ? undefined : this.filterByTaskId,
-      userId: this.filterByUserId === null ? undefined : this.filterByUserId,
-    });
-  }
-  async reloadUserEvals() {
-    this.$router.push({
-      path: this.$route.path,
-      query: {
-        ...this.$route.query,
-        page: this.page.toString(),
-        contest_id: this.filterByContestId?.toString(),
-        task_id: this.filterByTaskId?.toString(),
-        user_id: this.filterByUserId?.toString(),
-      },
-    });
-    this.loading = true;
-    await this.loadUserEvals();
-    this.loading = false;
-  }
-  async loadContests() {
-    this.contests = await cmsadmin.getContests();
-  }
-  async loadTasks() {
-    this.tasks = await cmsadmin.getTasks();
-  }
-  get filteredTasks() {
-    if (this.tasks === null) return null;
-    if (this.filterByContestId === null) return this.tasks;
-    return this.tasks.filter((t) => t.contest?.id === this.filterByContestId);
-  }
-  async loadUsers() {
-    this.users = await cmsadmin.getUsers();
-  }
-  get filteredUsers() {
-    if (this.users === null) return null;
-    if (this.filterByContestId === null) return this.users;
-    return this.users.filter((u) =>
-      u.participations.some((p) => p.contest.id === this.filterByContestId),
-    );
-  }
-  reloadHandle: number | null = null;
-  unmounted() {
-    if (this.reloadHandle !== null) clearInterval(this.reloadHandle);
-  }
+const filterByContestId = ref<number | null>(null);
+const filterByTaskId = ref<number | null>(null);
+const filterByUserId = ref<number | null>(null);
 
-  async mounted() {
-    if (this.$route.query.contest_id !== undefined)
-      this.filterByContestId = +(this.$route.query.contest_id as string);
-    if (this.$route.query.task_id !== undefined)
-      this.filterByTaskId = +(this.$route.query.task_id as string);
-    if (this.$route.query.user_id !== undefined)
-      this.filterByUserId = +(this.$route.query.user_id as string);
-    if (this.$route.params.userEvalUuid !== undefined)
-      this.selectedUserEval = { uuid: this.$route.params.userEvalUuid as string };
-    this.reloadHandle = window.setInterval(async () => {
-      await this.loadUserEvals();
-    }, 15000);
-    await Promise.all([
-      this.loadUserEvals(),
-      this.loadContests(),
-      this.loadTasks(),
-      this.loadUsers(),
-    ]);
-    this.loading = false;
-  }
+const filteredTasks = computed(() => {
+  if (tasks.value === null) return null;
+  if (filterByContestId.value === null) return tasks.value;
+  return tasks.value.filter((t) => t.contest?.id === filterByContestId.value);
+});
 
-  formatPart(part: AdminParticipationShort) {
-    return `${part.user.first_name} ${part.user.last_name}`;
-  }
+const filteredUsers = computed(() => {
+  if (users.value === null) return null;
+  if (filterByContestId.value === null) return users.value;
+  return users.value.filter((u) =>
+    u.participations.some((p) => p.contest.id === filterByContestId.value),
+  );
+});
 
-  formatSubDate(date: Date) {
-    return formatDateShort(new Date(), date);
-  }
+const selectedUserEval = ref<{ uuid: string } | null>(null);
 
-  selectedUserEval: { uuid: string } | null = null;
-  onRowClick(v: { uuid: string }) {
-    if (this.selectedUserEval?.uuid === v.uuid) {
-      this.selectedUserEval = null;
-      this.$router.push({
-        name: "CMSAdminUserEvals",
-        query: this.$route.query,
-      });
-      return;
-    }
-    this.selectedUserEval = v;
-    this.$router.push({
-      name: "CMSAdminUserEval",
-      params: {
-        userEvalUuid: v.uuid,
-      },
-      query: this.$route.query,
-    });
-  }
-
-  nowrapAttrs() {
-    return {
-      style: {
-        "white-space": "nowrap",
-      },
-    };
-  }
-
-  @Watch("$route")
-  watchRoute() {
-    if (this.$route.params.userEvalUuid !== undefined)
-      this.selectedUserEval = { uuid: this.$route.params.userEvalUuid as string };
-    else this.selectedUserEval = null;
-  }
+async function onPageChange(idx: number) {
+  page.value = idx;
+  await reloadUserEvals();
 }
-export default toNative(AdminUserEvalsView)
+
+async function loadUserEvals() {
+  data.value = await cmsadmin.getUserEvals({
+    page: page.value,
+    perPage: perPage.value,
+    contestId:
+      filterByContestId.value === null ? undefined : filterByContestId.value,
+    taskId: filterByTaskId.value === null ? undefined : filterByTaskId.value,
+    userId: filterByUserId.value === null ? undefined : filterByUserId.value,
+  });
+}
+
+async function reloadUserEvals() {
+  router.push({
+    path: route.path,
+    query: {
+      ...route.query,
+      page: page.value.toString(),
+      contest_id: filterByContestId.value?.toString(),
+      task_id: filterByTaskId.value?.toString(),
+      user_id: filterByUserId.value?.toString(),
+    },
+  });
+  loading.value = true;
+  await loadUserEvals();
+  loading.value = false;
+}
+
+async function loadContests() {
+  contests.value = await cmsadmin.getContests();
+}
+async function loadTasks() {
+  tasks.value = await cmsadmin.getTasks();
+}
+async function loadUsers() {
+  users.value = await cmsadmin.getUsers();
+}
+
+let reloadHandle: number | null = null;
+
+onUnmounted(() => {
+  if (reloadHandle !== null) clearInterval(reloadHandle);
+});
+
+onMounted(async () => {
+  if (route.query.contest_id !== undefined)
+    filterByContestId.value = +(route.query.contest_id as string);
+  if (route.query.task_id !== undefined)
+    filterByTaskId.value = +(route.query.task_id as string);
+  if (route.query.user_id !== undefined)
+    filterByUserId.value = +(route.query.user_id as string);
+  if (route.params.userEvalUuid !== undefined)
+    selectedUserEval.value = { uuid: route.params.userEvalUuid as string };
+  reloadHandle = window.setInterval(async () => {
+    await loadUserEvals();
+  }, 15000);
+  await Promise.all([
+    loadUserEvals(),
+    loadContests(),
+    loadTasks(),
+    loadUsers(),
+  ]);
+  loading.value = false;
+});
+
+function formatPart(part: AdminParticipationShort) {
+  return `${part.user.first_name} ${part.user.last_name}`;
+}
+
+function formatSubDate(date: Date) {
+  return formatDateShort(new Date(), date);
+}
+
+function onRowClick(v: { uuid: string }) {
+  if (selectedUserEval.value?.uuid === v.uuid) {
+    selectedUserEval.value = null;
+    router.push({
+      name: "CMSAdminUserEvals",
+      query: route.query,
+    });
+    return;
+  }
+  selectedUserEval.value = v;
+  router.push({
+    name: "CMSAdminUserEval",
+    params: {
+      userEvalUuid: v.uuid,
+    },
+    query: route.query,
+  });
+}
+
+function nowrapAttrs() {
+  return {
+    style: {
+      "white-space": "nowrap",
+    },
+  };
+}
+
+watch(
+  () => route.params.userEvalUuid,
+  (uuid) => {
+    selectedUserEval.value =
+      uuid !== undefined ? { uuid: uuid as string } : null;
+  },
+);
 </script>
 
 <style lang="scss" scoped>

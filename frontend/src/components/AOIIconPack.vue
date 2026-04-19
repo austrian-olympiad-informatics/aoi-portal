@@ -146,7 +146,7 @@ const ICON_LOOKUP: IconLookupType = {
 const props = defineProps<{
   icon: string[];
   size: string;
-  customClass: string;
+  customClass?: string;
 }>();
 
 onMounted(() => {

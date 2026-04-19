@@ -38,49 +38,33 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { useStore } from "@/store";
 import Navbar from "./components/Navbar.vue";
 
-@Component({
-  components: {
-    Navbar,
-  },
-})
-class AppComponent extends Vue {
-  get isAdmin(): boolean {
-    return useStore().isAdmin;
-  }
-  get isFooterHidden(): boolean {
-    return this.$route.matched.some((x) => x.meta.footerHidden);
-  }
-  get isCMS(): boolean {
-    return this.$route.matched.some((x) => x.meta.isCMS);
-  }
-  get isAdminButtonHidden(): boolean {
-    return this.$route.matched.some((x) => x.meta.isAdminButtonHidden);
-  }
-  get isDiscordButtonHidden(): boolean {
-    return this.$route.matched.some((x) => x.meta.isDiscordButtonHidden);
-  }
-  get isAuthenticated(): boolean {
-    return useStore().isAuthenticated;
-  }
-  get isProxyAuth(): boolean {
-    return useStore().isProxyAuth;
-  }
-  get isDiscordLinked(): boolean {
-    return !!useStore().discordUsername;
-  }
-  get getDiscordUsername(): string {
-    return useStore().discordUsername;
-  }
-  async mounted(): Promise<void> {
-    await useStore().checkStatus();
-  }
-}
-export default toNative(AppComponent)
+const store = useStore();
+const route = useRoute();
+
+const isAdmin = computed(() => store.isAdmin);
+const isAuthenticated = computed(() => store.isAuthenticated);
+const isProxyAuth = computed(() => store.isProxyAuth);
+const isDiscordLinked = computed(() => !!store.discordUsername);
+const isFooterHidden = computed(() =>
+  route.matched.some((x) => x.meta.footerHidden),
+);
+const isCMS = computed(() => route.matched.some((x) => x.meta.isCMS));
+const isAdminButtonHidden = computed(() =>
+  route.matched.some((x) => x.meta.isAdminButtonHidden),
+);
+const isDiscordButtonHidden = computed(() =>
+  route.matched.some((x) => x.meta.isDiscordButtonHidden),
+);
+
+onMounted(async () => {
+  await store.checkStatus();
+});
 </script>
 
 <style>

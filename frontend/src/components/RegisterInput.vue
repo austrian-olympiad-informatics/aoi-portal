@@ -35,10 +35,7 @@
   </section>
 </template>
 
-<script lang="ts">
-import {  Component, VModel, Vue, toNative } from "vue-facing-decorator";
-import { PropType } from "vue";
-
+<script setup lang="ts">
 export interface RegisterInputData {
   first_name: string;
   last_name: string;
@@ -46,14 +43,7 @@ export interface RegisterInputData {
   password: string;
 }
 
-@Component
-class RegisterInput extends Vue {
-  @VModel({
-    type: Object as PropType<RegisterInputData>,
-  })
-  data!: RegisterInputData;
-}
-export default toNative(RegisterInput)
+const data = defineModel<RegisterInputData>({ required: true });
 </script>
 
 <style scoped></style>

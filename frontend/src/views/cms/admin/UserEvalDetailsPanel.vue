@@ -274,8 +274,9 @@
   </div>
 </template>
 
-<script lang="ts">
-import {  Component, Vue, Watch, toNative } from "vue-facing-decorator";
+<script setup lang="ts">
+import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { formatDateShort } from "@/util/dt";
 import { langToExt, lookupCMSLang } from "@/util/lang-table";
 import CodeMirror from "@/components/CodeMirror.vue";
@@ -288,113 +289,99 @@ import {
   AdminUserShort,
 } from "@/types/cmsadmin";
 
-@Component({
-  components: {
-    CodeMirror,
-  },
-})
-class AdminUserEvalDetailsPanel extends Vue {
-  now: Date = new Date();
-  get userEvalUuid(): string {
-    return this.$route.params.userEvalUuid as string;
-  }
-  userEval: AdminUserEvalDetailed | null = null;
-  files: Record<string, string> | null = null;
-  inputFile: string | null = null;
-  outputFile: string | null = null;
+const route = useRoute();
 
-  async loadUserEval() {
-    this.userEval = await cmsadmin.getUserEval(this.userEvalUuid);
-    await Promise.all([this.loadFiles(), this.loadInput(), this.loadOutput()]);
-  }
-  async loadFiles() {
-    if (this.files !== null) return;
-    this.files = Object.fromEntries(
-      await Promise.all(
-        this.userEval!.files.map(async (file) => {
-          const resp = await cmsadmin.getDigest(file.digest);
-          return [file.filename, await resp.text()];
-        }),
-      ),
-    );
-  }
-  async loadInput() {
-    if (this.inputFile !== null) return;
-    const resp = await cmsadmin.getDigest(this.userEval!.input_digest);
-    this.inputFile = await resp.text();
-  }
-  async loadOutput() {
-    if (this.outputFile !== null) return;
-    const res = this.userEval!.result;
-    if (res.status === "evaluated") {
-      const resp = await cmsadmin.getDigest(res.output_digest);
-      this.outputFile = await resp.text();
-    }
-  }
+const now = ref<Date>(new Date());
+const userEvalUuid = computed(() => route.params.userEvalUuid as string);
+const userEval = ref<AdminUserEvalDetailed | null>(null);
+const files = ref<Record<string, string> | null>(null);
+const inputFile = ref<string | null>(null);
+const outputFile = ref<string | null>(null);
 
-  async mounted() {
-    this.now = new Date();
-    await this.loadUserEval();
-    this.scheduleCheckSubmissions(1000);
-  }
+async function loadFiles() {
+  if (files.value !== null) return;
+  files.value = Object.fromEntries(
+    await Promise.all(
+      userEval.value!.files.map(async (file) => {
+        const resp = await cmsadmin.getDigest(file.digest);
+        return [file.filename, await resp.text()];
+      }),
+    ),
+  );
+}
 
-  formatSubDate(date: Date) {
-    return formatDateShort(this.now, date);
-  }
-  translateText(text: string[]) {
-    return translateText(text);
-  }
-  formatUser(user: AdminUserShort) {
-    return `${user.first_name} ${user.last_name} (${user.username})`;
-  }
+async function loadInput() {
+  if (inputFile.value !== null) return;
+  const resp = await cmsadmin.getDigest(userEval.value!.input_digest);
+  inputFile.value = await resp.text();
+}
 
-  async downloadExecutable(exe: AdminExecutable) {
-    const blob = await cmsadmin.getDigest(exe.digest);
-    downloadBlob(blob, exe.filename);
-  }
-
-  get codeLang() {
-    return lookupCMSLang(this.userEval?.language || "");
-  }
-
-  checkSubTimeout: number | null = null;
-
-  scheduleCheckSubmissions(timeout: number) {
-    if (this.checkSubTimeout !== null) clearTimeout(this.checkSubTimeout);
-    this.checkSubTimeout = window.setTimeout(
-      () => this.checkSubmissions(timeout),
-      timeout,
-    );
-  }
-
-  async checkSubmissions(prevTime: number) {
-    if (
-      ["compilation_failed", "evaluated"].includes(
-        this.userEval!.result.status || "",
-      )
-    )
-      return;
-    const prevState = this.userEval!.result.status;
-    await this.loadUserEval();
-    const newState = this.userEval!.result.status;
-    this.scheduleCheckSubmissions(
-      prevState === newState ? prevTime * 1.2 : 1000,
-    );
-  }
-
-  @Watch("task.submissions")
-  submissionsChanged() {
-    this.scheduleCheckSubmissions(1000);
-  }
-
-  downloadFile(fname: string, value: string) {
-    const blob = new Blob([value]);
-    const lang = lookupCMSLang(this.userEval!.language);
-    fname = fname.replaceAll(".%l", langToExt(lang));
-    downloadBlob(blob, fname);
+async function loadOutput() {
+  if (outputFile.value !== null) return;
+  const res = userEval.value!.result;
+  if (res.status === "evaluated") {
+    const resp = await cmsadmin.getDigest(res.output_digest);
+    outputFile.value = await resp.text();
   }
 }
-export default toNative(AdminUserEvalDetailsPanel)
+
+async function loadUserEval() {
+  userEval.value = await cmsadmin.getUserEval(userEvalUuid.value);
+  await Promise.all([loadFiles(), loadInput(), loadOutput()]);
+}
+
+let checkSubTimeout: number | null = null;
+
+function scheduleCheckSubmissions(timeout: number) {
+  if (checkSubTimeout !== null) clearTimeout(checkSubTimeout);
+  checkSubTimeout = window.setTimeout(
+    () => checkSubmissions(timeout),
+    timeout,
+  );
+}
+
+async function checkSubmissions(prevTime: number) {
+  if (
+    ["compilation_failed", "evaluated"].includes(
+      userEval.value!.result.status || "",
+    )
+  )
+    return;
+  const prevState = userEval.value!.result.status;
+  await loadUserEval();
+  const newState = userEval.value!.result.status;
+  scheduleCheckSubmissions(prevState === newState ? prevTime * 1.2 : 1000);
+}
+
+onMounted(async () => {
+  now.value = new Date();
+  await loadUserEval();
+  scheduleCheckSubmissions(1000);
+});
+
+function formatSubDate(date: Date) {
+  return formatDateShort(now.value, date);
+}
+
+function formatUser(user: AdminUserShort) {
+  return `${user.first_name} ${user.last_name} (${user.username})`;
+}
+
+async function downloadExecutable(exe: AdminExecutable) {
+  const blob = await cmsadmin.getDigest(exe.digest);
+  downloadBlob(blob, exe.filename);
+}
+
+const codeLang = computed(() =>
+  lookupCMSLang(userEval.value?.language || ""),
+);
+
+function downloadFile(fname: string, value: string) {
+  const blob = new Blob([value]);
+  const lang = lookupCMSLang(userEval.value!.language);
+  fname = fname.replaceAll(".%l", langToExt(lang));
+  downloadBlob(blob, fname);
+}
 </script>
 
 <style scoped lang="scss">

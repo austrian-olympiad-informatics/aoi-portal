@@ -2,97 +2,100 @@
   <div></div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from "vue";
+import { useNotification } from "buefy";
 import { CheckNotificationsParams } from "@/types/cms";
 import cms from "@/services/cms";
-import {  Component, Prop, Vue, toNative } from "vue-facing-decorator";
 
-@Component
-class CheckNotifications extends Vue {
-  @Prop({
-    type: String,
-  })
-  contestName!: string;
+const props = defineProps<{ contestName: string }>();
 
-  lastNotification: string | null = null;
-  checkNotificationsHandle: number | null = null;
-  hasNotificationPermission = false;
+const emit = defineEmits<{
+  "new-announcement": [unknown];
+  "new-message": [unknown];
+  "new-reply": [unknown];
+  "new-notification": [];
+}>();
 
-  showNotification(subject: string, body: string) {
-    this.$buefy.notification.open({
-      message: `
-          <h3 class="title is-5">${subject}</h3>
-          <p>
-            ${body}
-          </p>
-        `,
-      type: "is-link",
-      closable: true,
-      hasIcon: true,
-      indefinite: true,
+const notification = useNotification();
+
+const lastNotification = ref<string | null>(null);
+
+function showNotification(subject: string, body: string) {
+  notification.open({
+    message: `
+        <h3 class="title is-5">${subject}</h3>
+        <p>
+          ${body}
+        </p>
+      `,
+    type: "is-link",
+    closable: true,
+    hasIcon: true,
+    indefinite: true,
+  });
+  if (
+    "Notification" in window &&
+    window.Notification.permission === "granted"
+  ) {
+    new Notification(subject, {
+      body: body,
+      icon: require("@/assets/logo.png"),
     });
-    if (
-      "Notification" in window &&
-      window.Notification.permission === "granted"
-    ) {
-      new Notification(subject, {
-        body: body,
-        icon: require("@/assets/logo.png"),
-      });
-    }
-  }
-
-  async checkNotifications(doShow: boolean) {
-    const req: CheckNotificationsParams = {};
-    if (this.lastNotification !== null)
-      req.last_notification = this.lastNotification;
-    const resp = await cms.checkNotifications(this.contestName, req);
-    const allDts = [
-      ...resp.new_announcements.map((x) => x.timestamp),
-      ...resp.new_messages.map((x) => x.timestamp),
-      ...resp.new_replies.map((x) => x.reply!.timestamp),
-    ];
-    for (const dts of allDts) {
-      const dt = new Date(dts);
-      if (
-        this.lastNotification === null ||
-        dt.getTime() > new Date(this.lastNotification).getTime()
-      )
-        this.lastNotification = dts;
-    }
-    if (!doShow) return;
-    for (const ann of resp.new_announcements) {
-      this.showNotification(`Neue Ankündigung - ${ann.subject}`, ann.text);
-      this.$emit("new-announcement", ann);
-    }
-    for (const msg of resp.new_messages) {
-      this.showNotification(`Neue Nachricht - ${msg.subject}`, msg.text);
-      this.$emit("new-message", msg);
-    }
-    for (const q of resp.new_replies) {
-      this.showNotification(`Frage Beantwortet - ${q.subject}`, q.reply!.text);
-      this.$emit("new-reply", q);
-    }
-    if (
-      resp.new_announcements.length ||
-      resp.new_messages.length ||
-      resp.new_replies.length
-    ) {
-      this.$emit("new-notification");
-    }
-  }
-
-  async mounted() {
-    await this.checkNotifications(false);
-    this.checkNotificationsHandle = window.setInterval(async () => {
-      await this.checkNotifications(true);
-    }, 15000);
-  }
-
-  unmounted() {
-    if (this.checkNotificationsHandle !== null)
-      clearInterval(this.checkNotificationsHandle);
   }
 }
-export default toNative(CheckNotifications)
+
+async function checkNotifications(doShow: boolean) {
+  const req: CheckNotificationsParams = {};
+  if (lastNotification.value !== null)
+    req.last_notification = lastNotification.value;
+  const resp = await cms.checkNotifications(props.contestName, req);
+  const allDts = [
+    ...resp.new_announcements.map((x) => x.timestamp),
+    ...resp.new_messages.map((x) => x.timestamp),
+    ...resp.new_replies.map((x) => x.reply!.timestamp),
+  ];
+  for (const dts of allDts) {
+    const dt = new Date(dts);
+    if (
+      lastNotification.value === null ||
+      dt.getTime() > new Date(lastNotification.value).getTime()
+    )
+      lastNotification.value = dts;
+  }
+  if (!doShow) return;
+  for (const ann of resp.new_announcements) {
+    showNotification(`Neue Ankündigung - ${ann.subject}`, ann.text);
+    emit("new-announcement", ann);
+  }
+  for (const msg of resp.new_messages) {
+    showNotification(`Neue Nachricht - ${msg.subject}`, msg.text);
+    emit("new-message", msg);
+  }
+  for (const q of resp.new_replies) {
+    showNotification(`Frage Beantwortet - ${q.subject}`, q.reply!.text);
+    emit("new-reply", q);
+  }
+  if (
+    resp.new_announcements.length ||
+    resp.new_messages.length ||
+    resp.new_replies.length
+  ) {
+    emit("new-notification");
+  }
+}
+
+let checkNotificationsHandle: number | null = null;
+
+onMounted(async () => {
+  await checkNotifications(false);
+  checkNotificationsHandle = window.setInterval(async () => {
+    await checkNotifications(true);
+  }, 15000);
+});
+
+onUnmounted(() => {
+  if (checkNotificationsHandle !== null)
+    clearInterval(checkNotificationsHandle);
+});
 </script>

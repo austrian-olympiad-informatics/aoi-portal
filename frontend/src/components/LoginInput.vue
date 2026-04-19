@@ -19,23 +19,13 @@
   </section>
 </template>
 
-<script lang="ts">
-import {  Component, VModel, Vue, toNative } from "vue-facing-decorator";
-import { PropType } from "vue";
-
+<script setup lang="ts">
 export interface LoginInputData {
   email: string;
   password: string;
 }
 
-@Component
-class LoginForm extends Vue {
-  @VModel({
-    type: Object as PropType<LoginInputData>,
-  })
-  data!: LoginInputData;
-}
-export default toNative(LoginForm)
+const data = defineModel<LoginInputData>({ required: true });
 </script>
 
 <style scoped></style>
