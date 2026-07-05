@@ -1,4 +1,4 @@
-# type: ignore
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -22,79 +22,133 @@
 
 """
 
+from datetime import datetime
 from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped
 from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint, UniqueConstraint
-from sqlalchemy.types import BigInteger, DateTime, Float, Integer, String, Unicode
+from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint, \
+    UniqueConstraint
+from sqlalchemy.types import Integer, Float, String, Unicode, DateTime, \
+    BigInteger
 
-from .base import Base
-from .task import Dataset, Task
-from .types import Digest, Filename, FilenameSchema
-from .user import Participation
+from . import Filename, FilenameSchema, Digest, Base, Participation, Task, \
+    Dataset
 
 
 class UserTest(Base):
-    """Class to store a test requested by a user."""
+    """Class to store a test requested by a user.
 
-    __tablename__ = "user_tests"
+    """
+    __tablename__ = 'user_tests'
 
     # Auto increment primary key.
-    id = Column(Integer, primary_key=True)
+    id: int = Column(
+        Integer,
+        primary_key=True)
 
     # User and Contest, thus Participation (id and object) that did the
     # submission.
-    participation_id = Column(
+    participation_id: int = Column(
         Integer,
-        ForeignKey(Participation.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Participation.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    participation = relationship(Participation, back_populates="user_tests")
+        index=True)
+    participation: Mapped[Participation] = relationship(
+        Participation,
+        back_populates="user_tests")
 
     # Task (id and object) of the test.
-    task_id = Column(
+    task_id: int = Column(
         Integer,
-        ForeignKey(Task.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Task.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    task = relationship(Task, back_populates="user_tests")
+        index=True)
+    task: Mapped[Task] = relationship(
+        Task,
+        back_populates="user_tests")
 
     # Time of the request.
-    timestamp = Column(DateTime, nullable=False, index=True)
+    timestamp: datetime = Column(
+        DateTime,
+        nullable=False)
 
     # Language of test, or None if not applicable.
-    language = Column(String, nullable=True)
+    language: str | None = Column(
+        String,
+        nullable=True)
 
     # Input (provided by the user) file's digest for this test.
-    input = Column(Digest, nullable=False)
+    input: str = Column(
+        Digest,
+        nullable=False)
 
     # These one-to-many relationships are the reversed directions of
     # the ones defined in the "child" classes using foreign keys.
 
-    files = relationship(
+    files: Mapped[dict[str, "UserTestFile"]] = relationship(
         "UserTestFile",
         collection_class=attribute_mapped_collection("filename"),
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="user_test",
-    )
+        back_populates="user_test")
 
-    managers = relationship(
+    managers: Mapped[dict[str, "UserTestManager"]] = relationship(
         "UserTestManager",
         collection_class=attribute_mapped_collection("filename"),
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="user_test",
-    )
+        back_populates="user_test")
 
-    results = relationship(
+    results: Mapped[list["UserTestResult"]] = relationship(
         "UserTestResult",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="user_test",
-    )
+        back_populates="user_test")
+
+    def get_result(self, dataset: Dataset | None = None) -> "UserTestResult | None":
+        """Return the result associated to a dataset.
+
+        dataset: the dataset for which the caller wants
+            the user test result; if None, the active one is used.
+
+        return: the user test result associated
+            to this user test and the given dataset, if it exists in
+            the database, otherwise None.
+
+        """
+        if dataset is not None:
+            # Use IDs to avoid triggering a lazy-load query.
+            assert self.task_id == dataset.task_id
+            dataset_id = dataset.id
+        else:
+            dataset_id = self.task.active_dataset_id
+
+        return UserTestResult.get_from_id(
+            (self.id, dataset_id), self.sa_session)
+
+    def get_result_or_create(self, dataset: Dataset | None = None) -> "UserTestResult":
+        """Return and, if necessary, create the result for a dataset.
+
+        dataset: the dataset for which the caller wants
+            the user test result; if None, the active one is used.
+
+        return: the user test result associated to
+            the this user test and the given dataset; if it does not
+            exists, a new one is created.
+
+        """
+        if dataset is None:
+            dataset = self.task.active_dataset
+
+        user_test_result = self.get_result(dataset)
+
+        if user_test_result is None:
+            user_test_result = UserTestResult(user_test=self,
+                                              dataset=dataset)
+
+        return user_test_result
 
 
 class UserTestFile(Base):
@@ -102,25 +156,34 @@ class UserTestFile(Base):
     user_test.
 
     """
-
-    __tablename__ = "user_test_files"
-    __table_args__ = (UniqueConstraint("user_test_id", "filename"),)
+    __tablename__ = 'user_test_files'
+    __table_args__ = (
+        UniqueConstraint('user_test_id', 'filename'),
+    )
 
     # Auto increment primary key.
-    id = Column(Integer, primary_key=True)
+    id: int = Column(
+        Integer,
+        primary_key=True)
 
     # UserTest (id and object) owning the file.
-    user_test_id = Column(
+    user_test_id: int = Column(
         Integer,
-        ForeignKey(UserTest.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(UserTest.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    user_test = relationship(UserTest, back_populates="files")
+        index=True)
+    user_test: Mapped[UserTest] = relationship(
+        UserTest,
+        back_populates="files")
 
     # Filename and digest of the submitted file.
-    filename = Column(FilenameSchema, nullable=False)
-    digest = Column(Digest, nullable=False)
+    filename: str = Column(
+        FilenameSchema,
+        nullable=False)
+    digest: str = Column(
+        Digest,
+        nullable=False)
 
 
 class UserTestManager(Base):
@@ -128,30 +191,40 @@ class UserTestManager(Base):
     user test (e.g., graders).
 
     """
-
-    __tablename__ = "user_test_managers"
-    __table_args__ = (UniqueConstraint("user_test_id", "filename"),)
+    __tablename__ = 'user_test_managers'
+    __table_args__ = (
+        UniqueConstraint('user_test_id', 'filename'),
+    )
 
     # Auto increment primary key.
-    id = Column(Integer, primary_key=True)
+    id: int = Column(
+        Integer,
+        primary_key=True)
 
     # UserTest (id and object) owning the manager.
-    user_test_id = Column(
+    user_test_id: int = Column(
         Integer,
-        ForeignKey(UserTest.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(UserTest.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    user_test = relationship(UserTest, back_populates="managers")
+        index=True)
+    user_test: Mapped[UserTest] = relationship(
+        UserTest,
+        back_populates="managers")
 
     # Filename and digest of the submitted manager.
-    filename = Column(Filename, nullable=False)
-    digest = Column(Digest, nullable=False)
+    filename: str = Column(
+        Filename,
+        nullable=False)
+    digest: str = Column(
+        Digest,
+        nullable=False)
 
 
 class UserTestResult(Base):
-    """Class to store the execution results of a user_test."""
+    """Class to store the execution results of a user_test.
 
+    """
     # Possible statuses of a user test result. COMPILING and
     # EVALUATING do not necessarily imply we are going to schedule
     # compilation and run for these user test results: for
@@ -165,90 +238,144 @@ class UserTestResult(Base):
     EVALUATING = 3
     EVALUATED = 4
 
-    __tablename__ = "user_test_results"
-    __table_args__ = (UniqueConstraint("user_test_id", "dataset_id"),)
+    __tablename__ = 'user_test_results'
+    __table_args__ = (
+        UniqueConstraint('user_test_id', 'dataset_id'),
+    )
 
     # Primary key is (user_test_id, dataset_id).
-    user_test_id = Column(
+    user_test_id: int = Column(
         Integer,
-        ForeignKey(UserTest.id, onupdate="CASCADE", ondelete="CASCADE"),
-        primary_key=True,
-    )
-    user_test = relationship(UserTest, back_populates="results")
+        ForeignKey(UserTest.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        primary_key=True)
+    user_test: Mapped[UserTest] = relationship(
+        UserTest,
+        back_populates="results")
 
-    dataset_id = Column(
+    dataset_id: int = Column(
         Integer,
-        ForeignKey(Dataset.id, onupdate="CASCADE", ondelete="CASCADE"),
-        primary_key=True,
-    )
-    dataset = relationship(Dataset)
+        ForeignKey(Dataset.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        primary_key=True)
+    dataset: Mapped[Dataset] = relationship(
+        Dataset)
 
     # Now below follow the actual result fields.
 
     # Output file's digest for this test
-    output = Column(Digest, nullable=True)
+    output: str | None = Column(
+        Digest,
+        nullable=True)
 
     # Compilation outcome (can be None = yet to compile, "ok" =
     # compilation successful and we can evaluate, "fail" =
     # compilation unsuccessful, throw it away).
-    compilation_outcome = Column(String, nullable=True)
+    compilation_outcome: str | None = Column(
+        String,
+        nullable=True)
 
     # The output from the sandbox (to allow localization the first item
     # of the list is a format string, possibly containing some "%s",
     # that will be filled in using the remaining items of the list).
-    compilation_text = Column(ARRAY(String), nullable=False, default=[])
+    compilation_text: list[str] = Column(
+        ARRAY(String),
+        nullable=False,
+        default=[])
 
     # Number of attempts of compilation.
-    compilation_tries = Column(Integer, nullable=False, default=0)
+    compilation_tries: int = Column(
+        Integer,
+        nullable=False,
+        default=0)
 
     # The compiler stdout and stderr.
-    compilation_stdout = Column(Unicode, nullable=True)
-    compilation_stderr = Column(Unicode, nullable=True)
+    compilation_stdout: str | None = Column(
+        Unicode,
+        nullable=True)
+    compilation_stderr: str | None = Column(
+        Unicode,
+        nullable=True)
 
     # Other information about the compilation.
-    compilation_time = Column(Float, nullable=True)
-    compilation_wall_clock_time = Column(Float, nullable=True)
-    compilation_memory = Column(BigInteger, nullable=True)
+    compilation_time: float | None = Column(
+        Float,
+        nullable=True)
+    compilation_wall_clock_time: float | None = Column(
+        Float,
+        nullable=True)
+    compilation_memory: int | None = Column(
+        BigInteger,
+        nullable=True)
 
     # Worker shard and sandbox where the compilation was performed.
-    compilation_shard = Column(Integer, nullable=True)
-    compilation_sandbox = Column(String, nullable=True)
+    compilation_shard: int | None = Column(
+        Integer,
+        nullable=True)
+    compilation_sandbox_paths: list[str] | None = Column(
+        ARRAY(Unicode),
+        nullable=True)
+    compilation_sandbox_digests: list[str] | None = Column(
+        ARRAY(String),
+        nullable=True)
 
     # Evaluation outcome (can be None = yet to evaluate, "ok" =
     # evaluation successful).
-    evaluation_outcome = Column(String, nullable=True)
+    evaluation_outcome: str | None = Column(
+        String,
+        nullable=True)
 
     # The output from the grader, usually "Correct", "Time limit", ...
     # (to allow localization the first item of the list is a format
     # string, possibly containing some "%s", that will be filled in
     # using the remaining items of the list).
-    evaluation_text = Column(ARRAY(String), nullable=False, default=[])
+    evaluation_text: list[str] = Column(
+        ARRAY(String),
+        nullable=False,
+        default=[])
 
     # Number of attempts of evaluation.
-    evaluation_tries = Column(Integer, nullable=False, default=0)
+    evaluation_tries: int = Column(
+        Integer,
+        nullable=False,
+        default=0)
 
     # Other information about the execution.
-    execution_time = Column(Float, nullable=True)
-    execution_wall_clock_time = Column(Float, nullable=True)
-    execution_memory = Column(BigInteger, nullable=True)
+    execution_time: float | None = Column(
+        Float,
+        nullable=True)
+    execution_wall_clock_time: float | None = Column(
+        Float,
+        nullable=True)
+    execution_memory: int | None = Column(
+        BigInteger,
+        nullable=True)
 
     # Worker shard and sandbox where the evaluation was performed.
-    evaluation_shard = Column(Integer, nullable=True)
-    evaluation_sandbox = Column(String, nullable=True)
+    evaluation_shard: int | None = Column(
+        Integer,
+        nullable=True)
+    evaluation_sandbox_paths: list[str] | None = Column(
+        ARRAY(Unicode),
+        nullable=True)
+    evaluation_sandbox_digests: list[str] | None = Column(
+        ARRAY(String),
+        nullable=True)
 
     # These one-to-many relationships are the reversed directions of
     # the ones defined in the "child" classes using foreign keys.
 
-    executables = relationship(
+    executables: Mapped[dict[str, "UserTestExecutable"]] = relationship(
         "UserTestExecutable",
         collection_class=attribute_mapped_collection("filename"),
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="user_test_result",
-    )
+        back_populates="user_test_result")
 
-    def get_status(self):
-        """Return the status of this object."""
+    def get_status(self) -> int:
+        """Return the status of this object.
+
+        """
         if not self.compiled():
             return UserTestResult.COMPILING
         elif self.compilation_failed():
@@ -258,23 +385,25 @@ class UserTestResult(Base):
         else:
             return UserTestResult.EVALUATED
 
-    def compiled(self):
+    def compiled(self) -> bool:
         """Return whether the user test result has been compiled.
 
-        return (bool): True if compiled, False otherwise.
+        return: True if compiled, False otherwise.
 
         """
         return self.compilation_outcome is not None
 
     @staticmethod
     def filter_compiled():
-        """Return a filtering expression for compiled user test results."""
+        """Return a filtering expression for compiled user test results.
+
+        """
         return UserTestResult.compilation_outcome.isnot(None)
 
-    def compilation_failed(self):
+    def compilation_failed(self) -> bool:
         """Return whether the user test result did not compile.
 
-        return (bool): True if the compilation failed (in the sense
+        return: True if the compilation failed (in the sense
             that there is a problem in the user's source), False if
             not yet compiled or compilation was successful.
 
@@ -289,10 +418,10 @@ class UserTestResult(Base):
         """
         return UserTestResult.compilation_outcome == "fail"
 
-    def compilation_succeeded(self):
+    def compilation_succeeded(self) -> bool:
         """Return whether the user test compiled.
 
-        return (bool): True if the compilation succeeded (in the sense
+        return: True if the compilation succeeded (in the sense
             that an executable was created), False if not yet compiled
             or compilation was unsuccessful.
 
@@ -307,21 +436,25 @@ class UserTestResult(Base):
         """
         return UserTestResult.compilation_outcome == "ok"
 
-    def evaluated(self):
+    def evaluated(self) -> bool:
         """Return whether the user test result has been evaluated.
 
-        return (bool): True if evaluated, False otherwise.
+        return: True if evaluated, False otherwise.
 
         """
         return self.evaluation_outcome is not None
 
     @staticmethod
     def filter_evaluated():
-        """Return a filtering lambda for evaluated user test results."""
+        """Return a filtering lambda for evaluated user test results.
+
+        """
         return UserTestResult.evaluation_outcome.isnot(None)
 
     def invalidate_compilation(self):
-        """Blank all compilation and evaluation outcomes."""
+        """Blank all compilation and evaluation outcomes.
+
+        """
         self.invalidate_evaluation()
         self.compilation_outcome = None
         self.compilation_text = []
@@ -334,7 +467,9 @@ class UserTestResult(Base):
         self.executables = {}
 
     def invalidate_evaluation(self):
-        """Blank the evaluation outcome."""
+        """Blank the evaluation outcome.
+
+        """
         self.evaluation_outcome = None
         self.evaluation_text = []
         self.evaluation_tries = 0
@@ -345,16 +480,18 @@ class UserTestResult(Base):
         self.evaluation_sandbox = None
         self.output = None
 
-    def set_compilation_outcome(self, success):
+    def set_compilation_outcome(self, success: bool):
         """Set the compilation outcome based on the success.
 
-        success (bool): if the compilation was successful.
+        success: if the compilation was successful.
 
         """
         self.compilation_outcome = "ok" if success else "fail"
 
     def set_evaluation_outcome(self):
-        """Set the evaluation outcome (always ok now)."""
+        """Set the evaluation outcome (always ok now).
+
+        """
         self.evaluation_outcome = "ok"
 
 
@@ -363,42 +500,51 @@ class UserTestExecutable(Base):
     compilation of a user test.
 
     """
-
-    __tablename__ = "user_test_executables"
+    __tablename__ = 'user_test_executables'
     __table_args__ = (
         ForeignKeyConstraint(
-            ("user_test_id", "dataset_id"),
+            ('user_test_id', 'dataset_id'),
             (UserTestResult.user_test_id, UserTestResult.dataset_id),
-            onupdate="CASCADE",
-            ondelete="CASCADE",
-        ),
-        UniqueConstraint("user_test_id", "dataset_id", "filename"),
+            onupdate="CASCADE", ondelete="CASCADE"),
+        UniqueConstraint('user_test_id', 'dataset_id', 'filename'),
     )
 
     # Auto increment primary key.
-    id = Column(Integer, primary_key=True)
+    id: int = Column(
+        Integer,
+        primary_key=True)
 
     # UserTest (id and object) owning the executable.
-    user_test_id = Column(
+    user_test_id: int = Column(
         Integer,
-        ForeignKey(UserTest.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(UserTest.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    user_test = relationship(UserTest, viewonly=True)
+        index=True)
+    user_test: Mapped[UserTest] = relationship(
+        UserTest,
+        viewonly=True)
 
     # Dataset (id and object) owning the executable.
-    dataset_id = Column(
+    dataset_id: int = Column(
         Integer,
-        ForeignKey(Dataset.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Dataset.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    dataset = relationship(Dataset, viewonly=True)
+        index=True)
+    dataset: Mapped[Dataset] = relationship(
+        Dataset,
+        viewonly=True)
 
     # UserTestResult owning the executable.
-    user_test_result = relationship(UserTestResult, back_populates="executables")
+    user_test_result: Mapped[UserTestResult] = relationship(
+        UserTestResult,
+        back_populates="executables")
 
     # Filename and digest of the generated executable.
-    filename = Column(Filename, nullable=False)
-    digest = Column(Digest, nullable=False)
+    filename: str = Column(
+        Filename,
+        nullable=False)
+    digest: str = Column(
+        Digest,
+        nullable=False)
