@@ -15,6 +15,10 @@ Zusätzlich gibt es eine cms-bridge, die interaktionen zwischen dem backend und 
 
 ## Dev Installation
 
+> The easiest way to run the whole stack (portal + CMS) is Docker Compose — see
+> [DEVELOPMENT.md](DEVELOPMENT.md). The manual and `devenv.sh` setups below are
+> alternatives.
+
 ### MacOS or Unix
 
 ```bash
