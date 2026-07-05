@@ -1,4 +1,4 @@
-# type: ignore
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -26,100 +26,195 @@
 
 """
 
+from datetime import datetime
+import random
 from sqlalchemy import Boolean
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped
 from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint, UniqueConstraint
-from sqlalchemy.sql import func
-from sqlalchemy.types import BigInteger, DateTime, Enum, Float, Integer, String, Unicode
+from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint, \
+    UniqueConstraint
+from sqlalchemy.types import Integer, Float, String, Unicode, DateTime, Enum, \
+    BigInteger
+from sqlalchemy import func
 
 from .base import Base
-from .task import Dataset, Task, Testcase
-from .types import Digest, Filename, FilenameSchema
+from .types import Filename, FilenameSchema, Digest
 from .user import Participation
+from .task import Task, Dataset, Testcase
+
 
 
 class Submission(Base):
-    """Class to store a submission."""
+    """Class to store a submission.
 
-    __tablename__ = "submissions"
+    """
+    __tablename__ = 'submissions'
+    __table_args__ = (
+        UniqueConstraint("participation_id", "opaque_id",
+                         name="participation_opaque_unique"),
+    )
+
+    # Opaque ID to be used to refer to this submission.
+    opaque_id: int = Column(
+        BigInteger,
+        nullable=False)
 
     # Auto increment primary key.
-    id = Column(Integer, primary_key=True)
+    id: int = Column(
+        Integer,
+        primary_key=True)
 
     uuid = Column(
         String,
+        nullable=False,
         unique=True,
         index=True,
-        nullable=False,
     )
 
     # User and Contest, thus Participation (id and object) that did the
     # submission.
-    participation_id = Column(
+    participation_id: int = Column(
         Integer,
-        ForeignKey(Participation.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Participation.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    participation = relationship(Participation, back_populates="submissions")
+        index=True)
+    participation: Mapped[Participation] = relationship(
+        Participation,
+        back_populates="submissions")
 
     # Task (id and object) of the submission.
-    task_id = Column(
+    task_id: int = Column(
         Integer,
-        ForeignKey(Task.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Task.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    task = relationship(Task, back_populates="submissions")
+        index=True)
+    task: Mapped[Task] = relationship(
+        Task,
+        back_populates="submissions")
 
     # Time of the submission.
-    timestamp = Column(DateTime, nullable=False, index=True)
+    timestamp: datetime = Column(
+        DateTime,
+        nullable=False)
 
     # Language of submission, or None if not applicable.
-    language = Column(String, nullable=True)
+    language: str | None = Column(
+        String,
+        nullable=True)
 
     # Comment from the administrator on the submission.
-    comment = Column(Unicode, nullable=False, default="")
+    comment: str = Column(
+        Unicode,
+        nullable=False,
+        default="")
 
     # If false, submission will not be considered in contestant's score.
-    official = Column(
+    official: bool = Column(
         Boolean,
         nullable=False,
         default=True,
     )
 
     @property
-    def short_comment(self):
+    def short_comment(self) -> str:
         """The first line of the comment."""
         return self.comment.split("\n", 1)[0]
 
     # These one-to-many relationships are the reversed directions of
     # the ones defined in the "child" classes using foreign keys.
 
-    files = relationship(
+    files: Mapped[dict[str, "File"]] = relationship(
         "File",
         collection_class=attribute_mapped_collection("filename"),
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="submission",
-    )
+        back_populates="submission")
 
-    token = relationship(
+    token: Mapped["Token | None"] = relationship(
         "Token",
         uselist=False,
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="submission",
-    )
+        back_populates="submission")
 
-    results = relationship(
+    results: Mapped[list["SubmissionResult"]] = relationship(
         "SubmissionResult",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="submission",
-    )
+        back_populates="submission")
+
+    def get_result(self, dataset: Dataset | None = None) -> "SubmissionResult | None":
+        """Return the result associated to a dataset.
+
+        dataset: the dataset for which the caller wants
+            the submission result; if None, the active one is used.
+
+        return: the submission result
+            associated to this submission and the given dataset, if it
+            exists in the database, otherwise None.
+
+        """
+        if dataset is not None:
+            # Use IDs to avoid triggering a lazy-load query.
+            assert self.task_id == dataset.task_id
+            dataset_id = dataset.id
+        else:
+            dataset_id = self.task.active_dataset_id
+
+        return SubmissionResult.get_from_id(
+            (self.id, dataset_id), self.sa_session)
+
+    def get_result_or_create(self, dataset: Dataset | None = None) -> "SubmissionResult":
+        """Return and, if necessary, create the result for a dataset.
+
+        dataset: the dataset for which the caller wants
+            the submission result; if None, the active one is used.
+
+        return: the submission result associated to
+            the this submission and the given dataset; if it
+            does not exists, a new one is created.
+
+        """
+        if dataset is None:
+            dataset = self.task.active_dataset
+
+        submission_result = self.get_result(dataset)
+
+        if submission_result is None:
+            submission_result = SubmissionResult(submission=self,
+                                                 dataset=dataset)
+
+        return submission_result
+
+    def tokened(self) -> bool:
+        """Return if the user played a token against the submission.
+
+        return: True if tokened, False otherwise.
+
+        """
+        return self.token is not None
+
+    @classmethod
+    def generate_opaque_id(cls, session, participation_id):
+        randint_upper_bound = 2**63-1
+
+        opaque_id = random.randint(0, randint_upper_bound)
+
+        # Note that in theory this may cause the transaction to fail by
+        # generating a non-actually-unique ID. This is however extremely
+        # unlikely (prob. ~num_parallel_submissions_per_contestant^2/2**63).
+        while (session
+               .query(Submission)
+               .filter(Submission.participation_id == participation_id)
+               .filter(Submission.opaque_id == opaque_id)
+               .first()
+               is not None):
+            opaque_id = random.randint(0, randint_upper_bound)
+
+        return opaque_id
 
 
 class File(Base):
@@ -127,52 +222,73 @@ class File(Base):
     submission.
 
     """
-
-    __tablename__ = "files"
-    __table_args__ = (UniqueConstraint("submission_id", "filename"),)
+    __tablename__ = 'files'
+    __table_args__ = (
+        UniqueConstraint('submission_id', 'filename'),
+    )
 
     # Auto increment primary key.
-    id = Column(Integer, primary_key=True)
+    id: int = Column(
+        Integer,
+        primary_key=True)
 
     # Submission (id and object) owning the file.
-    submission_id = Column(
+    submission_id: int = Column(
         Integer,
-        ForeignKey(Submission.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Submission.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    submission = relationship(Submission, back_populates="files")
+        index=True)
+    submission: Mapped[Submission] = relationship(
+        Submission,
+        back_populates="files")
 
     # Filename and digest of the submitted file.
-    filename = Column(FilenameSchema, nullable=False)
-    digest = Column(Digest, nullable=False)
+    filename: str = Column(
+        FilenameSchema,
+        nullable=False)
+    digest: str = Column(
+        Digest,
+        nullable=False)
 
 
 class Token(Base):
-    """Class to store information about a token."""
+    """Class to store information about a token.
 
-    __tablename__ = "tokens"
-    __table_args__ = (UniqueConstraint("submission_id"),)
+    """
+    __tablename__ = 'tokens'
+    __table_args__ = (
+        UniqueConstraint('submission_id'),
+    )
 
     # Auto increment primary key.
-    id = Column(Integer, primary_key=True)
+    id: int = Column(
+        Integer,
+        primary_key=True)
 
     # Submission (id and object) the token has been used on.
-    submission_id = Column(
+    submission_id: int = Column(
         Integer,
-        ForeignKey(Submission.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Submission.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    submission = relationship(Submission, back_populates="token", single_parent=True)
+        index=True)
+    submission: Mapped[Submission] = relationship(
+        Submission,
+        back_populates="token",
+        single_parent=True)
 
     # Time the token was played.
-    timestamp = Column(DateTime, nullable=False, default=func.now(), index=True)
+    timestamp: datetime = Column(
+        DateTime,
+        nullable=False,
+        default=func.now())
 
 
 class SubmissionResult(Base):
-    """Class to store the evaluation results of a submission."""
+    """Class to store the evaluation results of a submission.
 
+    """
     # Possible statuses of a submission result. COMPILING and
     # EVALUATING do not necessarily imply we are going to schedule
     # compilation and evalution for these submission results: for
@@ -187,131 +303,177 @@ class SubmissionResult(Base):
     SCORING = 4
     SCORED = 5
 
-    __tablename__ = "submission_results"
-    __table_args__ = (UniqueConstraint("submission_id", "dataset_id"),)
+    __tablename__ = 'submission_results'
+    __table_args__ = (
+        UniqueConstraint('submission_id', 'dataset_id'),
+    )
 
     # Primary key is (submission_id, dataset_id).
-    submission_id = Column(
+    submission_id: int = Column(
         Integer,
-        ForeignKey(Submission.id, onupdate="CASCADE", ondelete="CASCADE"),
-        primary_key=True,
-    )
-    submission = relationship(Submission, back_populates="results")
+        ForeignKey(Submission.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        primary_key=True)
+    submission: Mapped[Submission] = relationship(
+        Submission,
+        back_populates="results")
 
-    dataset_id = Column(
+    dataset_id: int = Column(
         Integer,
-        ForeignKey(Dataset.id, onupdate="CASCADE", ondelete="CASCADE"),
-        primary_key=True,
-    )
-    dataset = relationship(Dataset)
+        ForeignKey(Dataset.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        primary_key=True)
+    dataset: Mapped[Dataset] = relationship(
+        Dataset)
 
     # Now below follow the actual result fields.
 
     # Compilation outcome (can be None = yet to compile, "ok" =
     # compilation successful and we can evaluate, "fail" =
     # compilation unsuccessful, throw it away).
-    compilation_outcome = Column(
-        Enum("ok", "fail", name="compilation_outcome"), nullable=True
-    )
+    compilation_outcome: str | None = Column(
+        Enum("ok", "fail", name="compilation_outcome"),
+        nullable=True)
 
     # The output from the sandbox (to allow localization the first item
     # of the list is a format string, possibly containing some "%s",
     # that will be filled in using the remaining items of the list).
-    compilation_text = Column(ARRAY(String), nullable=False, default=[])
+    compilation_text: list[str] = Column(
+        ARRAY(String),
+        nullable=False,
+        default=[])
 
     # Number of failures during compilation.
-    compilation_tries = Column(Integer, nullable=False, default=0)
+    compilation_tries: int = Column(
+        Integer,
+        nullable=False,
+        default=0)
 
     # The compiler stdout and stderr.
-    compilation_stdout = Column(Unicode, nullable=True)
-    compilation_stderr = Column(Unicode, nullable=True)
+    compilation_stdout: str | None = Column(
+        Unicode,
+        nullable=True)
+    compilation_stderr: str | None = Column(
+        Unicode,
+        nullable=True)
 
     # Other information about the compilation.
-    compilation_time = Column(Float, nullable=True)
-    compilation_wall_clock_time = Column(Float, nullable=True)
-    compilation_memory = Column(BigInteger, nullable=True)
+    compilation_time: float | None = Column(
+        Float,
+        nullable=True)
+    compilation_wall_clock_time: float | None = Column(
+        Float,
+        nullable=True)
+    compilation_memory: int | None = Column(
+        BigInteger,
+        nullable=True)
 
     # Worker shard and sandbox where the compilation was performed.
-    compilation_shard = Column(Integer, nullable=True)
-    compilation_sandbox = Column(Unicode, nullable=True)
+    compilation_shard: int | None = Column(
+        Integer,
+        nullable=True)
+    compilation_sandbox_paths: list[str] | None = Column(
+        ARRAY(Unicode),
+        nullable=True)
+    compilation_sandbox_digests: list[str] | None = Column(
+        ARRAY(String),
+        nullable=True)
 
     # Evaluation outcome (can be None = yet to evaluate, "ok" =
     # evaluation successful). At any time, this should be equal to
     # evaluations != [].
-    evaluation_outcome = Column(Enum("ok", name="evaluation_outcome"), nullable=True)
+    evaluation_outcome: str | None = Column(
+        Enum("ok", name="evaluation_outcome"),
+        nullable=True)
 
     # Number of failures during evaluation.
-    evaluation_tries = Column(Integer, nullable=False, default=0)
+    evaluation_tries: int = Column(
+        Integer,
+        nullable=False,
+        default=0)
 
     # Score as computed by ScoringService. Null means not yet scored.
-    score = Column(Float, nullable=True)
+    score: float | None = Column(
+        Float,
+        nullable=True)
 
     # Score details. It's a JSON-like structure containing information
     # that is given to ScoreType.get_html_details to generate an HTML
     # snippet that is shown on AWS and, if the user used a token, on
     # CWS to display the details of the submission.
     # For example, results for each testcases, subtask, etc.
-    score_details = Column(JSONB, nullable=True)
+    score_details: object | None = Column(
+        JSONB,
+        nullable=True)
+
+    # Time when the submission is scored for the first time
+    scored_at = Column(
+        DateTime,
+        nullable=True)
 
     # The same as the last two fields, but only showing information
     # visible to the user (assuming they did not use a token on this
     # submission).
-    public_score = Column(Float, nullable=True)
-    public_score_details = Column(JSONB, nullable=True)
+    public_score: float | None = Column(
+        Float,
+        nullable=True)
+    public_score_details: object | None = Column(
+        JSONB,
+        nullable=True)
 
     # Ranking score details. It is a list of strings that are going to
     # be shown in a single row in the table of submission in RWS.
-    ranking_score_details = Column(ARRAY(String), nullable=True)
+    ranking_score_details: list[str] | None = Column(
+        ARRAY(String),
+        nullable=True)
 
     # These one-to-many relationships are the reversed directions of
     # the ones defined in the "child" classes using foreign keys.
 
-    executables = relationship(
+    executables: Mapped[dict[str, "Executable"]] = relationship(
         "Executable",
         collection_class=attribute_mapped_collection("filename"),
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="submission_result",
-    )
+        back_populates="submission_result")
 
-    evaluations = relationship(
+    evaluations: Mapped[list["Evaluation"]] = relationship(
         "Evaluation",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="submission_result",
-    )
+        back_populates="submission_result")
 
     subtask_scores = relationship(
         "SubtaskScore",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="submission_result",
-    )
+        back_populates="submission_result")
 
     meme_id = Column(Integer, ForeignKey("memes.id"), nullable=True, default=None)
     meme = relationship("Meme", back_populates="submission_results")
 
-    def get_status(self):
-        """Return the status of this object."""
+    def get_status(self) -> int:
+        """Return the status of this object.
+
+        """
         if not self.compiled():
             return SubmissionResult.COMPILING
-        if self.compilation_failed():
+        elif self.compilation_failed():
             return SubmissionResult.COMPILATION_FAILED
-        if not self.evaluated():
+        elif not self.evaluated():
             return SubmissionResult.EVALUATING
-        if not self.scored():
+        elif not self.scored():
             return SubmissionResult.SCORING
-        return SubmissionResult.SCORED
+        else:
+            return SubmissionResult.SCORED
 
-    def get_evaluation(self, testcase):
+    def get_evaluation(self, testcase: Testcase) -> "Evaluation | None":
         """Return the Evaluation of this SR on the given Testcase, if any
 
-        testcase (Testcase): the testcase the returned evaluation will
-            belong to.
+        testcase: the testcase the returned evaluation will belong to.
 
-        return (Evaluation|None): the (only!) evaluation of this
-            submission result on the given testcase, or None if there
-            isn't any.
+        return: the (only!) evaluation of this submission result on the
+            given testcase, or None if there isn't any.
 
         """
         # Use IDs to avoid triggering a lazy-load query.
@@ -321,51 +483,48 @@ class SubmissionResult(Base):
         # and spare a query.
         # (We could use .one() and avoid a LIMIT but we would need to
         # catch a NoResultFound exception.)
-        return (
-            self.sa_session.query(Evaluation)
-            .filter(Evaluation.submission_result == self)
-            .filter(Evaluation.testcase == testcase)
+        return self.sa_session.query(Evaluation)\
+            .filter(Evaluation.submission_result == self)\
+            .filter(Evaluation.testcase == testcase)\
             .first()
-        )
 
-    def get_max_evaluation_resources(self):
+    def get_max_evaluation_resources(self) -> tuple[float | None, int | None]:
         """Return the maximum time and memory used by this result
 
-        return (float|None, int|None): max used time in seconds and
-            memory in bytes, or None if data is incomplete or
-            unavailable.
+        return: max used time in seconds and memory in bytes,
+            or None if data is incomplete or unavailable.
 
         """
         t, m = None, None
         if self.evaluated() and self.evaluations:
             for ev in self.evaluations:
-                if ev.execution_time is not None and (
-                    t is None or t < ev.execution_time
-                ):
+                if ev.execution_time is not None \
+                        and (t is None or t < ev.execution_time):
                     t = ev.execution_time
-                if ev.execution_memory is not None and (
-                    m is None or m < ev.execution_memory
-                ):
+                if ev.execution_memory is not None \
+                        and (m is None or m < ev.execution_memory):
                     m = ev.execution_memory
         return (t, m)
 
-    def compiled(self):
+    def compiled(self) -> bool:
         """Return whether the submission result has been compiled.
 
-        return (bool): True if compiled, False otherwise.
+        return: True if compiled, False otherwise.
 
         """
         return self.compilation_outcome is not None
 
     @staticmethod
     def filter_compiled():
-        """Return a filtering expression for compiled submission results."""
+        """Return a filtering expression for compiled submission results.
+
+        """
         return SubmissionResult.compilation_outcome.isnot(None)
 
-    def compilation_failed(self):
+    def compilation_failed(self) -> bool:
         """Return whether the submission result did not compile.
 
-        return (bool): True if the compilation failed (in the sense
+        return: True if the compilation failed (in the sense
             that there is a problem in the user's source), False if
             not yet compiled or compilation was successful.
 
@@ -380,10 +539,10 @@ class SubmissionResult(Base):
         """
         return SubmissionResult.compilation_outcome == "fail"
 
-    def compilation_succeeded(self):
+    def compilation_succeeded(self) -> bool:
         """Return whether the submission compiled.
 
-        return (bool): True if the compilation succeeded (in the sense
+        return: True if the compilation succeeded (in the sense
             that an executable was created), False if not yet compiled
             or compilation was unsuccessful.
 
@@ -398,43 +557,56 @@ class SubmissionResult(Base):
         """
         return SubmissionResult.compilation_outcome == "ok"
 
-    def evaluated(self):
+    def evaluated(self) -> bool:
         """Return whether the submission result has been evaluated.
 
-        return (bool): True if evaluated, False otherwise.
+        return: True if evaluated, False otherwise.
 
         """
         return self.evaluation_outcome is not None
 
     @staticmethod
     def filter_evaluated():
-        """Return a filtering lambda for evaluated submission results."""
-        return SubmissionResult.evaluation_outcome.isnot(None)
-
-    def needs_scoring(self):
-        """Return whether the submission result needs to be scored.
-
-        return (bool): True if in need of scoring, False otherwise.
+        """Return a filtering lambda for evaluated submission results.
 
         """
-        return (self.compilation_failed() or self.evaluated()) and not self.scored()
+        return SubmissionResult.evaluation_outcome.isnot(None)
 
-    def scored(self):
-        return self.score is not None
+    def needs_scoring(self) -> bool:
+        """Return whether the submission result needs to be scored.
+
+        return: True if in need of scoring, False otherwise.
+
+        """
+        return (self.compilation_failed() or self.evaluated()) and \
+            not self.scored()
+
+    def scored(self) -> bool:
+        """Return whether the submission result has been scored.
+
+        return: True if scored, False otherwise.
+
+        """
+        return all(getattr(self, k) is not None for k in [
+            "score", "score_details",
+            "public_score", "public_score_details",
+            "ranking_score_details"])
 
     @staticmethod
     def filter_scored():
-        """Return a filtering lambda for scored submission results."""
-        return (
-            (SubmissionResult.score.isnot(None))
-            & (SubmissionResult.score_details.isnot(None))
-            & (SubmissionResult.public_score.isnot(None))
-            & (SubmissionResult.public_score_details.isnot(None))
-            & (SubmissionResult.ranking_score_details.isnot(None))
-        )
+        """Return a filtering lambda for scored submission results.
+
+        """
+        return ((SubmissionResult.score.isnot(None))
+                & (SubmissionResult.score_details.isnot(None))
+                & (SubmissionResult.public_score.isnot(None))
+                & (SubmissionResult.public_score_details.isnot(None))
+                & (SubmissionResult.ranking_score_details.isnot(None)))
 
     def invalidate_compilation(self):
-        """Blank all compilation and evaluation outcomes, and the score."""
+        """Blank all compilation and evaluation outcomes, and the score.
+
+        """
         self.invalidate_evaluation()
         self.compilation_outcome = None
         self.compilation_text = []
@@ -444,70 +616,89 @@ class SubmissionResult(Base):
         self.compilation_memory = None
         self.compilation_shard = None
         self.compilation_sandbox = None
+        self.compilation_sandbox_digests = []
         self.executables = {}
 
-    def invalidate_evaluation(self):
-        """Blank the evaluation outcomes and the score."""
+    def invalidate_evaluation(self, testcase_id: int | None = None):
+        """Blank the evaluation outcomes and the score.
+
+        testcase_id: ID of testcase to invalidate, or None to invalidate all.
+
+        """
         self.invalidate_score()
         self.evaluation_outcome = None
         self.evaluation_tries = 0
-        self.evaluations = []
+        if testcase_id:
+            self.evaluations = [e for e in self.evaluations if e.testcase_id != testcase_id]
+        else:
+            self.evaluations = []
 
     def invalidate_score(self):
-        """Blank the score."""
+        """Blank the score.
+
+        """
         self.score = None
         self.score_details = None
         self.public_score = None
         self.public_score_details = None
         self.ranking_score_details = None
 
-    def set_compilation_outcome(self, success):
+    def set_compilation_outcome(self, success: bool):
         """Set the compilation outcome based on the success.
 
-        success (bool): if the compilation was successful.
+        success: if the compilation was successful.
 
         """
         self.compilation_outcome = "ok" if success else "fail"
 
     def set_evaluation_outcome(self):
-        """Set the evaluation outcome (always ok now)."""
+        """Set the evaluation outcome (always ok now).
+
+        """
         self.evaluation_outcome = "ok"
 
 
 class SubtaskScore(Base):
-    __tablename__ = "subtask_score"
+    __tablename__ = 'subtask_score'
     __table_args__ = (
         ForeignKeyConstraint(
-            ("submission_id", "dataset_id"),
+            ('submission_id', 'dataset_id'),
             (SubmissionResult.submission_id, SubmissionResult.dataset_id),
-            onupdate="CASCADE",
-            ondelete="CASCADE",
-        ),
-        UniqueConstraint("submission_id", "dataset_id", "subtask_idx"),
+            onupdate="CASCADE", ondelete="CASCADE"),
+        UniqueConstraint('submission_id', 'dataset_id', 'subtask_idx'),
     )
 
-    id = Column(Integer, primary_key=True)
+    id = Column(
+        Integer,
+        primary_key=True
+    )
 
     # Submission (id and object) owning the executable.
     submission_id = Column(
         Integer,
-        ForeignKey(Submission.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Submission.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    submission = relationship(Submission, viewonly=True)
+        index=True)
+    submission = relationship(
+        Submission,
+        viewonly=True)
 
     # Dataset (id and object) owning the executable.
     dataset_id = Column(
         Integer,
-        ForeignKey(Dataset.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Dataset.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    dataset = relationship(Dataset, viewonly=True)
+        index=True)
+    dataset = relationship(
+        Dataset,
+        viewonly=True)
 
     # SubmissionResult owning the executable.
-    submission_result = relationship(SubmissionResult, back_populates="subtask_scores")
+    submission_result = relationship(
+        SubmissionResult,
+        back_populates="subtask_scores")
 
     subtask_idx = Column(Integer, nullable=False)
     score = Column(Float, nullable=False)
@@ -518,45 +709,54 @@ class Executable(Base):
     compilation of a submission.
 
     """
-
-    __tablename__ = "executables"
+    __tablename__ = 'executables'
     __table_args__ = (
         ForeignKeyConstraint(
-            ("submission_id", "dataset_id"),
+            ('submission_id', 'dataset_id'),
             (SubmissionResult.submission_id, SubmissionResult.dataset_id),
-            onupdate="CASCADE",
-            ondelete="CASCADE",
-        ),
-        UniqueConstraint("submission_id", "dataset_id", "filename"),
+            onupdate="CASCADE", ondelete="CASCADE"),
+        UniqueConstraint('submission_id', 'dataset_id', 'filename'),
     )
 
     # Auto increment primary key.
-    id = Column(Integer, primary_key=True)
+    id: int = Column(
+        Integer,
+        primary_key=True)
 
     # Submission (id and object) owning the executable.
-    submission_id = Column(
+    submission_id: int = Column(
         Integer,
-        ForeignKey(Submission.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Submission.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    submission = relationship(Submission, viewonly=True)
+        index=True)
+    submission: Mapped[Submission] = relationship(
+        Submission,
+        viewonly=True)
 
     # Dataset (id and object) owning the executable.
-    dataset_id = Column(
+    dataset_id: int = Column(
         Integer,
-        ForeignKey(Dataset.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Dataset.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    dataset = relationship(Dataset, viewonly=True)
+        index=True)
+    dataset: Mapped[Dataset] = relationship(
+        Dataset,
+        viewonly=True)
 
     # SubmissionResult owning the executable.
-    submission_result = relationship(SubmissionResult, back_populates="executables")
+    submission_result: Mapped[SubmissionResult] = relationship(
+        SubmissionResult,
+        back_populates="executables")
 
     # Filename and digest of the generated executable.
-    filename = Column(Filename, nullable=False)
-    digest = Column(Digest, nullable=False)
+    filename: str = Column(
+        Filename,
+        nullable=False)
+    digest: str = Column(
+        Digest,
+        nullable=False)
 
 
 class Evaluation(Base):
@@ -564,87 +764,117 @@ class Evaluation(Base):
     of a submission against one testcase.
 
     """
-
-    __tablename__ = "evaluations"
+    __tablename__ = 'evaluations'
     __table_args__ = (
         ForeignKeyConstraint(
-            ("submission_id", "dataset_id"),
+            ('submission_id', 'dataset_id'),
             (SubmissionResult.submission_id, SubmissionResult.dataset_id),
-            onupdate="CASCADE",
-            ondelete="CASCADE",
-        ),
-        UniqueConstraint("submission_id", "dataset_id", "testcase_id"),
+            onupdate="CASCADE", ondelete="CASCADE"),
+        UniqueConstraint('submission_id', 'dataset_id', 'testcase_id'),
     )
 
     # Auto increment primary key.
-    id = Column(Integer, primary_key=True)
+    id: int = Column(
+        Integer,
+        primary_key=True)
 
     # Submission (id and object) owning the evaluation.
-    submission_id = Column(
+    submission_id: int = Column(
         Integer,
-        ForeignKey(Submission.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Submission.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    submission = relationship(Submission, viewonly=True)
+        index=True)
+    submission: Mapped[Submission] = relationship(
+        Submission,
+        viewonly=True)
 
     # Dataset (id and object) owning the evaluation.
-    dataset_id = Column(
+    dataset_id: int = Column(
         Integer,
-        ForeignKey(Dataset.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Dataset.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    dataset = relationship(Dataset, viewonly=True)
+        index=True)
+    dataset: Mapped[Dataset] = relationship(
+        Dataset,
+        viewonly=True)
 
     # SubmissionResult owning the evaluation.
-    submission_result = relationship(SubmissionResult, back_populates="evaluations")
+    submission_result: Mapped[SubmissionResult] = relationship(
+        SubmissionResult,
+        back_populates="evaluations")
 
     # Testcase (id and object) this evaluation was performed on.
-    testcase_id = Column(
+    testcase_id: int = Column(
         Integer,
-        ForeignKey(Testcase.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Testcase.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    testcase = relationship(Testcase)
+        index=True)
+    testcase: Mapped[Testcase] = relationship(
+        Testcase)
 
     # String containing the outcome of the evaluation (usually 1.0,
     # ...) not necessary the points awarded, that will be computed by
     # the score type.
-    outcome = Column(Unicode, nullable=True)
+    outcome: str | None = Column(
+        Unicode,
+        nullable=True)
 
     # The output from the grader, usually "Correct", "Time limit", ...
     # (to allow localization the first item of the list is a format
     # string, possibly containing some "%s", that will be filled in
     # using the remaining items of the list).
-    text = Column(ARRAY(String), nullable=False, default=[])
+    text: list[str] = Column(
+        ARRAY(String),
+        nullable=False,
+        default=[])
 
     # Evaluation's time and wall-clock time, in seconds.
-    execution_time = Column(Float, nullable=True)
-    execution_wall_clock_time = Column(Float, nullable=True)
+    execution_time: float | None = Column(
+        Float,
+        nullable=True)
+    execution_wall_clock_time: float | None = Column(
+        Float,
+        nullable=True)
 
     # Memory used by the evaluation, in bytes.
-    execution_memory = Column(BigInteger, nullable=True)
+    execution_memory: int | None = Column(
+        BigInteger,
+        nullable=True)
 
     # Worker shard and sandbox where the evaluation was performed.
-    evaluation_shard = Column(Integer, nullable=True)
-    evaluation_sandbox = Column(Unicode, nullable=True)
+    evaluation_shard: int | None = Column(
+        Integer,
+        nullable=True)
+    evaluation_sandbox_paths: list[str] | None = Column(
+        ARRAY(Unicode),
+        nullable=True)
+    evaluation_sandbox_digests: list[str] | None = Column(
+        ARRAY(String),
+        nullable=True)
 
     @property
-    def codename(self):
+    def codename(self) -> str:
         """Return the codename of the testcase."""
         return self.testcase.codename
 
 
 class Meme(Base):
-    __tablename__ = "memes"
+    __tablename__ = 'memes'
     # Auto increment primary key.
-    id = Column(Integer, primary_key=True)
+    id = Column(
+        Integer,
+        primary_key=True)
 
     # Filename and digest of the submitted file.
-    filename = Column(FilenameSchema, nullable=False)
-    digest = Column(Digest, nullable=False)
+    filename = Column(
+        FilenameSchema,
+        nullable=False)
+    digest = Column(
+        Digest,
+        nullable=False)
 
     min_score = Column(Float, nullable=False)
     max_score = Column(Float, nullable=False)
