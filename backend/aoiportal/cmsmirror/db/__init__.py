@@ -34,7 +34,6 @@ from .admin import Admin
 from .base import Base
 from .contest import Announcement, Contest
 from .fsobject import FSObject, LargeObject
-from .printjob import PrintJob
 from .session import custom_psycopg2_connection, init_app, session
 from .submission import (
     Evaluation,
@@ -64,7 +63,7 @@ from .types import (
     FilenameSchema,
     FilenameSchemaArray,
 )
-from .user import Message, Participation, Question, Team, User
+from .user import Group, Message, Participation, Question, Team, User
 from .usereval import UserEval, UserEvalExecutable, UserEvalFile, UserEvalResult
 from .usertest import (
     UserTest,
@@ -101,6 +100,7 @@ __all__ = [
     "Announcement",
     # user
     "User",
+    "Group",
     "Team",
     "Participation",
     "Message",
@@ -131,8 +131,6 @@ __all__ = [
     "UserTestManager",
     "UserTestResult",
     "UserTestExecutable",
-    # printjob
-    "PrintJob",
     # usereval
     "UserEval",
     "UserEvalFile",
