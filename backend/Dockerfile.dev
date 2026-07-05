@@ -1,7 +1,10 @@
 FROM python:3.11
 
+# uv: fast Python package manager (drop-in for pip via `uv pip`).
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 COPY requirements.txt requirements_dev.txt dev_entrypoint.sh /
-RUN pip3 install --no-cache-dir -r /requirements.txt -r /requirements_dev.txt
+RUN uv pip install --system --no-cache -r /requirements.txt -r /requirements_dev.txt
 
 WORKDIR /app
 VOLUME ["/app"]

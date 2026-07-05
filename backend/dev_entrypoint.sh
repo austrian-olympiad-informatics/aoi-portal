@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-pip3 install -e .
+uv pip install --system --no-cache -e .
 
 # Wait for the database to become available and create any missing tables.
 # initdb runs SQLAlchemy's create_all(), which is idempotent, so it is safe to
