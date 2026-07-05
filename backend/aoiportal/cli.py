@@ -52,11 +52,23 @@ def dropdb():
 @click.option("--first-name", type=str, required=True)
 @click.option("--last-name", type=str, required=True)
 @click.option("--password", type=str, required=True)
-def addadmin(email, first_name, last_name, password):
+@click.option(
+    "--skip-existing",
+    is_flag=True,
+    default=False,
+    help="Do nothing if a user with this email already exists.",
+)
+def addadmin(email, first_name, last_name, password, skip_existing):
     """Add an admin user."""
     with current_app.app_context():
         from aoiportal.auth_util import hash_password
         from aoiportal.models import User, db
+
+        if User.query.filter_by(email=email).first() is not None:
+            if skip_existing:
+                click.echo(f"User {email} already exists, skipping.")
+                return
+            raise click.ClickException(f"A user with email {email} already exists.")
 
         u = User(
             email=email,
@@ -67,3 +79,4 @@ def addadmin(email, first_name, last_name, password):
         )
         db.session.add(u)
         db.session.commit()
+        click.echo(f"Created admin user {email}.")

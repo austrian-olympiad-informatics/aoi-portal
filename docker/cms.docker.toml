@@ -1,0 +1,63 @@
+# CMS configuration for the docker-compose dev environment.
+# TOML format (upstream cms-dev moved away from the old JSON cms.conf).
+# Services locate this file via the CMS_CONFIG env var set in docker-compose.yml.
+
+[global]
+temp_dir = "/tmp"
+
+[services]
+# Every service CMS references internally needs an address defined (even if we
+# don't run it — unreachable ones just produce a connection warning). The
+# services we actually run in docker-compose get their real container hostnames;
+# the rest point at localhost.
+LogService = [["localhost", 29000]]
+ResourceService = [["localhost", 28000]]
+ScoringService = [["cms-scoring-service", 28500]]
+Checker = [["localhost", 22000]]
+EvaluationService = [["cms-evaluation-service", 25000]]
+Worker = [["cms-worker-0", 26000]]
+ContestWebServer = [["localhost", 21000]]
+AdminWebServer = [["cms-admin-web-server", 21100]]
+ProxyService = [["localhost", 28600]]
+PrometheusExporter = []
+TelegramBot = []
+
+[database]
+url = "postgresql+psycopg2://cmsuser:cms@cmsdb:5432/cmsdb"
+debug = false
+twophase_commit = false
+
+[worker]
+keep_sandbox = false
+
+[sandbox]
+max_file_size = 1_048_576
+compilation_sandbox_max_processes = 1000
+compilation_sandbox_max_time_s = 10.0
+compilation_sandbox_max_memory_kib = 524_288
+trusted_sandbox_max_processes = 1000
+trusted_sandbox_max_time_s = 10.0
+trusted_sandbox_max_memory_kib = 4_194_304
+
+[web_server]
+secret_key = "8e045a51e4b102ea803c06f92841a1fb"
+tornado_debug = false
+
+[contest_web_server]
+# Empty string => listen on all interfaces (behind the nginx reverse proxy).
+listen_address = [""]
+listen_port = [8888]
+cookie_duration = 10800
+num_proxies_used = 0
+submit_local_copy = true
+submit_local_copy_path = "%s/submissions/"
+tests_local_copy = true
+tests_local_copy_path = "%s/tests/"
+max_submission_length = 100_000
+max_input_length = 5_000_000
+
+[admin_web_server]
+listen_address = ""
+listen_port = 8889
+cookie_duration = 36000
+num_proxies_used = 0

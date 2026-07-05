@@ -1,4 +1,14 @@
-version: '3'
+# Shared config for every CMS service: same image, TOML config mounted at
+# /config/cms.toml and pointed to via CMS_CONFIG.
+x-cms-common: &cms-common
+  build:
+    context: ../cms
+  environment:
+    CMS_CONFIG: /config/cms.toml
+  volumes:
+    - "./docker/cms.docker.toml:/config/cms.toml:ro"
+  networks:
+    - cms
 
 services:
   frontend:
@@ -18,12 +28,20 @@ services:
       POSTGRES_USER: portal
       POSTGRES_PASSWORD: portal
       POSTGRES_DB: portal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portal -d portal"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - backend
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
       - ./backend:/app
       - ./docker/config.yaml:/config.yaml:ro
@@ -46,6 +64,9 @@ services:
   
   nginx:
     image: nginx:latest
+    depends_on:
+      - backend
+      - frontend
     ports:
       - "8080:8080"
     volumes:
@@ -61,52 +82,64 @@ services:
       POSTGRES_PASSWORD: cms
       POSTGRES_USER: cmsuser
       POSTGRES_DB: cmsdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cmsuser -d cmsdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - cms
 
+  # One-shot: create the CMS schema, then exit. cmsInitDB isn't idempotent
+  # (it CREATE DOMAINs), so tolerate an already-initialized DB and exit 0 so
+  # dependent services can start.
+  cms-initdb:
+    <<: *cms-common
+    command: ["bash", "-lc", "cmsInitDB || echo 'cmsInitDB returned nonzero, schema already present; continuing'"]
+    depends_on:
+      cmsdb:
+        condition: service_healthy
+    restart: "no"
+
   cms-console:
-    build:
-      context: ../cms
+    <<: *cms-common
     command: tail -f /dev/null
-    volumes:
-      - "./docker/cms.docker.conf:/usr/local/etc/cms.conf:ro"
-    networks:
-      - cms
+    depends_on:
+      cms-initdb:
+        condition: service_completed_successfully
+
   cms-admin-web-server:
-    build:
-      context: ../cms
+    <<: *cms-common
     command: cmsAdminWebServer 0
-    volumes:
-      - "./docker/cms.docker.conf:/usr/local/etc/cms.conf:ro"
+    depends_on:
+      cms-initdb:
+        condition: service_completed_successfully
     ports:
       - 8889:8889
-    networks:
-      - cms
+
   cms-evaluation-service:
-    build:
-      context: ../cms
+    <<: *cms-common
     command: cmsEvaluationService -c ALL 0
-    volumes:
-      - "./docker/cms.docker.conf:/usr/local/etc/cms.conf:ro"
-    networks:
-      - cms
+    depends_on:
+      cms-initdb:
+        condition: service_completed_successfully
+
   cms-scoring-service:
-    build:
-      context: ../cms
+    <<: *cms-common
     command: cmsScoringService -c ALL 0
-    volumes:
-      - "./docker/cms.docker.conf:/usr/local/etc/cms.conf:ro"
-    networks:
-      - cms
+    depends_on:
+      cms-initdb:
+        condition: service_completed_successfully
+
   cms-worker-0:
-    build:
-      context: ../cms
+    <<: *cms-common
     command: cmsWorker 0
+    depends_on:
+      cms-initdb:
+        condition: service_completed_successfully
     volumes:
-      - "./docker/cms.docker.conf:/usr/local/etc/cms.conf:ro"
+      - "./docker/cms.docker.toml:/config/cms.toml:ro"
       - "/sys/fs/cgroup:/sys/fs/cgroup:rw"
-    networks:
-      - cms
 
 networks:
   backend:
