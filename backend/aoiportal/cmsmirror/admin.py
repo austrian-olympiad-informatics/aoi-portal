@@ -76,14 +76,14 @@ def _dump_contest(contest: Contest):
         "id": contest.id,
         "name": contest.name,
         "description": contest.description,
-        "start": as_utc(contest.start).isoformat(),
-        "stop": as_utc(contest.stop).isoformat(),
+        "start": as_utc(contest.main_group.start).isoformat(),
+        "stop": as_utc(contest.main_group.stop).isoformat(),
         "analysis": (
             {
-                "start": as_utc(contest.analysis_start).isoformat(),
-                "stop": as_utc(contest.analysis_stop).isoformat(),
+                "start": as_utc(contest.main_group.analysis_start).isoformat(),
+                "stop": as_utc(contest.main_group.analysis_stop).isoformat(),
             }
-            if contest.analysis_enabled
+            if contest.main_group.analysis_enabled
             else None
         ),
         "tasks": [_dump_task_short(task) for task in contest.tasks],

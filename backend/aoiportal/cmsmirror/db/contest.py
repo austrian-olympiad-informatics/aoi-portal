@@ -1,4 +1,4 @@
-# type: ignore
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -31,18 +31,22 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.orderinglist import ordering_list
-from sqlalchemy.orm import relationship
-from sqlalchemy.schema import CheckConstraint, Column, ForeignKey
-from sqlalchemy.types import Boolean, DateTime, Enum, Integer, Interval, String, Unicode
-
-from .admin import Admin
-from .base import Base
-from .types import Codename
+from sqlalchemy.orm import relationship, Mapped
+from sqlalchemy.schema import Column, ForeignKey, CheckConstraint
+from sqlalchemy.types import Integer, Unicode, DateTime, Interval, Enum, \
+    Boolean, String
 
 TOKEN_MODE_DISABLED = "disabled"
 TOKEN_MODE_FINITE = "finite"
 TOKEN_MODE_INFINITE = "infinite"
 TOKEN_MODE_MIXED = "mixed"
+
+from .admin import Admin
+from .base import Base
+from .types import Codename
+import typing
+if typing.TYPE_CHECKING:
+    from . import Task, Participation
 
 
 class Contest(Base):
@@ -50,68 +54,108 @@ class Contest(Base):
     programming competition).
 
     """
-
-    __tablename__ = "contests"
+    __tablename__ = 'contests'
     __table_args__ = (
-        CheckConstraint("start <= stop"),
-        CheckConstraint("stop <= analysis_start"),
-        CheckConstraint("analysis_start <= analysis_stop"),
         CheckConstraint("token_gen_initial <= token_gen_max"),
     )
 
     # Auto increment primary key.
-    id = Column(Integer, primary_key=True)
+    id: int = Column(
+        Integer,
+        primary_key=True)
 
     # Short name of the contest.
-    name = Column(Codename, nullable=False, unique=True, index=True)
+    name: str = Column(
+        Codename,
+        nullable=False,
+        unique=True)
     # Description of the contest (human readable).
-    description = Column(Unicode, nullable=False)
+    description: str = Column(
+        Unicode,
+        nullable=False)
 
     # The list of language codes of the localizations that contestants
     # are allowed to use (empty means all).
-    allowed_localizations = Column(ARRAY(String), nullable=False, default=[])
-
-    # The list of names of languages allowed in the contest.
-    languages = Column(
+    allowed_localizations: list[str] = Column(
         ARRAY(String),
         nullable=False,
-        default=["C11 / gcc", "C++11 / g++", "Pascal / fpc"],
-    )
+        default=[])
+
+    # The list of names of languages allowed in the contest.
+    languages: list[str] = Column(
+        ARRAY(String),
+        nullable=False,
+        default=["C11 / gcc", "C++20 / g++", "Pascal / fpc"])
 
     # Whether contestants allowed to download their submissions.
-    submissions_download_allowed = Column(Boolean, nullable=False, default=True)
+    submissions_download_allowed: bool = Column(
+        Boolean,
+        nullable=False,
+        default=True)
 
     # Whether the user question is enabled.
-    allow_questions = Column(Boolean, nullable=False, default=True)
+    allow_questions: bool = Column(
+        Boolean,
+        nullable=False,
+        default=True)
 
     # Whether the user test interface is enabled.
-    allow_user_tests = Column(Boolean, nullable=False, default=True)
+    allow_user_tests: bool = Column(
+        Boolean,
+        nullable=False,
+        default=True)
+
+    # Allow unofficial submission before analysis mode
+    allow_unofficial_submission_before_analysis_mode = Column(
+        Boolean,
+        nullable=False,
+        default=False)
 
     # Whether to prevent hidden participations to log in.
-    block_hidden_participations = Column(Boolean, nullable=False, default=False)
+    block_hidden_participations: bool = Column(
+        Boolean,
+        nullable=False,
+        default=False)
 
     # Whether to allow username/password authentication
-    allow_password_authentication = Column(Boolean, nullable=False, default=True)
+    allow_password_authentication: bool = Column(
+        Boolean,
+        nullable=False,
+        default=True)
 
     # Whether to allow sso authentication
-    allow_sso_authentication = Column(Boolean, nullable=False, default=False)
+    allow_sso_authentication = Column(
+        Boolean,
+        nullable=False,
+        default=False)
 
-    sso_secret_key = Column(String, nullable=False, default="")
+    sso_secret_key = Column(
+        String, nullable=False, default="")
 
-    sso_redirect_url = Column(String, nullable=False, default="")
+    sso_redirect_url = Column(
+        String, nullable=False, default="")
 
     # Whether the registration of new users is enabled.
-    allow_registration = Column(Boolean, nullable=False, default=False)
+    allow_registration: bool = Column(
+        Boolean,
+        nullable=False,
+        default=False)
 
     # Whether to enforce that the IP address of the request matches
     # the IP address or subnet specified for the participation (if
     # present).
-    ip_restriction = Column(Boolean, nullable=False, default=True)
+    ip_restriction: bool = Column(
+        Boolean,
+        nullable=False,
+        default=True)
 
     # Whether to automatically log in users connecting from an IP
     # address specified in the ip field of a participation to this
     # contest.
-    ip_autologin = Column(Boolean, nullable=False, default=False)
+    ip_autologin: bool = Column(
+        Boolean,
+        nullable=False,
+        default=False)
 
     # The parameters that control contest-tokens follow. Note that
     # their effect during the contest depends on the interaction with
@@ -124,57 +168,53 @@ class Contest(Base):
     #   be all available at start, but given periodically during the
     #   contest instead.
     # - infinite: The user will always be able to use a token.
-    token_mode = Column(
-        Enum(
-            TOKEN_MODE_DISABLED,
-            TOKEN_MODE_FINITE,
-            TOKEN_MODE_INFINITE,
-            name="token_mode",
-        ),
+    token_mode: str = Column(
+        Enum(TOKEN_MODE_DISABLED, TOKEN_MODE_FINITE, TOKEN_MODE_INFINITE,
+             name="token_mode"),
         nullable=False,
-        default=TOKEN_MODE_INFINITE,
-    )
+        default=TOKEN_MODE_INFINITE)
 
     # The maximum number of tokens a contestant is allowed to use
     # during the whole contest (on all tasks).
-    token_max_number = Column(
-        Integer, CheckConstraint("token_max_number > 0"), nullable=True
-    )
+    token_max_number: int | None = Column(
+        Integer,
+        CheckConstraint("token_max_number > 0"),
+        nullable=True)
 
     # The minimum interval between two successive uses of tokens for
     # the same user (on any task).
-    token_min_interval = Column(
+    token_min_interval: timedelta = Column(
         Interval,
         CheckConstraint("token_min_interval >= '0 seconds'"),
         nullable=False,
-        default=timedelta(),
-    )
+        default=timedelta())
 
     # The parameters that control generation (if mode is "finite"):
     # the user starts with "initial" tokens and receives "number" more
     # every "interval", but their total number is capped to "max".
-    token_gen_initial = Column(
-        Integer, CheckConstraint("token_gen_initial >= 0"), nullable=False, default=2
-    )
-    token_gen_number = Column(
-        Integer, CheckConstraint("token_gen_number >= 0"), nullable=False, default=2
-    )
-    token_gen_interval = Column(
+    token_gen_initial: int = Column(
+        Integer,
+        CheckConstraint("token_gen_initial >= 0"),
+        nullable=False,
+        default=2)
+    token_gen_number: int = Column(
+        Integer,
+        CheckConstraint("token_gen_number >= 0"),
+        nullable=False,
+        default=2)
+    token_gen_interval: timedelta = Column(
         Interval,
         CheckConstraint("token_gen_interval > '0 seconds'"),
         nullable=False,
-        default=timedelta(minutes=30),
-    )
-    token_gen_max = Column(Integer, CheckConstraint("token_gen_max > 0"), nullable=True)
+        default=timedelta(minutes=30))
+    token_gen_max: int | None = Column(
+        Integer,
+        CheckConstraint("token_gen_max > 0"),
+        nullable=True)
 
-    # Beginning and ending of the contest.
-    start = Column(DateTime, nullable=False, default=datetime(2000, 1, 1))
-    stop = Column(DateTime, nullable=False, default=datetime(2030, 1, 1))
-
-    # Beginning and ending of the contest anaylsis mode.
-    analysis_enabled = Column(Boolean, nullable=False, default=False)
-    analysis_start = Column(DateTime, nullable=False, default=datetime(2030, 1, 1))
-    analysis_stop = Column(DateTime, nullable=False, default=datetime(2030, 1, 1))
+    # NOTE: Contest timing (start/stop, analysis mode, per_user_time) moved to
+    # the Group model upstream ("user groups" feature). See Contest.main_group
+    # and Participation.group; the phase() helper now lives on Group.
 
     # Timezone for the contest. All timestamps in CWS will be shown
     # using the timezone associated to the logged-in user or (if it's
@@ -182,94 +222,94 @@ class Contest(Base):
     # contest or (if it's None or an invalid string) the local
     # timezone of the server. This value has to be a string like
     # "Europe/Rome", "Australia/Sydney", "America/New_York", etc.
-    timezone = Column(Unicode, nullable=True)
-
-    # Max contest time for each user in seconds.
-    per_user_time = Column(
-        Interval, CheckConstraint("per_user_time >= '0 seconds'"), nullable=True
-    )
+    timezone: str | None = Column(
+        Unicode,
+        nullable=True)
 
     # Maximum number of submissions or user_tests allowed for each user
     # during the whole contest or None to not enforce this limitation.
-    max_submission_number = Column(
-        Integer, CheckConstraint("max_submission_number > 0"), nullable=True
-    )
-    max_user_test_number = Column(
-        Integer, CheckConstraint("max_user_test_number > 0"), nullable=True
-    )
+    max_submission_number: int | None = Column(
+        Integer,
+        CheckConstraint("max_submission_number > 0"),
+        nullable=True)
+    max_user_test_number: int | None = Column(
+        Integer,
+        CheckConstraint("max_user_test_number > 0"),
+        nullable=True)
 
     # Minimum interval between two submissions or user_tests, or None to
     # not enforce this limitation.
-    min_submission_interval = Column(
+    min_submission_interval: timedelta | None = Column(
         Interval,
         CheckConstraint("min_submission_interval > '0 seconds'"),
-        nullable=True,
-    )
-    min_user_test_interval = Column(
-        Interval, CheckConstraint("min_user_test_interval > '0 seconds'"), nullable=True
-    )
+        nullable=True)
+    min_submission_interval_grace_period: timedelta | None = Column(
+        Interval,
+        CheckConstraint("min_submission_interval_grace_period > '0 seconds'"),
+        nullable=True)
+    min_user_test_interval: timedelta | None = Column(
+        Interval,
+        CheckConstraint("min_user_test_interval > '0 seconds'"),
+        nullable=True)
 
     # The scores for this contest will be rounded to this number of
     # decimal places.
-    score_precision = Column(
-        Integer, CheckConstraint("score_precision >= 0"), nullable=False, default=0
-    )
+    score_precision: int = Column(
+        Integer,
+        CheckConstraint("score_precision >= 0"),
+        nullable=False,
+        default=0)
 
-    allow_frontendv2 = Column(Boolean, nullable=False, default=True)
+    allow_frontendv2 = Column(
+        Boolean,
+        nullable=False,
+        default=True)
 
     show_global_rank = Column(Boolean, nullable=False, default=False)
     show_points_to_next_rank = Column(Boolean, nullable=False, default=False)
 
+    # Main group (id and object) of this contest: the default timing group.
+    main_group_id: int | None = Column(
+        Integer,
+        ForeignKey("groups.id", use_alter=True, name="fk_contest_main_group_id",
+                   onupdate="CASCADE", ondelete="SET NULL"),
+        nullable=True,
+        index=True)
+    main_group: Mapped["Group | None"] = relationship(
+        "Group",
+        primaryjoin="Group.id==Contest.main_group_id",
+        post_update=True)
+
     # These one-to-many relationships are the reversed directions of
     # the ones defined in the "child" classes using foreign keys.
 
-    tasks = relationship(
+    tasks: Mapped[list["Task"]] = relationship(
         "Task",
         collection_class=ordering_list("num"),
         order_by="[Task.num]",
         cascade="all",
         passive_deletes=True,
-        back_populates="contest",
-    )
+        back_populates="contest")
 
-    announcements = relationship(
+    announcements: Mapped[list["Announcement"]] = relationship(
         "Announcement",
         order_by="[Announcement.timestamp]",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="contest",
-    )
+        back_populates="contest")
 
-    participations = relationship(
+    participations: Mapped[list["Participation"]] = relationship(
         "Participation",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        back_populates="contest",
-    )
+        back_populates="contest")
 
-    def phase(self, timestamp):
-        """Return: -1 if contest isn't started yet at time timestamp,
-                    0 if the contest is active at time timestamp,
-                    1 if the contest has ended but analysis mode
-                      hasn't started yet
-                    2 if the contest has ended and analysis mode is active
-                    3 if the contest has ended and analysis mode is disabled or
-                      has ended
-
-        timestamp (datetime): the time we are iterested in.
-        return (int): contest phase as above.
-
-        """
-        if timestamp < self.start:
-            return -1
-        if timestamp <= self.stop:
-            return 0
-        if self.analysis_enabled:
-            if timestamp < self.analysis_start:
-                return 1
-            elif timestamp <= self.analysis_stop:
-                return 2
-        return 3
+    groups: Mapped[list["Group"]] = relationship(
+        "Group",
+        primaryjoin="Contest.id==Group.contest_id",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="contest")
 
 
 class Announcement(Base):
@@ -277,39 +317,53 @@ class Announcement(Base):
     the users.
 
     """
-
-    __tablename__ = "announcements"
+    __tablename__ = 'announcements'
 
     # Auto increment primary key.
-    id = Column(Integer, primary_key=True)
+    id: int = Column(
+        Integer,
+        primary_key=True)
 
     # Time, subject and text of the announcement.
-    timestamp = Column(DateTime, nullable=False, index=True)
-    subject = Column(Unicode, nullable=False)
-    text = Column(Unicode, nullable=False)
+    timestamp: datetime = Column(
+        DateTime,
+        nullable=False,
+        index=True)
+    subject: str = Column(
+        Unicode,
+        nullable=False)
+    text: str = Column(
+        Unicode,
+        nullable=False)
 
     # Contest (id and object) owning the announcement.
-    contest_id = Column(
+    contest_id: int = Column(
         Integer,
-        ForeignKey(Contest.id, onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(Contest.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-    )
-    contest = relationship(Contest, back_populates="announcements")
+        index=True)
+    contest: Mapped[Contest] = relationship(
+        Contest,
+        back_populates="announcements")
 
     # Admin that created the announcement (or null if the admin has been
     # later deleted). Admins only loosely "own" an announcement, so we do not
     # back populate any field in Admin, nor delete the announcement if the
     # admin gets deleted.
-    admin_id = Column(
+    admin_id: int | None = Column(
         Integer,
-        ForeignKey(Admin.id, onupdate="CASCADE", ondelete="SET NULL"),
+        ForeignKey(Admin.id,
+                   onupdate="CASCADE", ondelete="SET NULL"),
         nullable=True,
-        index=True,
-    )
-    admin = relationship(Admin)
+        index=True)
+    admin: Mapped[Admin | None] = relationship(Admin)
 
     task_id = Column(
-        Integer, ForeignKey("tasks.id"), nullable=True, index=True, default=None
+        Integer,
+        ForeignKey("tasks.id"),
+        nullable=True,
+        index=True,
+        default=None
     )
     task = relationship("Task", back_populates="announcements")
