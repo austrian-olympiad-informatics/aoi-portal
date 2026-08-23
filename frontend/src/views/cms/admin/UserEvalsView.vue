@@ -244,6 +244,8 @@ export default class AdminUserEvalsView extends Vue {
         task_id: this.filterByTaskId?.toString(),
         user_id: this.filterByUserId?.toString(),
       },
+    }).catch((err: any) => {
+      if (err.name !== "NavigationDuplicated") throw err;
     });
     this.loading = true;
     await this.loadUserEvals();
