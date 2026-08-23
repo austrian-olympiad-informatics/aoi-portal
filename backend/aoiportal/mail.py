@@ -76,6 +76,10 @@ def send_email(
     reply_to: Union[None, Address, List[Address]] = None,
     unsubscribe_link: Optional[str] = None,
 ) -> None:
+    if not "MAIL_SERVER" in current_app.config:
+        _LOGGER.warning("MAIL_SERVER not configured, not sending email")
+        _LOGGER.warning("To: %s, Subject: %s, Content: %s", to, subject, content_html)
+        return
     msg = encode_email(
         to=to,
         subject=subject,
