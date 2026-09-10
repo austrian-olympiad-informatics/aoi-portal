@@ -122,14 +122,14 @@ def _user_effective_stop(
 ) -> datetime.datetime:
     """Return the effective contest stop time for this participation,
     accounting for any per-user extra time."""
-    return part.group.stop + part.extra_time
+    return contest.stop + part.extra_time
 
 
 def active_contest_required(fn):
     @functools.wraps(fn)
     def wrapped(*args, **kwargs):
         now = datetime.datetime.utcnow()
-        phase = current_contest.main_group.phase(now)
+        phase = current_contest.phase(now)
         in_extra_time = phase > 0 and now <= _user_effective_stop(
             current_contest, current_participation
         )
@@ -189,14 +189,14 @@ def get_contest(contest_name: str):
     ret = {
         "name": contest.name,
         "description": contest.description,
-        "start": as_utc(contest.main_group.start).isoformat(),
-        "stop": as_utc(contest.main_group.stop).isoformat(),
+        "start": as_utc(contest.start).isoformat(),
+        "stop": as_utc(contest.stop).isoformat(),
         "analysis": (
             {
-                "start": as_utc(contest.main_group.analysis_start).isoformat(),
-                "stop": as_utc(contest.main_group.analysis_stop).isoformat(),
+                "start": as_utc(contest.analysis_start).isoformat(),
+                "stop": as_utc(contest.analysis_stop).isoformat(),
             }
-            if contest.main_group.analysis_enabled
+            if contest.analysis_enabled
             else None
         ),
         "is_active": False,
@@ -206,7 +206,7 @@ def get_contest(contest_name: str):
         "questions": [_conv_question(q) for q in part.questions],
     }
     now = datetime.datetime.utcnow()
-    phase = contest.main_group.phase(now)
+    phase = contest.phase(now)
     in_extra_time = phase > 0 and now <= _user_effective_stop(contest, part)
     if 0 <= phase <= 2 or in_extra_time or part.unrestricted:
         ret.update(
@@ -819,9 +819,9 @@ def submit(data, contest_name: str, task_name: str):
         timestamp=now,
         language=data[KEY_LANGUAGE],
         official=(
-            current_contest.main_group.phase(now) == 0
+            current_contest.phase(now) == 0
             or (
-                current_contest.main_group.phase(now) > 0
+                current_contest.phase(now) > 0
                 and now <= _user_effective_stop(current_contest, current_participation)
             )
             or current_participation.unrestricted
