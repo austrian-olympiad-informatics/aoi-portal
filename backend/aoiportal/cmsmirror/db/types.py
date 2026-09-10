@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# type: ignore
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2013 Stefano Maggiolo <s.maggiolo@gmail.com>
@@ -23,7 +23,7 @@
 
 import psycopg2.extras
 import sqlalchemy
-from sqlalchemy import DDL, event, TypeDecorator, Unicode
+from sqlalchemy import DDL, TypeDecorator, Unicode, event
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.compiler import compiles
 
@@ -60,17 +60,18 @@ class Codename(TypeDecorator):
 
     domain_name = "CODENAME"
     impl = Unicode
+    cache_ok = True
 
     @classmethod
     def get_create_command(cls):
-        return DDL("CREATE DOMAIN %(domain)s VARCHAR "
-                   "CHECK (VALUE ~ '^[A-Za-z0-9_-]+$')",
-                   context={"domain": cls.domain_name})
+        return DDL(
+            "CREATE DOMAIN %(domain)s VARCHAR " "CHECK (VALUE ~ '^[A-Za-z0-9_-]+$')",
+            context={"domain": cls.domain_name},
+        )
 
     @classmethod
     def get_drop_command(cls):
-        return DDL("DROP DOMAIN %(domain)s",
-                   context={"domain": cls.domain_name})
+        return DDL("DROP DOMAIN %(domain)s", context={"domain": cls.domain_name})
 
 
 event.listen(metadata, "before_create", Codename.get_create_command())
@@ -94,19 +95,21 @@ class Filename(TypeDecorator):
 
     domain_name = "FILENAME"
     impl = Unicode
+    cache_ok = True
 
     @classmethod
     def get_create_command(cls):
-        return DDL("CREATE DOMAIN %(domain)s VARCHAR "
-                   "CHECK (VALUE ~ '^[A-Za-z0-9_.-]+$') "
-                   "CHECK (VALUE != '.') "
-                   "CHECK (VALUE != '..')",
-                   context={"domain": cls.domain_name})
+        return DDL(
+            "CREATE DOMAIN %(domain)s VARCHAR "
+            "CHECK (VALUE ~ '^[A-Za-z0-9_.-]+$') "
+            "CHECK (VALUE != '.') "
+            "CHECK (VALUE != '..')",
+            context={"domain": cls.domain_name},
+        )
 
     @classmethod
     def get_drop_command(cls):
-        return DDL("DROP DOMAIN %(domain)s",
-                   context={"domain": cls.domain_name})
+        return DDL("DROP DOMAIN %(domain)s", context={"domain": cls.domain_name})
 
 
 event.listen(metadata, "before_create", Filename.get_create_command())
@@ -136,19 +139,21 @@ class FilenameSchema(TypeDecorator):
 
     domain_name = "FILENAME_SCHEMA"
     impl = Unicode
+    cache_ok = True
 
     @classmethod
     def get_create_command(cls):
-        return DDL("CREATE DOMAIN %(domain)s VARCHAR "
-                   "CHECK (VALUE ~ '^[A-Za-z0-9_.-]+(.%%l)?$') "
-                   "CHECK (VALUE != '.') "
-                   "CHECK (VALUE != '..')",
-                   context={"domain": cls.domain_name})
+        return DDL(
+            "CREATE DOMAIN %(domain)s VARCHAR "
+            "CHECK (VALUE ~ '^[A-Za-z0-9_.-]+(\.%%l)?$') "  # noqa: W605
+            "CHECK (VALUE != '.') "
+            "CHECK (VALUE != '..')",
+            context={"domain": cls.domain_name},
+        )
 
     @classmethod
     def get_drop_command(cls):
-        return DDL("DROP DOMAIN %(domain)s",
-                   context={"domain": cls.domain_name})
+        return DDL("DROP DOMAIN %(domain)s", context={"domain": cls.domain_name})
 
 
 @compiles(FilenameSchema)
@@ -175,6 +180,7 @@ class FilenameSchemaArray(TypeDecorator):
 
     domain_name = "FILENAME_SCHEMA_ARRAY"
     impl = CastingArray(Unicode)
+    cache_ok = True
 
     @classmethod
     def get_create_command(cls):
@@ -186,22 +192,22 @@ class FilenameSchemaArray(TypeDecorator):
         # character basis so we can work around it by concatenating the
         # items of the array (using array_to_string) and match the
         # regexp on the result.
-        return DDL("CREATE DOMAIN %(domain)s VARCHAR[] "
-                   "CHECK (array_to_string(VALUE, '') ~ '^[A-Za-z0-9_.%%-]*$') "
-                   "CHECK (array_to_string(VALUE, ',') "
-                   "       ~ '^([A-Za-z0-9_.-]+(.%%l)?(,|$))*$') "
-                   "CHECK ('.' != ALL(VALUE)) "
-                   "CHECK ('..' != ALL(VALUE))",
-                   context={"domain": cls.domain_name})
+        return DDL(
+            "CREATE DOMAIN %(domain)s VARCHAR[] "
+            "CHECK (array_to_string(VALUE, '') ~ '^[A-Za-z0-9_.%%-]*$') "
+            "CHECK (array_to_string(VALUE, ',') "
+            "       ~ '^([A-Za-z0-9_.-]+(\.%%l)?(,|$))*$') "  # noqa: W605
+            "CHECK ('.' != ALL(VALUE)) "
+            "CHECK ('..' != ALL(VALUE))",
+            context={"domain": cls.domain_name},
+        )
 
     @classmethod
     def get_drop_command(cls):
-        return DDL("DROP DOMAIN %(domain)s",
-                   context={"domain": cls.domain_name})
+        return DDL("DROP DOMAIN %(domain)s", context={"domain": cls.domain_name})
 
 
-event.listen(metadata, "before_create",
-             FilenameSchemaArray.get_create_command())
+event.listen(metadata, "before_create", FilenameSchemaArray.get_create_command())
 event.listen(metadata, "after_drop", FilenameSchemaArray.get_drop_command())
 
 
@@ -224,21 +230,22 @@ class Digest(TypeDecorator):
 
     domain_name = "DIGEST"
     impl = Unicode
+    cache_ok = True
 
     # The fake digest used to mark a file as deleted in the backend.
     TOMBSTONE = "x"
 
     @classmethod
     def get_create_command(cls):
-        return DDL("CREATE DOMAIN %(domain)s VARCHAR "
-                   "CHECK (VALUE ~ '^([0-9a-f]{40}|%(tombstone)s)$')",
-                   context={"domain": cls.domain_name,
-                            "tombstone": cls.TOMBSTONE})
+        return DDL(
+            "CREATE DOMAIN %(domain)s VARCHAR "
+            "CHECK (VALUE ~ '^([0-9a-f]{40}|%(tombstone)s)$')",
+            context={"domain": cls.domain_name, "tombstone": cls.TOMBSTONE},
+        )
 
     @classmethod
     def get_drop_command(cls):
-        return DDL("DROP DOMAIN %(domain)s",
-                   context={"domain": cls.domain_name})
+        return DDL("DROP DOMAIN %(domain)s", context={"domain": cls.domain_name})
 
 
 event.listen(metadata, "before_create", Digest.get_create_command())

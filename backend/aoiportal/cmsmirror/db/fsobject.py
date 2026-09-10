@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# type: ignore
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -23,10 +23,7 @@
 
 """
 
-from collections.abc import Iterable
 import io
-from typing import Self
-import typing
 
 import psycopg2
 import psycopg2.extensions
@@ -35,11 +32,10 @@ from sqlalchemy.schema import Column
 from sqlalchemy.types import String, Unicode
 
 from .base import Base
-from .session import custom_psycopg2_connection, Session
+from .session import custom_psycopg2_connection
 
 
-class LargeObject(io.RawIOBase, typing.BinaryIO):
-
+class LargeObject(io.RawIOBase):
     """Present a PostgreSQL large object as a Python file-object.
 
     A LargeObject creates and maintains (i.e. closes when done) its
@@ -72,11 +68,11 @@ class LargeObject(io.RawIOBase, typing.BinaryIO):
     INV_READ = 0x40000
     INV_WRITE = 0x20000
 
-    def __init__(self, loid: int, mode: str = 'rb'):
+    def __init__(self, loid, mode="rb"):
         """Open a large object, creating it if required.
 
-        loid: the large object ID.
-        mode: how to open the file (`r' -> read, `w' -> write,
+        loid (int): the large object ID.
+        mode (string): how to open the file (`r' -> read, `w' -> write,
             `b' -> binary, which must be always specified). If not
             given, `rb' is used.
 
@@ -86,16 +82,16 @@ class LargeObject(io.RawIOBase, typing.BinaryIO):
         self.loid = loid
 
         # Check mode value.
-        modeset = set(mode)
-        if not modeset.issubset('rwb'):
+        mode = set(mode)
+        if not mode.issubset("rwb"):
             raise ValueError("Only valid characters in mode are r, w and b.")
-        if modeset.isdisjoint('rw'):
+        if mode.isdisjoint("rw"):
             raise ValueError("Character r or b must be specified in mode.")
-        if 'b' not in modeset:
+        if "b" not in mode:
             raise ValueError("Character b must be specified in mode.")
 
-        self._readable = 'r' in modeset
-        self._writable = 'w' in modeset
+        self._readable = "r" in mode
+        self._writable = "w" in mode
 
         self._conn = custom_psycopg2_connection()
         cursor = self._conn.cursor()
@@ -103,30 +99,29 @@ class LargeObject(io.RawIOBase, typing.BinaryIO):
         # If the loid is 0, create the large object.
         if self.loid == 0:
             creat_mode = LargeObject.INV_READ | LargeObject.INV_WRITE
-            self.loid = self._execute("SELECT lo_creat(%(mode)s);",
-                                      {'mode': creat_mode},
-                                      "Couldn't create large object.", cursor)
+            self.loid = self._execute(
+                "SELECT lo_creat(%(mode)s);",
+                {"mode": creat_mode},
+                "Couldn't create large object.",
+                cursor,
+            )
             if self.loid == 0:
                 raise OSError("Couldn't create large object.")
 
         # Open the large object.
-        open_mode = (LargeObject.INV_READ if self._readable else 0) | \
-                    (LargeObject.INV_WRITE if self._writable else 0)
-        self._fd = self._execute("SELECT lo_open(%(loid)s, %(mode)s);",
-                                 {'loid': self.loid, 'mode': open_mode},
-                                 "Couldn't open large object with LOID "
-                                 "%s." % self.loid, cursor)
+        open_mode = (LargeObject.INV_READ if self._readable else 0) | (
+            LargeObject.INV_WRITE if self._writable else 0
+        )
+        self._fd = self._execute(
+            "SELECT lo_open(%(loid)s, %(mode)s);",
+            {"loid": self.loid, "mode": open_mode},
+            f"Couldn't open large object with LOID {self.loid}.",
+            cursor,
+        )
 
         cursor.close()
 
-    # cursor is typed as typing.Any because psycopg2 doesn't have good type hints.
-    def _execute(
-        self,
-        operation: str,
-        parameters: dict[str, typing.Any],
-        message: str,
-        cursor: typing.Any | None = None
-    ) -> typing.Any:
+    def _execute(self, operation, parameters, message, cursor=None):
         """Run the given query making many success checks.
 
         Execute the given SQL statement, instantiated with the given
@@ -135,12 +130,12 @@ class LargeObject(io.RawIOBase, typing.BinaryIO):
         is a single return value and, if it's a status code, that it's
         not negative.
 
-        operation: the SQL query to perform, with named
+        operation (unicode): the SQL query to perform, with named
             string  placeholders (i.e. "%(name)s").
-        parameters: the parameters to fill in the operation.
-        message: a description to tell humans what we were
+        parameters (dict): the parameters to fill in the operation.
+        message (unicode): a description to tell humans what we were
             doing in case something went wrong.
-        cursor: the cursor to use to execute the
+        cursor (cursor|None): the cursor to use to execute the
             statement (create and use a temporary one if not given).
 
         """
@@ -153,19 +148,22 @@ class LargeObject(io.RawIOBase, typing.BinaryIO):
         try:
             assert self._conn.status in (
                 psycopg2.extensions.STATUS_READY,
-                psycopg2.extensions.STATUS_BEGIN)
+                psycopg2.extensions.STATUS_BEGIN,
+            )
             assert self._conn.get_transaction_status() in (
                 psycopg2.extensions.TRANSACTION_STATUS_IDLE,
-                psycopg2.extensions.TRANSACTION_STATUS_INTRANS)
+                psycopg2.extensions.TRANSACTION_STATUS_INTRANS,
+            )
 
             cursor.execute(operation, parameters)
 
-            assert self._conn.status == \
-                psycopg2.extensions.STATUS_BEGIN
-            assert self._conn.get_transaction_status() == \
-                psycopg2.extensions.TRANSACTION_STATUS_INTRANS
+            assert self._conn.status == psycopg2.extensions.STATUS_BEGIN
+            assert (
+                self._conn.get_transaction_status()
+                == psycopg2.extensions.TRANSACTION_STATUS_INTRANS
+            )
 
-            res, = cursor.fetchone()
+            (res,) = cursor.fetchone()
 
             assert len(cursor.fetchall()) == 0
             if isinstance(res, int):
@@ -176,42 +174,34 @@ class LargeObject(io.RawIOBase, typing.BinaryIO):
             return res
 
     def readable(self):
-        """See IOBase.readable().
-
-        """
+        """See IOBase.readable()."""
         return self._readable
 
     def writable(self):
-        """See IOBase.writable().
-
-        """
+        """See IOBase.writable()."""
         return self._writable
 
     def seekable(self):
-        """See IOBase.seekable().
-
-        """
+        """See IOBase.seekable()."""
         return True
 
     @property
     def closed(self):
-        """See IOBase.closed().
-
-        """
+        """See IOBase.closed()."""
         return self._fd is None
 
-    def readinto(self, buf) -> int:
+    def readinto(self, buf):
         """Read from the large object, and write to the given buffer.
 
         Try to read as much data as we can fit into buf. If less is
         obtained, stop and don't do further SQL calls. The number of
         retrieved bytes is returned.
 
-        buf: buffer into which to write data (e.g. bytearray).
+        buf (bytearray): buffer into which to write data.
 
-        return: the number of bytes read.
+        return (int): the number of bytes read.
 
-        raise (io.UnsupportedOperation): when the file is closed or
+        raise (io.UnsopportedOperation): when the file is closed or
             not open for reads.
 
         """
@@ -219,27 +209,30 @@ class LargeObject(io.RawIOBase, typing.BinaryIO):
             raise io.UnsupportedOperation("Large object is closed.")
 
         if not self._readable:
-            raise io.UnsupportedOperation("Large object hasn't been "
-                                          "opened in 'read' mode.")
+            raise io.UnsupportedOperation(
+                "Large object hasn't been " "opened in 'read' mode."
+            )
 
-        data = self._execute("SELECT loread(%(fd)s, %(len)s);",
-                             {'fd': self._fd, 'len': len(buf)},
-                             "Couldn't write to large object.")
-        buf[:len(data)] = data
+        data = self._execute(
+            "SELECT loread(%(fd)s, %(len)s);",
+            {"fd": self._fd, "len": len(buf)},
+            "Couldn't write to large object.",
+        )
+        buf[: len(data)] = data
         return len(data)
 
-    def write(self, buf) -> int:
+    def write(self, buf):
         """Write to the large object, reading from the given buffer.
 
         Try to write as much data as we have available. If less is
         stored, stop and don't do further SQL calls. The number of sent
         bytes is returned.
 
-        buf: buffer from which to read data (e.g. bytes or bytearray).
+        buf (bytes or bytearray): buffer from which to read data.
 
-        return: the number of bytes written.
+        return (int): the number of bytes written.
 
-        raise (io.UnsupportedOperation): when the file is closed or
+        raise (io.UnsopportedOperation): when the file is closed or
             not open for writes.
 
         """
@@ -247,71 +240,77 @@ class LargeObject(io.RawIOBase, typing.BinaryIO):
             raise io.UnsupportedOperation("Large object is closed.")
 
         if not self._writable:
-            raise io.UnsupportedOperation("Large object hasn't been "
-                                          "opened in 'write' mode.")
+            raise io.UnsupportedOperation(
+                "Large object hasn't been " "opened in 'write' mode."
+            )
 
-        len_ = self._execute("SELECT lowrite(%(fd)s, %(buf)s);",
-                             {'fd': self._fd, 'buf': psycopg2.Binary(buf)},
-                             "Couldn't write to large object.")
+        len_ = self._execute(
+            "SELECT lowrite(%(fd)s, %(buf)s);",
+            {"fd": self._fd, "buf": psycopg2.Binary(buf)},
+            "Couldn't write to large object.",
+        )
         return len_
 
-    def seek(self, offset: int, whence: int = io.SEEK_SET) -> int:
+    def seek(self, offset, whence=io.SEEK_SET):
         """Move the stream position in large object.
 
-        offset: offset from the reference point.
-        whence: reference point, expressed like in os.seek().
+        offset (int): offset from the reference point.
+        whence (int): reference point, expressed like in os.seek().
 
-        return: the new absolute position.
+        return (int): the new absolute position.
 
-        raise (io.UnsupportedOperation): when the file is closed.
+        raise (io.UnsopportedOperation): when the file is closed.
 
         """
         if self._fd is None:
             raise io.UnsupportedOperation("Large object is closed.")
 
-        pos = self._execute("SELECT lo_lseek(%(fd)s, %(offset)s, %(whence)s);",
-                            {'fd': self._fd,
-                             'offset': offset,
-                             'whence': whence},
-                            "Couldn't seek large object.")
+        pos = self._execute(
+            "SELECT lo_lseek(%(fd)s, %(offset)s, %(whence)s);",
+            {"fd": self._fd, "offset": offset, "whence": whence},
+            "Couldn't seek large object.",
+        )
         return pos
 
-    def tell(self) -> int:
+    def tell(self):
         """Tell the stream position in a large object.
 
-        return: the absolute position.
+        return (int): the absolute position.
 
         """
         if self._fd is None:
             raise io.UnsupportedOperation("Large object is closed.")
 
-        pos = self._execute("SELECT lo_tell(%(fd)s);",
-                            {'fd': self._fd},
-                            "Couldn't tell large object.")
+        pos = self._execute(
+            "SELECT lo_tell(%(fd)s);", {"fd": self._fd}, "Couldn't tell large object."
+        )
         return pos
 
-    def truncate(self, size: int | None = None) -> int:
+    def truncate(self, size=None):
         """Trucate a large object.
 
-        size: the desired new size. If None, defaults to
+        size (int|None): the desired new size. If None, defaults to
             current position.
 
-        return: the new actual size.
+        return (int): the new actual size.
 
         """
         if self._fd is None:
             raise io.UnsupportedOperation("Large object is closed.")
 
         if not self._writable:
-            raise io.UnsupportedOperation("Large object hasn't been "
-                                          "opened in 'write' mode.")
+            raise io.UnsupportedOperation(
+                "Large object hasn't been " "opened in 'write' mode."
+            )
 
         if size is None:
             size = self.tell()
 
-        self._execute("SELECT lo_truncate(%(fd)s, %(size)s);",
-                      {'fd': self._fd, 'size': size},
-                      "Couldn't truncate large object.")
+        self._execute(
+            "SELECT lo_truncate(%(fd)s, %(size)s);",
+            {"fd": self._fd, "size": size},
+            "Couldn't truncate large object.",
+        )
         return size
 
     def close(self):
@@ -327,9 +326,9 @@ class LargeObject(io.RawIOBase, typing.BinaryIO):
         if self._fd is None:
             return
 
-        self._execute("SELECT lo_close(%(fd)s);",
-                      {'fd': self._fd},
-                      "Couldn't close large object.")
+        self._execute(
+            "SELECT lo_close(%(fd)s);", {"fd": self._fd}, "Couldn't close large object."
+        )
 
         self._conn.commit()
 
@@ -338,7 +337,7 @@ class LargeObject(io.RawIOBase, typing.BinaryIO):
         self._fd = None
 
     @staticmethod
-    def unlink(loid: int, conn=None):
+    def unlink(loid, conn=None):
         """Delete the large object, removing its content.
 
         After an unlink, the content can't be restored anymore, so use
@@ -350,38 +349,28 @@ class LargeObject(io.RawIOBase, typing.BinaryIO):
             conn.autocommit = True
 
         with conn.cursor() as cursor:
-            cursor.execute("SELECT lo_unlink(%(loid)s);", {'loid': loid})
+            cursor.execute("SELECT lo_unlink(%(loid)s);", {"loid": loid})
 
 
 class FSObject(Base):
-    """Class to describe a file stored in the database.
+    """Class to describe a file stored in the database."""
 
-    """
-
-    __tablename__ = 'fsobjects'
+    __tablename__ = "fsobjects"
 
     # Here we use the digest (SHA1 sum) of the file as primary key;
     # ideally all the columns that refer to digests could be declared
     # as foreign keys against this column, but we intentionally avoid
     # doing this to keep the database uncoupled from the file storage.
-    digest: str = Column(
-        String,
-        primary_key=True,
-        nullable=False)
+    digest = Column(String, primary_key=True, nullable=False)
 
     # OID of the large object in the database
-    loid: int = Column(
-        OID,
-        nullable=False,
-        default=0)
+    loid = Column(OID, nullable=False, default=0)
 
     # Human-readable description, primarily meant for debugging (i.e,
     # should have no semantic value from the viewpoint of CMS)
-    description: str | None = Column(
-        Unicode,
-        nullable=True)
+    description = Column(Unicode, nullable=True)
 
-    def get_lobject(self, mode: str = 'rb') -> LargeObject:
+    def get_lobject(self, mode="rb"):
         """Return an open file bound to the represented large object.
 
         The returned value acts as a context manager, so it can be used
@@ -389,7 +378,7 @@ class FSObject(Base):
 
             with fsobject.get_lobject() as lobj:
 
-        mode: how to open the file (`r' -> read, `w' -> write,
+        mode (string): how to open the file (`r' -> read, `w' -> write,
              `b' -> binary, which must be always specified). If not
              given, `rb' is used.
 
@@ -403,14 +392,12 @@ class FSObject(Base):
         return lobj
 
     def delete(self):
-        """Delete this file.
-
-        """
+        """Delete this file."""
         LargeObject.unlink(self.loid)
         self.sa_session.delete(self)
 
     @classmethod
-    def get_from_digest(cls, digest: str, session: Session) -> Self | None:
+    def get_from_digest(cls, digest, session):
         """Return the FSObject with the specified digest, using the
         specified session.
 
@@ -418,17 +405,15 @@ class FSObject(Base):
         return cls.get_from_id(digest, session)
 
     @classmethod
-    def get_all(cls, session: Session) -> Iterable[Self]:
-        """Iterate over all the FSObjects available in the database.
-
-        """
+    def get_all(cls, session):
+        """Iterate over all the FSObjects available in the database."""
         if cls.__table__.exists():
             return session.query(cls)
         else:
             return []
 
     @classmethod
-    def delete_all(cls, session: Session):
+    def delete_all(cls, session):
         """Delete all files stored in the database. This cannot be
         undone. Large objects not linked by some FSObject cannot be
         detected at the moment, so they don't get deleted.
