@@ -87,7 +87,7 @@ import { Contest } from "@/types/contests";
 // a bug (should be boolean). Preserved as-is; tracked for separate fix.
 const props = defineProps<{
   contest: Contest;
-  profileComplete: Contest;
+  profileComplete: boolean;
 }>();
 
 const emit = defineEmits<{ joined: [] }>();
