@@ -1,7 +1,7 @@
 { pkgs, lib, config, inputs, ... }:
 
 let
-  system = pkgs.system;
+  system = pkgs.stdenv.hostPlatform.system;
   cmsPackage = inputs.aoi-cms-nix.packages.${system}.cms.override { useNixPaths = true; };
   cmsAOIPackage = inputs.cms-aoi-import.packages.${system}.default.override { cms = cmsPackage; python = inputs.aoi-cms-nix.packages.${system}.pythonForCMS; };
   isolateEnv = inputs.aoi-cms-nix.packages.${system}.isolate-environment.override {
@@ -121,7 +121,7 @@ in
       period = 2;
     };
   };
-  
+
   # https://devenv.sh/services/
   services.postgres.enable = true;
   services.postgres.initialDatabases = [
@@ -232,6 +232,4 @@ in
   };
 
   # See full reference at https://devenv.sh/reference/options/
-
-  process.manager.implementation = "process-compose";
 }
