@@ -115,14 +115,14 @@ async function submit(): Promise<void> {
 .is-divider {
   display: block;
   position: relative;
-  border-top: 0.1rem solid #dbdbdb;
+  border-top: 0.1rem solid var(--aoi-border);
   height: 0.1rem;
   margin: 2rem 0;
   text-align: center;
 }
 .is-divider::after {
-  background: #fff;
-  color: #b5b5b5;
+  background: var(--aoi-surface);
+  color: var(--aoi-text);
   content: attr(data-content);
   display: inline-block;
   font-size: 0.75rem;

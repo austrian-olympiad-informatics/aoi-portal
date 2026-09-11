@@ -396,8 +396,8 @@ function downloadFile(fname: string, value: string) {
   position: relative;
 }
 .sub-head {
-  background-color: #606060;
-  color: #ffffff;
+  background-color: var(--aoi-code-output-header);
+  color: var(--aoi-code-output-header-text);
   font-size: 1.25em;
   font-weight: 700;
   line-height: 1.25;

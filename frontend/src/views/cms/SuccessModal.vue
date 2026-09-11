@@ -82,11 +82,11 @@ function showConfetti() {
 .wrapper {
   display: flex;
   justify-content: center;
-  color: rgb(237, 237, 237) !important;
+  color: var(--aoi-code-text) !important;
   text-align: center;
 }
 h1 {
-  color: rgb(237, 237, 237);
+  color: var(--aoi-code-text);
 }
 .meme-img {
   max-width: 60vw;

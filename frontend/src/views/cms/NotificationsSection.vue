@@ -155,7 +155,7 @@ async function askQuestion() {
 
 <style scoped>
 .question-reply {
-  border-top: 1px solid #3e8ed085;
+  border-top: 1px solid var(--aoi-info-divider);
   margin-top: 10px;
   padding-top: 10px;
 }
@@ -165,8 +165,8 @@ async function askQuestion() {
 .question-form {
   margin-bottom: 1.5rem;
   padding: 19px;
-  background-color: #f5f5f5;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: var(--aoi-surface-raised);
+  border: 1px solid var(--aoi-border);
   border-radius: 4px;
 }
 </style>

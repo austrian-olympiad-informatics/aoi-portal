@@ -403,7 +403,7 @@ async function testCode() {
   flex-direction: row;
 }
 .code-test-input {
-  border-right: 1px solid #17191e;
+  border-right: 1px solid var(--aoi-code-surface);
 }
 .code-test-input,
 .code-test-output {
@@ -413,8 +413,8 @@ async function testCode() {
   width: 50%;
 }
 .test-head {
-  background-color: #17191e;
-  color: #ededed;
+  background-color: var(--aoi-code-surface);
+  color: var(--aoi-code-text);
   padding: 0.75em 1em;
   padding-top: 1.25em;
   width: 100%;
@@ -424,7 +424,7 @@ async function testCode() {
   height: 100%;
 }
 .loading-background {
-  background: rgba(255, 255, 255, 0.15) !important;
+  background: var(--aoi-code-overlay) !important;
 }
 
 @include touch {
@@ -443,7 +443,7 @@ async function testCode() {
 
 .code-bar {
   padding: 16px;
-  background-color: #13181d;
+  background-color: var(--aoi-code-toolbar-surface);
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -458,7 +458,7 @@ async function testCode() {
   justify-content: center;
 }
 .code-bar-test-text {
-  color: white;
+  color: var(--aoi-code-text);
 }
 .code-bar-lang {
   flex: 1;
@@ -469,12 +469,12 @@ async function testCode() {
 }
 .code-bar-lang select {
   background-color: transparent;
-  color: white;
+  color: var(--aoi-code-text);
   border: none !important;
   box-shadow: none !important;
 }
 .code-bar-lang select::after {
-  border-color: white;
+  border-color: var(--aoi-code-text);
 }
 .code-bar-submit {
   flex: 1;

@@ -325,7 +325,7 @@ function onLink() {
 
 <style lang="scss" scoped>
 .editor-container {
-  border: 1px solid #acacac;
+  border: 1px solid var(--aoi-editor-border);
   border-radius: 5px;
   display: flex;
   flex-direction: column;
@@ -334,13 +334,13 @@ function onLink() {
 .editor {
   flex-grow: 1;
   display: flex;
-  background-color: #fff;
-  color: #000;
+  background-color: var(--aoi-editor-surface);
+  color: var(--aoi-text);
   padding: 30px 20px;
 }
 .editor-controls {
   padding: 0.5rem;
-  border-bottom: 1px solid #acacac;
+  border-bottom: 1px solid var(--aoi-editor-border);
   display: flex;
   flex-shrink: 0;
   flex-wrap: wrap;
@@ -351,7 +351,7 @@ function onLink() {
   box-sizing: border-box;
   align-items: center;
   border-radius: 50%;
-  color: #303133;
+  color: var(--aoi-editor-control-text);
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -362,22 +362,22 @@ function onLink() {
   width: 40px;
 
   &:hover {
-    background-color: #e4e9f2;
+    background-color: var(--aoi-editor-control-hover);
   }
 
   &.active {
-    background-color: #ecf5ff;
-    color: #409eff;
+    background-color: var(--aoi-editor-control-active-surface);
+    color: var(--aoi-editor-control-active-text);
   }
 }
 
 .dropdown-item {
   &:hover {
-    background-color: #e4e9f2;
+    background-color: var(--aoi-editor-control-hover);
   }
   &.is-active {
-    background-color: #ecf5ff;
-    color: #409eff;
+    background-color: var(--aoi-editor-control-active-surface);
+    color: var(--aoi-editor-control-active-text);
   }
 }
 .dropdown-trigger {
@@ -385,12 +385,12 @@ function onLink() {
 }
 
 .bubble-controls {
-  background-color: #fff;
+  background-color: var(--aoi-editor-popover-surface);
   border-radius: 8px;
   box-shadow:
-    0 3px 5px -1px #0003,
-    0 6px 10px #00000024,
-    0 1px 18px #0000001f;
+    0 3px 5px -1px var(--aoi-editor-shadow),
+    0 6px 10px var(--aoi-editor-shadow),
+    0 1px 18px var(--aoi-editor-shadow);
   display: flex;
   padding: 5px;
   z-index: 50;

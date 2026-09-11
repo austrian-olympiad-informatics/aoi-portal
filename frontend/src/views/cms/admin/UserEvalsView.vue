@@ -361,7 +361,7 @@ watch(
   display: flex;
   max-width: 640px;
   flex-direction: column;
-  border-right: 2px solid rgb(207, 207, 207);
+  border-right: 2px solid var(--aoi-border);
 }
 .left-wrap {
   flex-basis: 0;

@@ -55,7 +55,7 @@ function dropzoneDrop(e: DragEvent) {
   top: 0;
   left: 0;
   z-index: 100;
-  background: rgba(0, 123, 255, 0.329);
-  border: 11px dashed #8a151b;
+  background: var(--aoi-dropzone-overlay);
+  border: 11px dashed var(--bulma-primary);
 }
 </style>

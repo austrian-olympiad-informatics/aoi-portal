@@ -20,3 +20,87 @@
 
 // Import fonts
 @use "./fonts.scss";
+
+:root {
+  --aoi-surface: var(--bulma-scheme-main);
+  --aoi-surface-raised: var(--bulma-scheme-main-bis);
+  --aoi-surface-sunken: var(--bulma-scheme-main-ter);
+  --aoi-border: var(--bulma-border);
+  --aoi-border-subtle: var(--bulma-border-weak);
+  --aoi-text: var(--bulma-text);
+  --aoi-text-strong: var(--bulma-text-strong);
+  --aoi-link: var(--bulma-link-text);
+  --aoi-progress-remainder: var(--bulma-border-weak);
+  --aoi-info-divider: color-mix(in srgb, var(--bulma-info) 52%, transparent);
+  --aoi-dropzone-overlay: color-mix(
+    in srgb,
+    var(--bulma-info) 33%,
+    transparent
+  );
+
+  --aoi-warning-surface: var(--bulma-warning-light);
+  --aoi-warning-border: var(--bulma-warning);
+  --aoi-warning-text: var(--bulma-warning-dark);
+  --aoi-success-surface: var(--bulma-success-light);
+  --aoi-success-border: var(--bulma-success);
+  --aoi-success-text: var(--bulma-success-dark);
+  --aoi-danger-surface: var(--bulma-danger-light);
+  --aoi-danger-border: var(--bulma-danger);
+  --aoi-danger-text: var(--bulma-danger-dark);
+  --aoi-info-surface: var(--bulma-info-light);
+  --aoi-info-border: var(--bulma-info);
+  --aoi-info-text: var(--bulma-info-dark);
+
+  --aoi-editor-border: var(--bulma-border);
+  --aoi-editor-surface: var(--aoi-surface);
+  --aoi-editor-control-text: var(--aoi-text-strong);
+  --aoi-editor-control-hover: var(--aoi-surface-sunken);
+  --aoi-editor-control-active-surface: var(--bulma-primary-light);
+  --aoi-editor-control-active-text: var(--bulma-primary);
+  --aoi-editor-popover-surface: var(--aoi-surface);
+  --aoi-editor-shadow: color-mix(in srgb, var(--bulma-black) 16%, transparent);
+
+  --aoi-mail-surface: var(--aoi-surface);
+  --aoi-mail-text: var(--aoi-text);
+  --aoi-mail-quote-surface: var(--aoi-surface-sunken);
+  --aoi-mail-link: var(--aoi-link);
+  --aoi-mail-footer-link: #93a9de;
+
+  --aoi-code-surface: #17191e;
+  --aoi-code-toolbar-surface: #13181d;
+  --aoi-code-text: #ededed;
+  --aoi-code-overlay: rgb(255 255 255 / 15%);
+  --aoi-code-output-surface: #ededed;
+  --aoi-code-output-text: #363636;
+  --aoi-code-output-header: #606060;
+  --aoi-code-output-header-text: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --aoi-warning-surface: color-mix(
+      in srgb,
+      var(--bulma-warning) 18%,
+      var(--aoi-surface-raised)
+    );
+    --aoi-warning-text: var(--aoi-text-strong);
+    --aoi-success-surface: color-mix(
+      in srgb,
+      var(--bulma-success) 18%,
+      var(--aoi-surface-raised)
+    );
+    --aoi-success-text: var(--aoi-text-strong);
+    --aoi-danger-surface: color-mix(
+      in srgb,
+      var(--bulma-danger) 18%,
+      var(--aoi-surface-raised)
+    );
+    --aoi-danger-text: var(--aoi-text-strong);
+    --aoi-info-surface: color-mix(
+      in srgb,
+      var(--bulma-info) 18%,
+      var(--aoi-surface-raised)
+    );
+    --aoi-info-text: var(--aoi-text-strong);
+  }
+}

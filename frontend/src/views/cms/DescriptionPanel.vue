@@ -384,7 +384,7 @@ onMounted(async () => {
   bottom: 0;
   -webkit-animation: spinAround 0.5s infinite linear;
   animation: spinAround 0.5s infinite linear;
-  border: 2px solid #dbdbdb;
+  border: 2px solid var(--aoi-border);
   border-radius: 9999px;
   border-right-color: transparent;
   border-top-color: transparent;
@@ -394,8 +394,8 @@ onMounted(async () => {
   width: 1em;
 }
 tr.is-active {
-  background-color: #fcedee;
-  color: #df2f38;
+  background-color: var(--aoi-danger-surface);
+  color: var(--aoi-danger-text);
 }
 
 .wrapper {

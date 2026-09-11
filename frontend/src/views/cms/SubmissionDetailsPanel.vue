@@ -371,8 +371,8 @@ onUnmounted(() => {
   }
 }
 .sub-head {
-  background-color: #606060;
-  color: #ffffff;
+  background-color: var(--aoi-code-output-header);
+  color: var(--aoi-code-output-header-text);
   font-size: 1.25em;
   font-weight: 700;
   line-height: 1.25;
@@ -392,8 +392,8 @@ onUnmounted(() => {
   margin-top: -0.2rem;
 }
 .panel-heading {
-  background-color: #ededed;
-  color: #363636;
+  background-color: var(--aoi-code-output-surface);
+  color: var(--aoi-code-output-text);
 }
 .download-button {
   position: absolute;

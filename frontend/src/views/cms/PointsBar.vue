@@ -106,7 +106,7 @@ const scoreShow = computed((): string => {
 
 <style scoped>
 .is-grey {
-  background-color: #e6e6e6 !important;
+  background-color: var(--aoi-progress-remainder) !important;
 }
 .is-more-than-half-success {
   color: #fff;

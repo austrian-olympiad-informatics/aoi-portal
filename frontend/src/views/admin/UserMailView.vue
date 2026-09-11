@@ -239,7 +239,7 @@ async function submit() {
   min-height: 400px;
 }
 .preview {
-  background-color: white;
+  background-color: var(--aoi-mail-surface);
   font-size: 13pt;
 }
 .preview-inside {
@@ -257,28 +257,28 @@ async function submit() {
     "Helvetica",
     "Arial",
     sans-serif;
-  color: #4a4a4a;
+  color: var(--aoi-mail-text);
   font-size: 1em;
   font-weight: 400;
   line-height: 1.5;
 }
 .preview-wrapper {
-  background: #dddddd;
+  background: var(--aoi-mail-quote-surface);
   padding: 15px;
 }
 
 .preview-bottom {
-  background: #8a151b;
-  color: #ffffff;
+  background: var(--bulma-primary);
+  color: var(--bulma-primary-invert);
   padding: 40px 20px;
   font-size: 10pt;
 }
 .preview-bottom a {
-  color: #93a9de;
+  color: var(--aoi-mail-footer-link);
   text-decoration: underline;
 }
 .preview .content {
-  background: #ffffff;
+  background: var(--aoi-mail-surface);
   padding: 40px;
   text-align: justify;
   line-height: 1.3;

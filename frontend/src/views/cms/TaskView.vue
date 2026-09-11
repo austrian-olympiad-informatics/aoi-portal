@@ -137,7 +137,7 @@ async function onSubmissionScored(sub: SubmissionShort) {
   min-width: 370px;
   display: flex;
   flex-direction: column;
-  border-right: 2px solid rgb(207, 207, 207);
+  border-right: 2px solid var(--aoi-border);
 }
 @include touch {
   .descr-column {

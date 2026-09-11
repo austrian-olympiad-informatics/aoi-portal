@@ -346,7 +346,7 @@ function downloadTestcaseOutput(tc: AdminTestcase) {
   position: relative;
 }
 .testcase-input {
-  border-right: 2px solid #17191e;
+  border-right: 2px solid var(--aoi-code-surface);
 }
 .download-button {
   position: absolute;

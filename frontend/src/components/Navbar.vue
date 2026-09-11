@@ -123,7 +123,7 @@ async function logout(): Promise<void> {
   font-family: "Arimo", sans-serif;
 }
 .navbar-container {
-  border-bottom: 2px solid #f5f5f5;
+  border-bottom: 2px solid var(--aoi-border-subtle);
 }
 .navbar {
   font-size: 1.125rem;
