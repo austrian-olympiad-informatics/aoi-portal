@@ -300,6 +300,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...CMS_META,
       isAdminButtonHidden: true,
+      isDiscordButtonHidden: true,
     },
     children: [
       {
