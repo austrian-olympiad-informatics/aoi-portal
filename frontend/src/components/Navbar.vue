@@ -70,6 +70,12 @@
             <span>Admin</span>
           </span>
         </b-navbar-item>
+        <b-navbar-item @click="toggleTheme">
+          <span class="icon-text">
+            <b-icon class="mr-2" :icon="themeIcon" />
+            <span>{{ themeLabel }}</span>
+          </span>
+        </b-navbar-item>
         <b-navbar-item @click="logout">
           <span class="icon-text">
             <b-icon class="mr-2" icon="logout" />
@@ -85,6 +91,7 @@
 import { computed } from "vue";
 import auth from "@/services/auth";
 import { useStore } from "@/store";
+import { getResolvedTheme } from "@/util/theme";
 import { useRouter, useRoute } from "vue-router";
 
 const store = useStore();
@@ -101,6 +108,19 @@ const isNavbarSmall = computed(() =>
 const isDiscordLinked = computed(() => !!store.discordUsername);
 const getDiscordUsername = computed(() => store.discordUsername);
 const name = computed(() => `${store.firstName} ${store.lastName}`);
+
+// Label and icon advertise the mode a click will switch to.
+const resolvedTheme = computed(() => getResolvedTheme(store.themeMode));
+const themeIcon = computed(() =>
+  resolvedTheme.value === "dark" ? "white-balance-sunny" : "weather-night",
+);
+const themeLabel = computed(() =>
+  resolvedTheme.value === "dark" ? "Heller Modus" : "Dunkler Modus",
+);
+
+function toggleTheme(): void {
+  store.toggleThemeMode();
+}
 
 async function logout(): Promise<void> {
   await auth.logout();

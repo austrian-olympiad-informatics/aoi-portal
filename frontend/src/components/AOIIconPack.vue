@@ -75,7 +75,9 @@ import {
   mdiReload,
   mdiTimerOutline,
   mdiUndo,
+  mdiWeatherNight,
   mdiWeb,
+  mdiWhiteBalanceSunny,
 } from "@mdi/js";
 
 type IconLookupType = {
@@ -141,6 +143,8 @@ const ICON_LOOKUP: IconLookupType = {
   web: mdiWeb,
   "clock-outline": mdiClockOutline,
   "alert-octagon": mdiAlertOctagon,
+  "weather-night": mdiWeatherNight,
+  "white-balance-sunny": mdiWhiteBalanceSunny,
 };
 
 const props = defineProps<{

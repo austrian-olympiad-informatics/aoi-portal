@@ -1,5 +1,6 @@
 import auth from "@/services/auth";
 import { AuthStatusResult } from "@/types/auth";
+import { getResolvedTheme, getSystemTheme, ThemeMode } from "@/util/theme";
 import { createPinia, defineStore } from "pinia";
 
 export const pinia = createPinia();
@@ -15,6 +16,7 @@ interface LocalStorageState {
   passwordResetVerifyEmail: string;
   passwordResetVerifyUuid: string;
   discordUsername: string;
+  themeMode?: ThemeMode;
 }
 
 export const useStore = defineStore("main", {
@@ -36,6 +38,7 @@ export const useStore = defineStore("main", {
     proxyContestUuid: "",
     proxyContestName: "",
     proxyContestCmsName: "",
+    themeMode: "system" as ThemeMode,
   }),
   getters: {
     getAuthToken: (state) => state.authToken,
@@ -89,6 +92,13 @@ export const useStore = defineStore("main", {
     setDiscordUsername(discordUsername: string) {
       this.discordUsername = discordUsername;
     },
+    toggleThemeMode() {
+      // Two-state UI over three underlying states: toggling to the UI state
+      // the system already resolves to collapses back to "system".
+      const target =
+        getResolvedTheme(this.themeMode) === "dark" ? "light" : "dark";
+      this.themeMode = getSystemTheme() === target ? "system" : target;
+    },
     restoreState(savedState: LocalStorageState) {
       this.isAuthenticated = savedState.isAuthenticated;
       this.isAdmin = savedState.isAdmin;
@@ -100,6 +110,7 @@ export const useStore = defineStore("main", {
       this.passwordResetVerifyEmail = savedState.passwordResetVerifyEmail;
       this.passwordResetVerifyUuid = savedState.passwordResetVerifyUuid;
       this.discordUsername = savedState.discordUsername;
+      if (savedState.themeMode) this.themeMode = savedState.themeMode;
     },
     async checkStatus() {
       const status = await auth.status();
@@ -127,6 +138,7 @@ export const useStore = defineStore("main", {
         passwordResetVerifyEmail: this.passwordResetVerifyEmail,
         passwordResetVerifyUuid: this.passwordResetVerifyUuid,
         discordUsername: this.discordUsername,
+        themeMode: this.themeMode,
       };
       localStorage.setItem("aoiState", JSON.stringify(val));
     },
@@ -152,6 +164,7 @@ pinia.use(({ store }) => {
       passwordResetVerifyEmail: state.passwordResetVerifyEmail,
       passwordResetVerifyUuid: state.passwordResetVerifyUuid,
       discordUsername: state.discordUsername,
+      themeMode: state.themeMode,
     };
     localStorage.setItem("aoiState", JSON.stringify(val));
   }, { flush: "sync" });

@@ -39,9 +39,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "@/store";
+import {
+  applyTheme,
+  getResolvedTheme,
+  getSystemTheme,
+  watchSystemTheme,
+} from "@/util/theme";
 import Navbar from "./components/Navbar.vue";
 
 const store = useStore();
@@ -62,7 +68,16 @@ const isDiscordButtonHidden = computed(() =>
   route.matched.some((x) => x.meta.isDiscordButtonHidden),
 );
 
+watch(
+  () => store.themeMode,
+  (mode) => applyTheme(getResolvedTheme(mode)),
+);
+watchSystemTheme(() => {
+  if (store.themeMode === "system") applyTheme(getSystemTheme());
+});
+
 onMounted(async () => {
+  applyTheme(getResolvedTheme(store.themeMode));
   await store.checkStatus();
 });
 </script>

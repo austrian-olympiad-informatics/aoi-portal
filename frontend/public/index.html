@@ -14,6 +14,21 @@
     <link rel="prefetch" as="font" href="<%= require('@/assets/fonts/fira-code-v21-latin-regular.woff2') %>" type="font/woff2" crossorigin="anonymous">
     <meta name="theme-color" content="#ffffff">
     <title>Österreichische Informatikolympiade</title>
+    <script>
+      // Apply the persisted theme before the bundle loads to avoid a flash
+      // of the wrong theme. Mirrors src/util/theme.ts.
+      (function () {
+        var mode = "system";
+        try {
+          var saved = JSON.parse(localStorage.getItem("aoiState") || "{}");
+          if (saved.themeMode) mode = saved.themeMode;
+        } catch (e) { /* fall back to system */ }
+        var resolved = mode === "system"
+          ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+          : mode;
+        document.documentElement.dataset.theme = resolved;
+      })();
+    </script>
   </head>
   <body>
     <noscript>
