@@ -147,7 +147,6 @@ export const useStore = defineStore("main", {
 
 // Persist state to localStorage on every change (except restoreState)
 let _isRestoring = false;
-const _origRestoreState = useStore.prototype?.restoreState;
 
 pinia.use(({ store }) => {
   if (store.$id !== "main") return;

@@ -6,6 +6,7 @@
           <DescriptionPanel
             :task="task"
             @submission-scored="onSubmissionScored"
+            @submission-updated="onSubmissionUpdated"
             @reload-task="loadTask"
           />
         </div>
@@ -35,7 +36,6 @@ import { useModal } from "buefy";
 import { SubmissionShort, Task } from "@/types/cms";
 import cms from "@/services/cms";
 import DescriptionPanel from "./DescriptionPanel.vue";
-import CodePanel from "./CodePanel.vue";
 import CheckNotifications from "./CheckNotifications.vue";
 import SuccessModal from "./SuccessModal.vue";
 
@@ -56,6 +56,10 @@ onMounted(async () => {
 
 function onNewSubmission(sub: SubmissionShort) {
   task.value?.submissions.push(sub);
+}
+
+function onSubmissionUpdated(index: number, sub: SubmissionShort) {
+  task.value?.submissions.splice(index, 1, sub);
 }
 
 async function onSubmissionScored(sub: SubmissionShort) {

@@ -40,7 +40,7 @@ export interface ParticipationFormData {
 
 const data = defineModel<ParticipationFormData>({ required: true });
 
-const props = withDefaults(defineProps<{ userEditable?: boolean }>(), {
+withDefaults(defineProps<{ userEditable?: boolean }>(), {
   userEditable: false,
 });
 

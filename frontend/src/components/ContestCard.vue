@@ -80,22 +80,14 @@
 </template>
 
 <script setup lang="ts">
-import contests from "@/services/contests";
 import { Contest } from "@/types/contests";
 
 // NOTE: profileComplete is typed as Contest in the original — this appears to be
 // a bug (should be boolean). Preserved as-is; tracked for separate fix.
-const props = defineProps<{
+defineProps<{
   contest: Contest;
   profileComplete: boolean;
 }>();
-
-const emit = defineEmits<{ joined: [] }>();
-
-async function joinContest() {
-  await contests.joinContest(props.contest.uuid);
-  emit("joined");
-}
 </script>
 
 <style lang="scss" scoped>

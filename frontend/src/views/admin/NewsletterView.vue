@@ -56,7 +56,6 @@
 import { ref } from "vue";
 import { onMounted } from "vue";
 import { AdminNewsletterSubscribers } from "@/types/admin";
-import AdminCard from "@/components/admin/AdminCard.vue";
 import admin from "@/services/admin";
 
 const subscribers = ref<AdminNewsletterSubscribers | null>(null);

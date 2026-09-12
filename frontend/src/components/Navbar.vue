@@ -102,9 +102,6 @@ const isAdmin = computed(() => store.isAdmin);
 const isCMS = computed(() => route.matched.some((x) => x.meta.isCMS));
 const isAuthenticated = computed(() => store.isAuthenticated);
 const isProxyAuth = computed(() => store.isProxyAuth);
-const isNavbarSmall = computed(() =>
-  route.matched.some((x) => x.meta.navbarSmall),
-);
 const isDiscordLinked = computed(() => !!store.discordUsername);
 const getDiscordUsername = computed(() => store.discordUsername);
 const name = computed(() => `${store.firstName} ${store.lastName}`);

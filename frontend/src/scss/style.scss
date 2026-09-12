@@ -1,7 +1,13 @@
 // Override Bulma initial variables
 @use "bulma/sass/utilities/initial-variables" as iv with (
-  $family-sans-serif: ("Arimo", sans-serif),
-  $family-monospace: ("Fira Code", monospace)
+  $family-sans-serif: (
+    "Arimo",
+    sans-serif,
+  ),
+  $family-monospace: (
+    "Fira Code",
+    monospace,
+  )
 );
 
 // Override Bulma derived variables

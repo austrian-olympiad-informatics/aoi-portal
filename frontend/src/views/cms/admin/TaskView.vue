@@ -241,7 +241,6 @@ import {
   AdminUserEvalsPaginated,
 } from "@/types/cmsadmin";
 import { downloadBlob } from "@/util/download";
-import { formatDateShort } from "@/util/dt";
 import CodeMirror from "@/components/CodeMirror.vue";
 
 const route = useRoute();
@@ -276,10 +275,6 @@ async function loadUserEvals() {
 onMounted(async () => {
   await Promise.all([loadTask(), loadSubmissions(), loadUserEvals()]);
 });
-
-function formatDate(date: string) {
-  return formatDateShort(new Date(), new Date(date));
-}
 
 async function downloadStatement(stat: AdminStatement) {
   const blob = await cmsadmin.getDigest(stat.digest);
@@ -316,10 +311,6 @@ async function testcaseOpen(tc: AdminTestcase) {
 }
 function downloadTestcaseInput(tc: AdminTestcase) {
   const blob = new Blob([testcaseDigests.value.get(tc.input_digest)!]);
-  downloadBlob(blob, `${tc.codename}.txt`);
-}
-function downloadTestcaseOutput(tc: AdminTestcase) {
-  const blob = new Blob([testcaseDigests.value.get(tc.output_digest)!]);
   downloadBlob(blob, `${tc.codename}.txt`);
 }
 </script>

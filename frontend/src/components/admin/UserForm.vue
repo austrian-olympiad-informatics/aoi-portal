@@ -136,7 +136,7 @@ export interface UserFormData {
 
 const data = defineModel<UserFormData>({ required: true });
 
-const props = withDefaults(defineProps<{ passwordRequired?: boolean }>(), {
+withDefaults(defineProps<{ passwordRequired?: boolean }>(), {
   passwordRequired: false,
 });
 

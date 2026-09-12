@@ -206,7 +206,6 @@
 
 <script setup lang="ts">
 import { Submission, Task } from "@/types/cms";
-import { PropType } from "vue";
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import cms from "@/services/cms";

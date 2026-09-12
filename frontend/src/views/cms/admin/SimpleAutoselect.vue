@@ -16,11 +16,10 @@
 import { ref, computed, watch } from "vue";
 import { onMounted } from "vue";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const props = withDefaults(
   defineProps<{
-    data?: any[] | null;
-    modelValue?: any;
+    data?: any[] | null; // eslint-disable-line @typescript-eslint/no-explicit-any
+    modelValue?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     loading?: boolean;
     required?: boolean;
     valueFunc?: (val: any) => any; // eslint-disable-line @typescript-eslint/no-explicit-any

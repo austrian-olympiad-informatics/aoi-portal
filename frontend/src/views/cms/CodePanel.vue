@@ -89,7 +89,6 @@ import {
   UserEvalSubmitResult,
 } from "@/types/cms";
 import { ref, computed, watch, onMounted } from "vue";
-import { PropType } from "vue";
 import { useRoute } from "vue-router";
 import { useDialog } from "buefy";
 import CodeMirror from "@/components/CodeMirror.vue";

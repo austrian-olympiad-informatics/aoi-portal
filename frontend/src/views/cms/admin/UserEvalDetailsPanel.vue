@@ -281,7 +281,6 @@ import { formatDateShort } from "@/util/dt";
 import { langToExt, lookupCMSLang } from "@/util/lang-table";
 import CodeMirror from "@/components/CodeMirror.vue";
 import { downloadBlob } from "@/util/download";
-import { translateText } from "@/util/cms";
 import cmsadmin from "@/services/cmsadmin";
 import {
   AdminExecutable,

@@ -196,7 +196,6 @@ import cms from "@/services/cms";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { formatDateShort } from "@/util/dt";
-import { PropType } from "vue";
 import { downloadBlob } from "@/util/download";
 import PointsBar from "./PointsBar.vue";
 import NotificationsSection from "./NotificationsSection.vue";
@@ -207,6 +206,7 @@ const emit = defineEmits<{
   "show-submission": [];
   "reload-task": [];
   "submission-scored": [SubmissionShort];
+  "submission-updated": [number, SubmissionShort];
 }>();
 
 const route = useRoute();
@@ -309,7 +309,7 @@ async function checkSubmissions(prevTime: number) {
       for (let i = 0; i < props.task.submissions.length; i++) {
         const x = props.task.submissions[i];
         if (x.uuid === sub.uuid) {
-          props.task.submissions.splice(i, 1, resp);
+          emit("submission-updated", i, resp);
           if (resp.result.status === "scored") {
             emit("submission-scored", resp);
           }

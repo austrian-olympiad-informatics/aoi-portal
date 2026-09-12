@@ -47,7 +47,6 @@ import {
   isAfter,
   isBefore,
 } from "@/util/dt";
-import { PropType } from "vue";
 
 const props = defineProps<{ contest: Contest }>();
 
