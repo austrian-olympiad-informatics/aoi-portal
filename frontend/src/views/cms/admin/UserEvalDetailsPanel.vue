@@ -334,10 +334,7 @@ let checkSubTimeout: number | null = null;
 
 function scheduleCheckSubmissions(timeout: number) {
   if (checkSubTimeout !== null) clearTimeout(checkSubTimeout);
-  checkSubTimeout = window.setTimeout(
-    () => checkSubmissions(timeout),
-    timeout,
-  );
+  checkSubTimeout = window.setTimeout(() => checkSubmissions(timeout), timeout);
 }
 
 async function checkSubmissions(prevTime: number) {
@@ -372,9 +369,7 @@ async function downloadExecutable(exe: AdminExecutable) {
   downloadBlob(blob, exe.filename);
 }
 
-const codeLang = computed(() =>
-  lookupCMSLang(userEval.value?.language || ""),
-);
+const codeLang = computed(() => lookupCMSLang(userEval.value?.language || ""));
 
 function downloadFile(fname: string, value: string) {
   const blob = new Blob([value]);

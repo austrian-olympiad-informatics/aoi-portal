@@ -257,7 +257,10 @@ function createParticipation() {
   });
 }
 
-async function doUpdateParticipation(id: number, formData: ParticipationFormData) {
+async function doUpdateParticipation(
+  id: number,
+  formData: ParticipationFormData,
+) {
   await admin.updateContestParticipation(contestUuid.value, id, {
     cms_id: formData.cms_id!,
     manual_password: formData.manual_password || null,

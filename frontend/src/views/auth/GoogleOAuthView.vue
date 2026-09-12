@@ -18,9 +18,7 @@ onMounted(async () => {
   const url = new URL(resp.url);
   const array = new Uint8Array(16);
   window.crypto.getRandomValues(array);
-  const state = [...array]
-    .map((x) => x.toString(16).padStart(2, "0"))
-    .join("");
+  const state = [...array].map((x) => x.toString(16).padStart(2, "0")).join("");
   sessionStorage.setItem("googleOAuthState", state);
   url.searchParams.append("state", state);
 

@@ -135,8 +135,10 @@ export interface AdminContest {
 
 export type AdminContests = AdminContest[];
 
-export interface AdminContestDetail
-  extends Omit<AdminContest, "participation_count"> {
+export interface AdminContestDetail extends Omit<
+  AdminContest,
+  "participation_count"
+> {
   cms_sso_secret_key: string;
   cms_sso_redirect_url: string;
   participations: {

@@ -17,22 +17,25 @@ import { ref, computed, watch } from "vue";
 import { onMounted } from "vue";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const props = withDefaults(defineProps<{
-  data?: any[] | null;
-  modelValue?: any;
-  loading?: boolean;
-  required?: boolean;
-  valueFunc?: (val: any) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  formatter?: (val: any) => string; // eslint-disable-line @typescript-eslint/no-explicit-any
-}>(), {
-  data: () => [],
-  loading: false,
-  required: false,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  valueFunc: (x: any) => x,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  formatter: (x: any) => x,
-});
+const props = withDefaults(
+  defineProps<{
+    data?: any[] | null;
+    modelValue?: any;
+    loading?: boolean;
+    required?: boolean;
+    valueFunc?: (val: any) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    formatter?: (val: any) => string; // eslint-disable-line @typescript-eslint/no-explicit-any
+  }>(),
+  {
+    data: () => [],
+    loading: false,
+    required: false,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    valueFunc: (x: any) => x,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    formatter: (x: any) => x,
+  },
+);
 
 const emit = defineEmits<{ "update:modelValue": [any] }>(); // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -40,8 +43,9 @@ const bValue = ref("");
 
 const filteredData = computed(() => {
   if (props.data === null) return null;
-  return props.data!.filter((x) =>
-    props.formatter(x).toLowerCase().indexOf(bValue.value.toLowerCase()) >= 0,
+  return props.data!.filter(
+    (x) =>
+      props.formatter(x).toLowerCase().indexOf(bValue.value.toLowerCase()) >= 0,
   );
 });
 
@@ -60,7 +64,10 @@ function resetBValueFromValue() {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function bSelect(newValue: any) {
-  emit("update:modelValue", newValue === null ? null : props.valueFunc(newValue));
+  emit(
+    "update:modelValue",
+    newValue === null ? null : props.valueFunc(newValue),
+  );
 }
 
 watch(() => props.modelValue, resetBValueFromValue);

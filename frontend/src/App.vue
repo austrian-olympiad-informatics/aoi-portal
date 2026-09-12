@@ -15,7 +15,12 @@
     <b-button
       class="discord-button"
       type="is-link"
-      v-if="isAuthenticated && !isProxyAuth && !isDiscordButtonHidden && !isDiscordLinked"
+      v-if="
+        isAuthenticated &&
+        !isProxyAuth &&
+        !isDiscordButtonHidden &&
+        !isDiscordLinked
+      "
       tag="router-link"
       :to="{ name: 'DiscordOAuth' }"
     >

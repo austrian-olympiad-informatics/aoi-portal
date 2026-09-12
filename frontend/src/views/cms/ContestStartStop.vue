@@ -72,12 +72,11 @@ const hasExtraTime = computed(() => props.contest.extra_time > 0);
 const userContestStop = computed(
   () => new Date(contestStop.value.getTime() + props.contest.extra_time * 1000),
 );
-const isBeforeStart = computed(() =>
-  isBefore(now.value, contestStart.value),
-);
-const isDuringContest = computed(() =>
-  isAfter(now.value, contestStart.value) &&
-  isBefore(now.value, contestStop.value),
+const isBeforeStart = computed(() => isBefore(now.value, contestStart.value));
+const isDuringContest = computed(
+  () =>
+    isAfter(now.value, contestStart.value) &&
+    isBefore(now.value, contestStop.value),
 );
 const isDuringExtraTime = computed(
   () =>
@@ -85,9 +84,7 @@ const isDuringExtraTime = computed(
     isAfter(now.value, contestStop.value) &&
     isBefore(now.value, userContestStop.value),
 );
-const hasAnalysis = computed(
-  () => props.contest.analysis !== null,
-);
+const hasAnalysis = computed(() => props.contest.analysis !== null);
 const analysisStart = computed(() =>
   props.contest.analysis === null
     ? null
@@ -98,11 +95,15 @@ const analysisStop = computed(() =>
     ? null
     : new Date(props.contest.analysis.stop),
 );
-const isAnalysisStopDefault = computed(
-  () => analysisStop.value === null ? false : analysisStop.value.getFullYear() === 2030,
+const isAnalysisStopDefault = computed(() =>
+  analysisStop.value === null
+    ? false
+    : analysisStop.value.getFullYear() === 2030,
 );
 const isBeforeAnalysis = computed(() =>
-  analysisStart.value === null ? false : isBefore(now.value, analysisStart.value),
+  analysisStart.value === null
+    ? false
+    : isBefore(now.value, analysisStart.value),
 );
 const isDuringAnalysis = computed(() =>
   analysisStart.value === null || analysisStop.value === null

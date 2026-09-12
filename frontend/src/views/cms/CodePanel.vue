@@ -168,9 +168,7 @@ const languageTemplatesByCMSLang = computed(
 
 const codemirrorLang = computed(() => lookupCMSLang(lang.value));
 
-const storageKey = computed(
-  () => `cms$${contestName.value}$${taskName.value}`,
-);
+const storageKey = computed(() => `cms$${contestName.value}$${taskName.value}`);
 
 function saveStorageData() {
   const data: CodeStorage = {

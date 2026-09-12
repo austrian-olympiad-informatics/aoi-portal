@@ -348,8 +348,7 @@ function nowrapAttrs() {
 watch(
   () => route.params.submissionUuid,
   (uuid) => {
-    selectedSub.value =
-      uuid !== undefined ? { uuid: uuid as string } : null;
+    selectedSub.value = uuid !== undefined ? { uuid: uuid as string } : null;
   },
 );
 </script>

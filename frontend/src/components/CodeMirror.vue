@@ -230,17 +230,20 @@ onMounted(() => {
 
 watch(() => props.italic, resetState);
 watch(() => props.lang, resetState);
-watch(() => props.modelValue, (value) => {
-  if (value === doc) return;
-  doc = value;
-  view.dispatch({
-    changes: {
-      from: 0,
-      to: view.state.doc.length,
-      insert: doc,
-    },
-  });
-});
+watch(
+  () => props.modelValue,
+  (value) => {
+    if (value === doc) return;
+    doc = value;
+    view.dispatch({
+      changes: {
+        from: 0,
+        to: view.state.doc.length,
+        insert: doc,
+      },
+    });
+  },
+);
 </script>
 
 <style>

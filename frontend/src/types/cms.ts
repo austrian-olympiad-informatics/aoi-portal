@@ -166,23 +166,19 @@ export interface SubmissionResultWithCompilationResult {
   compilation_wall_clock_time: number;
   compilation_memory: number;
 }
-export interface SubmissionResultCompilationFailed
-  extends SubmissionResultWithCompilationResult {
+export interface SubmissionResultCompilationFailed extends SubmissionResultWithCompilationResult {
   status: "compilation_failed";
   meme_digest: string | null;
 }
-export interface SubmissionResultEvaluating
-  extends SubmissionResultWithCompilationResult {
+export interface SubmissionResultEvaluating extends SubmissionResultWithCompilationResult {
   status: "evaluating";
   meme_digest: string | null;
 }
-export interface SubmissionResultScoring
-  extends SubmissionResultWithCompilationResult {
+export interface SubmissionResultScoring extends SubmissionResultWithCompilationResult {
   status: "scoring";
   meme_digest: string | null;
 }
-export interface SubmissionResultScoredSum
-  extends SubmissionResultWithCompilationResult {
+export interface SubmissionResultScoredSum extends SubmissionResultWithCompilationResult {
   status: "scored";
   testcases: {
     text: string[];
@@ -192,8 +188,7 @@ export interface SubmissionResultScoredSum
   }[];
   meme_digest: string | null;
 }
-export interface SubmissionResultScoredGroups
-  extends SubmissionResultWithCompilationResult {
+export interface SubmissionResultScoredGroups extends SubmissionResultWithCompilationResult {
   status: "scored";
   subtasks: {
     max_score: number;
@@ -268,16 +263,13 @@ export interface UserEvalResultWithCompilationResult {
   compilation_wall_clock_time: number;
   compilation_memory: number;
 }
-export interface UserEvalResultCompilationFailed
-  extends UserEvalResultWithCompilationResult {
+export interface UserEvalResultCompilationFailed extends UserEvalResultWithCompilationResult {
   status: "compilation_failed";
 }
-export interface UserEvalResultEvaluating
-  extends UserEvalResultWithCompilationResult {
+export interface UserEvalResultEvaluating extends UserEvalResultWithCompilationResult {
   status: "evaluating";
 }
-export interface UserEvalResultEvaluated
-  extends UserEvalResultWithCompilationResult {
+export interface UserEvalResultEvaluated extends UserEvalResultWithCompilationResult {
   status: "evaluated";
   execution_time: number;
   execution_wall_clock_time: number;

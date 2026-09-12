@@ -49,8 +49,6 @@
   </section>
 </template>
 
-
-
 <style scoped>
 section {
   padding: 2rem 1.5rem;

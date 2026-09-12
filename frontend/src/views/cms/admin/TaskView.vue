@@ -194,7 +194,9 @@
                     <CodeMirror
                       :editable="false"
                       :readonly="true"
-                      :model-value="testcaseDigests.get(props.row.input_digest) || ''"
+                      :model-value="
+                        testcaseDigests.get(props.row.input_digest) || ''
+                      "
                     />
                   </div>
                   <div class="testcase testcase-output">
@@ -281,7 +283,10 @@ function formatDate(date: string) {
 
 async function downloadStatement(stat: AdminStatement) {
   const blob = await cmsadmin.getDigest(stat.digest);
-  downloadBlob(blob, `${task.value!.name} (${stat.language.toUpperCase()}).pdf`);
+  downloadBlob(
+    blob,
+    `${task.value!.name} (${stat.language.toUpperCase()}).pdf`,
+  );
 }
 async function downloadAttachment(att: AdminAttachment) {
   const blob = await cmsadmin.getDigest(att.digest);

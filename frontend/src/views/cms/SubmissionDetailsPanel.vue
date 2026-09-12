@@ -272,10 +272,7 @@ let checkSubTimeout: number | null = null;
 
 function scheduleCheckSubmissions(timeout: number) {
   if (checkSubTimeout !== null) clearTimeout(checkSubTimeout);
-  checkSubTimeout = window.setTimeout(
-    () => checkSubmissions(timeout),
-    timeout,
-  );
+  checkSubTimeout = window.setTimeout(() => checkSubmissions(timeout), timeout);
 }
 
 async function checkSubmissions(prevTime: number) {

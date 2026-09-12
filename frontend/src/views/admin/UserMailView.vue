@@ -203,7 +203,11 @@ function downloadCSV() {
   };
   const rows = [["First Name", "Last Name", "Primary Email"]];
   rows.push(
-    ...selectedRecipients.value.map((u) => [u.first_name, u.last_name, u.email]),
+    ...selectedRecipients.value.map((u) => [
+      u.first_name,
+      u.last_name,
+      u.email,
+    ]),
   );
   const csvContent = rows.map((r) => encodeRow(r)).join("\n");
   const blob = new Blob([csvContent], { type: "text/csv" });

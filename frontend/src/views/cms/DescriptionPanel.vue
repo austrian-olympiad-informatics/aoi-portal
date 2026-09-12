@@ -221,8 +221,7 @@ const now = ref<Date>(new Date());
 
 const sortedSubmissions = computed(() =>
   [...props.task.submissions].sort(
-    (a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
   ),
 );
 
@@ -294,10 +293,7 @@ let checkSubTimeout: number | null = null;
 
 function scheduleCheckSubmissions(timeout: number) {
   if (checkSubTimeout !== null) clearTimeout(checkSubTimeout);
-  checkSubTimeout = window.setTimeout(
-    () => checkSubmissions(timeout),
-    timeout,
-  );
+  checkSubTimeout = window.setTimeout(() => checkSubmissions(timeout), timeout);
 }
 
 async function checkSubmissions(prevTime: number) {

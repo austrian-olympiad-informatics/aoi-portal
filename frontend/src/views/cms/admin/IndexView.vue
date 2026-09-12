@@ -103,10 +103,18 @@ const memes = ref<AdminMemes | null>(null);
 
 onMounted(async () => {
   await Promise.all([
-    cmsadmin.getContests().then((v) => { contests.value = v; }),
-    cmsadmin.getTasks().then((v) => { tasks.value = v; }),
-    cmsadmin.getUsers().then((v) => { users.value = v; }),
-    cmsadmin.getMemes().then((v) => { memes.value = v; }),
+    cmsadmin.getContests().then((v) => {
+      contests.value = v;
+    }),
+    cmsadmin.getTasks().then((v) => {
+      tasks.value = v;
+    }),
+    cmsadmin.getUsers().then((v) => {
+      users.value = v;
+    }),
+    cmsadmin.getMemes().then((v) => {
+      memes.value = v;
+    }),
   ]);
 });
 </script>

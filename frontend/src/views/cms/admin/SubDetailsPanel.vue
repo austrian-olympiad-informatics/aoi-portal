@@ -453,10 +453,7 @@ let checkSubTimeout: number | null = null;
 
 function scheduleCheckSubmissions(timeout: number) {
   if (checkSubTimeout !== null) clearTimeout(checkSubTimeout);
-  checkSubTimeout = window.setTimeout(
-    () => checkSubmissions(timeout),
-    timeout,
-  );
+  checkSubTimeout = window.setTimeout(() => checkSubmissions(timeout), timeout);
 }
 
 async function checkSubmissions(prevTime: number) {
@@ -493,9 +490,7 @@ async function downloadExecutable(exe: AdminExecutable) {
 
 function subtaskPoints(st: { max_score: number; fraction: number }): number {
   const res = submission.value?.result as AdminSubmissionResultScoredShort;
-  return parseFloat(
-    (st.max_score * st.fraction).toFixed(res.score_precision),
-  );
+  return parseFloat((st.max_score * st.fraction).toFixed(res.score_precision));
 }
 
 const codeLang = computed(() =>

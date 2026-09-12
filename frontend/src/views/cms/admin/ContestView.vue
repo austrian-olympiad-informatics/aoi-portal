@@ -16,7 +16,9 @@
       <div class="level">
         <div class="level-left">
           <div class="level-item">
-            <h1 class="title is-2 mb-0">Admin - Contest {{ contest.description }}</h1>
+            <h1 class="title is-2 mb-0">
+              Admin - Contest {{ contest.description }}
+            </h1>
           </div>
         </div>
         <div class="level-right" v-if="contest.portal_uuid !== null">
@@ -144,7 +146,9 @@ async function loadContest() {
   contest.value = await cmsadmin.getContest(contestId.value);
 }
 async function loadParticipations() {
-  participations.value = await cmsadmin.getContestParticipations(contestId.value);
+  participations.value = await cmsadmin.getContestParticipations(
+    contestId.value,
+  );
 }
 async function loadSubmissions() {
   submissions.value = await cmsadmin.getSubmissions({

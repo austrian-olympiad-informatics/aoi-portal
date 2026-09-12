@@ -151,23 +151,26 @@ const _origRestoreState = useStore.prototype?.restoreState;
 
 pinia.use(({ store }) => {
   if (store.$id !== "main") return;
-  store.$subscribe((mutation, state) => {
-    if (_isRestoring) return;
-    const val: LocalStorageState = {
-      isAuthenticated: state.isAuthenticated,
-      isAdmin: state.isAdmin,
-      authToken: state.authToken,
-      registerVerifyEmail: state.registerVerifyEmail,
-      registerVerifyUuid: state.registerVerifyUuid,
-      changeEmailVerifyEmail: state.changeEmailVerifyEmail,
-      changeEmailVerifyUuid: state.changeEmailVerifyUuid,
-      passwordResetVerifyEmail: state.passwordResetVerifyEmail,
-      passwordResetVerifyUuid: state.passwordResetVerifyUuid,
-      discordUsername: state.discordUsername,
-      themeMode: state.themeMode,
-    };
-    localStorage.setItem("aoiState", JSON.stringify(val));
-  }, { flush: "sync" });
+  store.$subscribe(
+    (mutation, state) => {
+      if (_isRestoring) return;
+      const val: LocalStorageState = {
+        isAuthenticated: state.isAuthenticated,
+        isAdmin: state.isAdmin,
+        authToken: state.authToken,
+        registerVerifyEmail: state.registerVerifyEmail,
+        registerVerifyUuid: state.registerVerifyUuid,
+        changeEmailVerifyEmail: state.changeEmailVerifyEmail,
+        changeEmailVerifyUuid: state.changeEmailVerifyUuid,
+        passwordResetVerifyEmail: state.passwordResetVerifyEmail,
+        passwordResetVerifyUuid: state.passwordResetVerifyUuid,
+        discordUsername: state.discordUsername,
+        themeMode: state.themeMode,
+      };
+      localStorage.setItem("aoiState", JSON.stringify(val));
+    },
+    { flush: "sync" },
+  );
 
   // Wrap restoreState to skip persistence during restore
   const origRestore = store.restoreState;

@@ -189,14 +189,14 @@ async function loadContest() {
   contest.value = await cmsadmin.getContest(contestId.value);
 }
 async function loadParticipations() {
-  participations.value = await cmsadmin.getContestParticipations(contestId.value);
+  participations.value = await cmsadmin.getContestParticipations(
+    contestId.value,
+  );
 }
 async function loadRegisterData() {
   const users = await admin.getUsers();
   registerDatas.value = new Map(
-    users
-      .filter((u) => u.cms_id !== null)
-      .map((u) => [u.cms_id as number, u]),
+    users.filter((u) => u.cms_id !== null).map((u) => [u.cms_id as number, u]),
   );
 }
 async function loadScores() {

@@ -98,24 +98,35 @@
       <b-field label="Teilnahmeberechtigt">
         <section>
           <b-field>
-            <b-radio v-model="eligibility"
-                name="eligibility"
-                native-value="ioi">
-                Ich bin ein Schüler(m) an einer Österreichischen Schule und werde am nächsten 1. Juli nicht älter als 20 Jahre sein und bin somit teilnahmeberechtigt für die IOI.
+            <b-radio
+              v-model="eligibility"
+              name="eligibility"
+              native-value="ioi"
+            >
+              Ich bin ein Schüler(m) an einer Österreichischen Schule und werde
+              am nächsten 1. Juli nicht älter als 20 Jahre sein und bin somit
+              teilnahmeberechtigt für die IOI.
             </b-radio>
           </b-field>
           <b-field>
-            <b-radio v-model="eligibility"
-                name="eligibility"
-                native-value="ioi_egoi">
-                Ich bin Schülerin(f/d) an einer Österreichischen Schule und werde am nächsten 1. Juli nicht älter als 20 Jahre sein und bin somit teilnahmeberechtigt für IOI und EGOI.
+            <b-radio
+              v-model="eligibility"
+              name="eligibility"
+              native-value="ioi_egoi"
+            >
+              Ich bin Schülerin(f/d) an einer Österreichischen Schule und werde
+              am nächsten 1. Juli nicht älter als 20 Jahre sein und bin somit
+              teilnahmeberechtigt für IOI und EGOI.
             </b-radio>
           </b-field>
           <b-field>
-            <b-radio v-model="eligibility"
-                name="eligibility"
-                native-value="none">
-                Ich bin bin nicht teilnahmeberechtigt und will mir nur die Aufgaben ansehen.
+            <b-radio
+              v-model="eligibility"
+              name="eligibility"
+              native-value="none"
+            >
+              Ich bin bin nicht teilnahmeberechtigt und will mir nur die
+              Aufgaben ansehen.
             </b-radio>
           </b-field>
         </section>
