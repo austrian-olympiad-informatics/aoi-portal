@@ -188,7 +188,7 @@ def get_contest_questions(contest_id: int):
         .join(Question.participation)
         .filter(Participation.contest_id == current_contest.id)
         .order_by(Question.question_timestamp.desc())
-        .options(joinedload(Participation.user))
+        .options(joinedload(Question.participation).joinedload(Participation.user))
         .all()
     )
     return [_dump_question(q) for q in questions]
@@ -203,7 +203,7 @@ def get_contest_messages(contest_id: int):
         .join(Message.participation)
         .filter(Participation.contest_id == current_contest.id)
         .order_by(Message.timestamp.desc())
-        .options(joinedload(Participation.user))
+        .options(joinedload(Message.participation).joinedload(Participation.user))
         .all()
     )
     return [_dump_message(msg) for msg in messages]
@@ -804,7 +804,7 @@ def get_participation_questions(participation_id: int):
         .join(Question.participation)
         .filter(Participation.id == participation_id)
         .order_by(Question.question_timestamp.desc())
-        .options(joinedload(Participation.user))
+        .options(joinedload(Question.participation).joinedload(Participation.user))
         .all()
     )
     return [_dump_question(q) for q in questions]
@@ -819,7 +819,7 @@ def get_participation_messages(participation_id: int):
         .join(Message.participation)
         .filter(Message.id == participation_id)
         .order_by(Message.timestamp.desc())
-        .options(joinedload(Participation.user))
+        .options(joinedload(Message.participation).joinedload(Participation.user))
         .all()
     )
     return [_dump_message(q) for q in questions]
@@ -1118,8 +1118,7 @@ def get_user(user_id: int):
     user: Optional[User] = (
         session.query(User)  # type: ignore
         .filter(User.id == user_id)
-        .options(joinedload(User.participations))
-        .options(selectinload(Participation.contest))
+        .options(joinedload(User.participations).selectinload(Participation.contest))
         .first()
     )
     if user is None:
