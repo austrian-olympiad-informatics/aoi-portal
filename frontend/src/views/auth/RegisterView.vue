@@ -47,9 +47,12 @@
   </center-box-layout>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "@/store";
 import auth from "@/services/auth";
-import { Component, Vue } from "vue-property-decorator";
 import RegisterInput, {
   RegisterInputData,
 } from "@/components/RegisterInput.vue";
@@ -57,71 +60,67 @@ import { AuthRegisterResult } from "@/types/auth";
 import { matchError } from "@/util/errors";
 import CenterBoxLayout from "@/components/CenterBoxLayout.vue";
 
-@Component({
-  components: {
-    RegisterInput,
-    CenterBoxLayout,
-  },
-})
-export default class RegisterView extends Vue {
-  data: RegisterInputData = {
-    first_name: "",
-    last_name: "",
-    email: "",
-    password: "",
-  };
-  submitButtonLoading = false;
+const router = useRouter();
+const store = useStore();
 
-  async register() {
-    let resp: AuthRegisterResult;
+const data = ref<RegisterInputData>({
+  first_name: "",
+  last_name: "",
+  email: "",
+  password: "",
+});
+const submitButtonLoading = ref(false);
 
-    this.submitButtonLoading = true;
-    try {
-      resp = await auth.register({
-        first_name: this.data.first_name,
-        last_name: this.data.last_name,
-        email: this.data.email,
-        password: this.data.password,
-      });
-    } catch (error) {
-      matchError(error, {
-        email_exists: "Diese E-Mail-Adresse ist bereits in Verwendung.",
-        rate_limit: "Zu viele Registrierversuche für diese E-Mail-Adresse.",
-        default:
-          "Beim Registrieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
-      });
-      return;
-    } finally {
-      this.submitButtonLoading = false;
-    }
+async function register() {
+  let resp: AuthRegisterResult;
 
-    this.$store.commit("setRegisterVerifyState", {
-      registerVerifyEmail: this.data.email,
-      registerVerifyUuid: resp.uuid,
+  submitButtonLoading.value = true;
+  try {
+    resp = await auth.register({
+      first_name: data.value.first_name,
+      last_name: data.value.last_name,
+      email: data.value.email,
+      password: data.value.password,
     });
+  } catch (error) {
+    matchError(error, {
+      email_exists: "Diese E-Mail-Adresse ist bereits in Verwendung.",
+      rate_limit: "Zu viele Registrierversuche für diese E-Mail-Adresse.",
+      default:
+        "Beim Registrieren ist etwas schiefgelaufen. Bitte versuche es später erneut.",
+    });
+    return;
+  } finally {
+    submitButtonLoading.value = false;
+  }
 
-    this.$router.push({ name: "RegisterVerify" });
-  }
-  mounted(): void {
-    if (this.$store.getters.isAuthenticated) {
-      this.$router.push("/");
-    }
-  }
+  store.setRegisterVerifyState({
+    registerVerifyEmail: data.value.email,
+    registerVerifyUuid: resp.uuid,
+  });
+
+  router.push({ name: "RegisterVerify" });
 }
+
+onMounted((): void => {
+  if (store.isAuthenticated) {
+    router.push("/");
+  }
+});
 </script>
 
 <style scoped>
 .is-divider {
   display: block;
   position: relative;
-  border-top: 0.1rem solid #dbdbdb;
+  border-top: 0.1rem solid var(--aoi-border);
   height: 0.1rem;
   margin: 2rem 0;
   text-align: center;
 }
 .is-divider::after {
-  background: #fff;
-  color: #b5b5b5;
+  background: var(--aoi-surface);
+  color: var(--aoi-text);
   content: attr(data-content);
   display: inline-block;
   font-size: 0.75rem;

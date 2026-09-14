@@ -6,19 +6,19 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+<script setup lang="ts">
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
 import contests from "@/services/contests";
 
-@Component
-export default class ContestSSOView extends Vue {
-  async mounted() {
-    const contestUuid = this.$route.params.contestUuid;
-    const resp = await contests.genSSOToken(contestUuid);
-    const url = new URL(resp.endpoint);
-    url.searchParams.append("token", resp.token);
-    // .replace to not affect browser history
-    window.location.replace(url);
-  }
-}
+const route = useRoute();
+
+onMounted(async () => {
+  const contestUuid = route.params.contestUuid as string;
+  const resp = await contests.genSSOToken(contestUuid);
+  const url = new URL(resp.endpoint);
+  url.searchParams.append("token", resp.token);
+  // .replace to not affect browser history
+  window.location.replace(url);
+});
 </script>

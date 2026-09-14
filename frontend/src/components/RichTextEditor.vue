@@ -242,79 +242,77 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Editor, EditorContent, BubbleMenu } from "@tiptap/vue-2";
+<script setup lang="ts">
+import { ref, shallowRef, watch } from "vue";
+import { onMounted, onBeforeUnmount } from "vue";
+import { useDialog } from "buefy";
+import { Editor, EditorContent, BubbleMenu } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 
-@Component({
-  components: {
-    EditorContent,
-    BubbleMenu,
-  },
-})
-export default class RichTextEditor extends Vue {
-  editor: Editor | null = null;
-  @Prop({
-    type: String,
-    default: "",
-  })
-  value!: string;
+const props = withDefaults(defineProps<{ modelValue?: string }>(), {
+  modelValue: "",
+});
 
-  headingDropDownActive = false;
+const emit = defineEmits<{ "update:modelValue": [string] }>();
 
-  @Watch("value")
-  watchValue(value: string) {
-    const isSame = this.editor?.getHTML() === value;
+const dialog = useDialog();
+
+const editor = shallowRef<Editor | null>(null);
+const headingDropDownActive = ref(false);
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    const isSame = editor.value?.getHTML() === value;
     if (!isSame) {
-      this.editor?.commands.setContent(value, false);
+      editor.value?.commands.setContent(value, false);
     }
-  }
+  },
+);
 
-  mounted() {
-    this.editor = new Editor({
-      content: this.value,
-      extensions: [StarterKit, Underline, Link],
-      onUpdate: () => {
-        this.$emit("input", this.editor?.getHTML());
+onMounted(() => {
+  editor.value = new Editor({
+    content: props.modelValue,
+    extensions: [StarterKit, Underline, Link],
+    onUpdate: () => {
+      emit("update:modelValue", editor.value?.getHTML() ?? "");
+    },
+    editorProps: {
+      attributes: {
+        class: "content",
       },
-      editorProps: {
-        attributes: {
-          class: "content",
-        },
-      },
-    });
-  }
+    },
+  });
+});
 
-  onLink() {
-    if (this.editor?.isActive("link")) {
-      this.editor?.chain().focus().unsetLink().run();
-      return;
-    }
-    this.$buefy.dialog.prompt({
-      message: `Apply Link`,
-      inputAttrs: {
-        placeholder: "e.g. https://informatikolympiade.at/AOI/",
-      },
-      trapFocus: true,
-      onConfirm: (value) => {
-        this.editor
-          ?.chain()
-          .focus()
-          .toggleLink({
-            href: value,
-            target: "_blank",
-          })
-          .run();
-      },
-    });
-  }
+onBeforeUnmount(() => {
+  editor.value?.destroy();
+});
 
-  beforeDestroy() {
-    this.editor?.destroy();
+function onLink() {
+  if (editor.value?.isActive("link")) {
+    editor.value?.chain().focus().unsetLink().run();
+    return;
   }
+  dialog.prompt({
+    message: `Apply Link`,
+    inputAttrs: {
+      placeholder: "e.g. https://informatikolympiade.at/AOI/",
+    },
+    trapFocus: true,
+    onConfirm: (value) => {
+      editor.value
+        ?.chain()
+        .focus()
+        .toggleLink({
+          href: value,
+          target: "_blank",
+        })
+        .run();
+    },
+  });
 }
 </script>
 
@@ -327,7 +325,7 @@ export default class RichTextEditor extends Vue {
 
 <style lang="scss" scoped>
 .editor-container {
-  border: 1px solid #acacac;
+  border: 1px solid var(--aoi-editor-border);
   border-radius: 5px;
   display: flex;
   flex-direction: column;
@@ -336,13 +334,13 @@ export default class RichTextEditor extends Vue {
 .editor {
   flex-grow: 1;
   display: flex;
-  background-color: #fff;
-  color: #000;
+  background-color: var(--aoi-editor-surface);
+  color: var(--aoi-text);
   padding: 30px 20px;
 }
 .editor-controls {
   padding: 0.5rem;
-  border-bottom: 1px solid #acacac;
+  border-bottom: 1px solid var(--aoi-editor-border);
   display: flex;
   flex-shrink: 0;
   flex-wrap: wrap;
@@ -353,7 +351,7 @@ export default class RichTextEditor extends Vue {
   box-sizing: border-box;
   align-items: center;
   border-radius: 50%;
-  color: #303133;
+  color: var(--aoi-editor-control-text);
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -364,22 +362,22 @@ export default class RichTextEditor extends Vue {
   width: 40px;
 
   &:hover {
-    background-color: #e4e9f2;
+    background-color: var(--aoi-editor-control-hover);
   }
 
   &.active {
-    background-color: #ecf5ff;
-    color: #409eff;
+    background-color: var(--aoi-editor-control-active-surface);
+    color: var(--aoi-editor-control-active-text);
   }
 }
 
 .dropdown-item {
   &:hover {
-    background-color: #e4e9f2;
+    background-color: var(--aoi-editor-control-hover);
   }
   &.is-active {
-    background-color: #ecf5ff;
-    color: #409eff;
+    background-color: var(--aoi-editor-control-active-surface);
+    color: var(--aoi-editor-control-active-text);
   }
 }
 .dropdown-trigger {
@@ -387,12 +385,12 @@ export default class RichTextEditor extends Vue {
 }
 
 .bubble-controls {
-  background-color: #fff;
+  background-color: var(--aoi-editor-popover-surface);
   border-radius: 8px;
   box-shadow:
-    0 3px 5px -1px #0003,
-    0 6px 10px #00000024,
-    0 1px 18px #0000001f;
+    0 3px 5px -1px var(--aoi-editor-shadow),
+    0 6px 10px var(--aoi-editor-shadow),
+    0 1px 18px var(--aoi-editor-shadow);
   display: flex;
   padding: 5px;
   z-index: 50;

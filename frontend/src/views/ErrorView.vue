@@ -19,15 +19,6 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-
-@Component({
-  components: {},
-})
-export default class ErrorView extends Vue {}
-</script>
-
 <style scoped>
 .hero {
   /*min-height: calc(100vh - 6.5rem) !important;*/

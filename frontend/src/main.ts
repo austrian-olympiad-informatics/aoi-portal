@@ -1,15 +1,19 @@
-import Vue from "vue";
+import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import Buefy from "buefy";
 import VueMatomo from "vue-matomo";
-import store from "./store";
+import { pinia } from "./store";
+import { initApiClient } from "./services/common";
+import { initNotification } from "./util/errors";
 import "@/scss/style.scss";
 import AOIIconPack from "./components/AOIIconPack.vue";
 
-Vue.component("aoi-icon-pack", AOIIconPack);
+const app = createApp(App);
 
-Vue.use(Buefy, {
+app.component("aoi-icon-pack", AOIIconPack);
+
+app.use(Buefy, {
   defaultIconComponent: "aoi-icon-pack",
   defaultIconPack: "aoi",
   customIconPacks: {
@@ -24,10 +28,14 @@ Vue.use(Buefy, {
     },
   },
 });
-Vue.config.productionTip = false;
+
+app.use(pinia);
+initApiClient();
+initNotification(app);
+app.use(router);
 
 if (process.env.NODE_ENV === "production") {
-  Vue.use(VueMatomo, {
+  app.use(VueMatomo, {
     host: "https://matomo.informatikolympiade.at",
     siteId: 2,
     router: router,
@@ -35,8 +43,4 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-new Vue({
-  router,
-  store,
-  render: (h) => h(App),
-}).$mount("#app");
+app.mount("#app");

@@ -1,89 +1,120 @@
-// Import Bulma's core
-$family-sans-serif: "Arimo", sans-serif;
-$family-monospace: "Fira Code", monospace;
-
-@import "~bulma/sass/utilities/_all";
-
-// Set your colors
-$primary: #8a151b;
-$primary-light: findLightColor($primary);
-$primary-dark: findDarkColor($primary);
-$primary-invert: findColorInvert($primary);
-$twitter: #4099ff;
-$twitter-invert: findColorInvert($twitter);
-$success: #208b11;
-$danger: #b82e2e;
-$warning: #ead654;
-
-// Lists and maps
-$custom-colors: null !default;
-$custom-shades: null !default;
-
-// Setup $colors to use as bulma classes (e.g. 'is-twitter')
-$colors: mergeColorMaps(
-  (
-    "white": (
-      $white,
-      $black,
-    ),
-    "black": (
-      $black,
-      $white,
-    ),
-    "light": (
-      $light,
-      $light-invert,
-    ),
-    "dark": (
-      $dark,
-      $dark-invert,
-    ),
-    "primary": (
-      $primary,
-      $primary-invert,
-      $primary-light,
-      $primary-dark,
-    ),
-    "link": (
-      $link,
-      $link-invert,
-      $link-light,
-      $link-dark,
-    ),
-    "info": (
-      $info,
-      $info-invert,
-      $info-light,
-      $info-dark,
-    ),
-    "success": (
-      $success,
-      $success-invert,
-      $success-light,
-      $success-dark,
-    ),
-    "warning": (
-      $warning,
-      $warning-invert,
-      $warning-light,
-      $warning-dark,
-    ),
-    "danger": (
-      $danger,
-      $danger-invert,
-      $danger-light,
-      $danger-dark,
-    ),
+// Override Bulma initial variables
+@use "bulma/sass/utilities/initial-variables" as iv with (
+  $family-sans-serif: (
+    "Arimo",
+    sans-serif,
   ),
-  $custom-colors
+  $family-monospace: (
+    "Fira Code",
+    monospace,
+  )
 );
 
-// Links
-$link: $primary;
-$link-invert: $primary-invert;
-$link-focus-border: $primary;
+// Override Bulma derived variables
+@use "bulma/sass/utilities/derived-variables" as dv with (
+  $primary: #8a151b,
+  $success: #208b11,
+  $danger: #b82e2e,
+  $warning: #ead654
+);
 
-// Import Bulma and Buefy styles
-@import "~bulma";
-@import "~buefy/src/scss/buefy";
-@import "./fonts.scss";
+// Import full Bulma
+@use "bulma/sass";
+
+// Import Buefy styles
+@use "buefy/src/scss/buefy";
+
+// Import fonts
+@use "./fonts.scss";
+
+@mixin dark-overrides {
+  --aoi-warning-surface: color-mix(
+    in srgb,
+    var(--bulma-warning) 18%,
+    var(--aoi-surface-raised)
+  );
+  --aoi-warning-text: var(--aoi-text-strong);
+  --aoi-success-surface: color-mix(
+    in srgb,
+    var(--bulma-success) 18%,
+    var(--aoi-surface-raised)
+  );
+  --aoi-success-text: var(--aoi-text-strong);
+  --aoi-danger-surface: color-mix(
+    in srgb,
+    var(--bulma-danger) 18%,
+    var(--aoi-surface-raised)
+  );
+  --aoi-danger-text: var(--aoi-text-strong);
+  --aoi-info-surface: color-mix(
+    in srgb,
+    var(--bulma-info) 18%,
+    var(--aoi-surface-raised)
+  );
+  --aoi-info-text: var(--aoi-text-strong);
+}
+
+:root {
+  --aoi-surface: var(--bulma-scheme-main);
+  --aoi-surface-raised: var(--bulma-scheme-main-bis);
+  --aoi-surface-sunken: var(--bulma-scheme-main-ter);
+  --aoi-border: var(--bulma-border);
+  --aoi-border-subtle: var(--bulma-border-weak);
+  --aoi-text: var(--bulma-text);
+  --aoi-text-strong: var(--bulma-text-strong);
+  --aoi-link: var(--bulma-link-text);
+  --aoi-progress-remainder: var(--bulma-border-weak);
+  --aoi-info-divider: color-mix(in srgb, var(--bulma-info) 52%, transparent);
+  --aoi-dropzone-overlay: color-mix(
+    in srgb,
+    var(--bulma-info) 33%,
+    transparent
+  );
+
+  --aoi-warning-surface: var(--bulma-warning-light);
+  --aoi-warning-border: var(--bulma-warning);
+  --aoi-warning-text: var(--bulma-warning-dark);
+  --aoi-success-surface: var(--bulma-success-light);
+  --aoi-success-border: var(--bulma-success);
+  --aoi-success-text: var(--bulma-success-dark);
+  --aoi-danger-surface: var(--bulma-danger-light);
+  --aoi-danger-border: var(--bulma-danger);
+  --aoi-danger-text: var(--bulma-danger-dark);
+  --aoi-info-surface: var(--bulma-info-light);
+  --aoi-info-border: var(--bulma-info);
+  --aoi-info-text: var(--bulma-info-dark);
+
+  --aoi-editor-border: var(--bulma-border);
+  --aoi-editor-surface: var(--aoi-surface);
+  --aoi-editor-control-text: var(--aoi-text-strong);
+  --aoi-editor-control-hover: var(--aoi-surface-sunken);
+  --aoi-editor-control-active-surface: var(--bulma-primary-light);
+  --aoi-editor-control-active-text: var(--bulma-primary);
+  --aoi-editor-popover-surface: var(--aoi-surface);
+  --aoi-editor-shadow: color-mix(in srgb, var(--bulma-black) 16%, transparent);
+
+  --aoi-mail-surface: var(--aoi-surface);
+  --aoi-mail-text: var(--aoi-text);
+  --aoi-mail-quote-surface: var(--aoi-surface-sunken);
+  --aoi-mail-link: var(--aoi-link);
+  --aoi-mail-footer-link: #93a9de;
+
+  --aoi-code-surface: #17191e;
+  --aoi-code-toolbar-surface: #13181d;
+  --aoi-code-text: #ededed;
+  --aoi-code-overlay: rgb(255 255 255 / 15%);
+  --aoi-code-output-surface: #ededed;
+  --aoi-code-output-text: #363636;
+  --aoi-code-output-header: #606060;
+  --aoi-code-output-header-text: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    @include dark-overrides;
+  }
+}
+
+:root[data-theme="dark"] {
+  @include dark-overrides;
+}

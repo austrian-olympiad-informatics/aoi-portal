@@ -72,101 +72,90 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
+import { useToast } from "buefy";
 import { formatDateShort } from "@/util/dt";
 import { Announcement, Message, Question } from "@/types/cms";
 import cms from "@/services/cms";
 
-@Component
-export default class NotificationsSection extends Vue {
-  @Prop({
-    type: Array,
-    default: () => [],
-  })
-  announcements!: Announcement[];
+const props = withDefaults(
+  defineProps<{
+    announcements: Announcement[];
+    messages: Message[];
+    questions: Question[];
+    contestName: string;
+    taskName?: string | null;
+  }>(),
+  {
+    announcements: () => [],
+    messages: () => [],
+    questions: () => [],
+    taskName: null,
+  },
+);
 
-  @Prop({
-    type: Array,
-    default: () => [],
-  })
-  messages!: Message[];
+const emit = defineEmits<{ "new-question": [] }>();
 
-  @Prop({
-    type: Array,
-    default: () => [],
-  })
-  questions!: Question[];
+const toast = useToast();
 
-  @Prop({
-    type: String,
-  })
-  contestName!: string;
+const questionSubject = ref("");
+const questionText = ref("");
+const showNotificationSwitch = ref(false);
 
-  @Prop({
-    type: String,
-    default: null,
-  })
-  taskName!: string | null;
+function updateShowNotificationSwitch() {
+  showNotificationSwitch.value =
+    "Notification" in window && window.Notification.permission === "default";
+}
 
-  questionSubject = "";
-  questionText = "";
+function askNotificationPermission() {
+  window.Notification.requestPermission().then(
+    () => {
+      updateShowNotificationSwitch();
+      if (window.Notification.permission === "granted")
+        toast.open({
+          message:
+            "Du erhälst jetzt bei neuen Ankündigungen eine Benachrichtigung",
+          type: "is-success",
+          duration: 5000,
+        });
+    },
+    () => {
+      updateShowNotificationSwitch();
+    },
+  );
+}
 
-  showNotificationSwitch = false;
+onMounted(() => {
+  updateShowNotificationSwitch();
+});
 
-  updateShowNotificationSwitch() {
-    this.showNotificationSwitch =
-      "Notification" in window && window.Notification.permission === "default";
+function formatDate(date: string) {
+  return formatDateShort(new Date(), new Date(date));
+}
+
+async function askQuestion() {
+  if (props.taskName === null) {
+    await cms.askQuestion(props.contestName, {
+      subject: questionSubject.value,
+      text: questionText.value,
+    });
+  } else {
+    await cms.askQuestionTask(props.contestName, props.taskName, {
+      subject: questionSubject.value,
+      text: questionText.value,
+    });
   }
-
-  askNotificationPermission() {
-    window.Notification.requestPermission().then(
-      () => {
-        this.updateShowNotificationSwitch();
-        if (window.Notification.permission === "granted")
-          this.$buefy.toast.open({
-            message:
-              "Du erhälst jetzt bei neuen Ankündigungen eine Benachrichtigung",
-            type: "is-success",
-            duration: 5000,
-          });
-      },
-      () => {
-        this.updateShowNotificationSwitch();
-      },
-    );
-  }
-
-  mounted() {
-    this.updateShowNotificationSwitch();
-  }
-
-  formatDate(date: string) {
-    return formatDateShort(new Date(), new Date(date));
-  }
-
-  async askQuestion() {
-    if (this.taskName === null) {
-      await cms.askQuestion(this.contestName, {
-        subject: this.questionSubject,
-        text: this.questionText,
-      });
-    } else {
-      await cms.askQuestionTask(this.contestName, this.taskName, {
-        subject: this.questionSubject,
-        text: this.questionText,
-      });
-    }
-    this.questionSubject = "";
-    this.questionText = "";
-    this.$emit("new-question");
-  }
+  questionSubject.value = "";
+  questionText.value = "";
+  emit("new-question");
 }
 </script>
 
 <style scoped>
 .question-reply {
-  border-top: 1px solid #3e8ed085;
+  border-top: 1px solid var(--aoi-info-divider);
   margin-top: 10px;
   padding-top: 10px;
 }
@@ -176,8 +165,8 @@ export default class NotificationsSection extends Vue {
 .question-form {
   margin-bottom: 1.5rem;
   padding: 19px;
-  background-color: #f5f5f5;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: var(--aoi-surface-raised);
+  border: 1px solid var(--aoi-border);
   border-radius: 4px;
 }
 </style>

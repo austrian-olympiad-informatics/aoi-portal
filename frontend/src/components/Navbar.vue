@@ -48,7 +48,7 @@
       </b-navbar-item>
 
       <b-navbar-dropdown v-if="isAuthenticated && !isProxyAuth">
-        <template slot="label">
+        <template #label>
           <span class="icon-text ml-1">
             <b-icon class="mr-2" icon="account-circle" />
             <span>{{ name }}</span>
@@ -70,6 +70,12 @@
             <span>Admin</span>
           </span>
         </b-navbar-item>
+        <b-navbar-item @click="toggleTheme">
+          <span class="icon-text">
+            <b-icon class="mr-2" :icon="themeIcon" />
+            <span>{{ themeLabel }}</span>
+          </span>
+        </b-navbar-item>
         <b-navbar-item @click="logout">
           <span class="icon-text">
             <b-icon class="mr-2" icon="logout" />
@@ -81,43 +87,43 @@
   </b-navbar>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { computed } from "vue";
 import auth from "@/services/auth";
-import { Component, Vue } from "vue-property-decorator";
+import { useStore } from "@/store";
+import { getResolvedTheme } from "@/util/theme";
+import { useRouter, useRoute } from "vue-router";
 
-@Component
-export default class Navbar extends Vue {
-  get isAdmin(): boolean {
-    return this.$store.getters.isAdmin;
-  }
-  get isCMS(): boolean {
-    return this.$route.matched.some((x) => x.meta.isCMS);
-  }
-  get isAuthenticated(): boolean {
-    return this.$store.getters.isAuthenticated;
-  }
-  get isProxyAuth(): boolean {
-    return this.$store.getters.isProxyAuth;
-  }
-  get isNavbarSmall(): boolean {
-    return this.$route.matched.some((x) => x.meta.navbarSmall);
-  }
-  get isDiscordLinked(): boolean {
-    return !!this.$store.getters.discordUsername;
-  }
-  get getDiscordUsername(): string {
-    return this.$store.getters.discordUsername;
-  }
+const store = useStore();
+const router = useRouter();
+const route = useRoute();
 
-  get name(): string {
-    return `${this.$store.getters.firstName} ${this.$store.getters.lastName}`;
-  }
-  async logout(): Promise<void> {
-    await auth.logout();
-    this.$store.commit("setAuthToken", "");
-    this.$store.dispatch("checkStatus");
-    this.$router.push("/");
-  }
+const isAdmin = computed(() => store.isAdmin);
+const isCMS = computed(() => route.matched.some((x) => x.meta.isCMS));
+const isAuthenticated = computed(() => store.isAuthenticated);
+const isProxyAuth = computed(() => store.isProxyAuth);
+const isDiscordLinked = computed(() => !!store.discordUsername);
+const getDiscordUsername = computed(() => store.discordUsername);
+const name = computed(() => `${store.firstName} ${store.lastName}`);
+
+// Label and icon advertise the mode a click will switch to.
+const resolvedTheme = computed(() => getResolvedTheme(store.themeMode));
+const themeIcon = computed(() =>
+  resolvedTheme.value === "dark" ? "white-balance-sunny" : "weather-night",
+);
+const themeLabel = computed(() =>
+  resolvedTheme.value === "dark" ? "Heller Modus" : "Dunkler Modus",
+);
+
+function toggleTheme(): void {
+  store.toggleThemeMode();
+}
+
+async function logout(): Promise<void> {
+  await auth.logout();
+  store.setAuthToken("");
+  store.checkStatus();
+  router.push("/");
 }
 </script>
 
@@ -134,7 +140,7 @@ export default class Navbar extends Vue {
   font-family: "Arimo", sans-serif;
 }
 .navbar-container {
-  border-bottom: 2px solid #f5f5f5;
+  border-bottom: 2px solid var(--aoi-border-subtle);
 }
 .navbar {
   font-size: 1.125rem;

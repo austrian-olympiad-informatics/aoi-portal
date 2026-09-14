@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-card" style="width: auto">
+  <div class="modal-card" style="width: 480px">
     <header class="modal-card-head">
       <p class="modal-card-title">Add Participant</p>
       <button type="button" class="delete" @click="$emit('close')" />
@@ -13,27 +13,25 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
 import ParticipationForm, {
   ParticipationFormData,
 } from "./ParticipationForm.vue";
 
-@Component({
-  components: {
-    ParticipationForm,
-  },
-})
-export default class ParticipationCreateModal extends Vue {
-  data: ParticipationFormData = {
-    user_id: null,
-    cms_id: null,
-    manual_password: null,
-  };
+const emit = defineEmits<{
+  submit: [data: ParticipationFormData];
+  close: [];
+}>();
 
-  async createParticipation() {
-    this.$emit("submit", this.data);
-    this.$emit("close");
-  }
+const data = ref<ParticipationFormData>({
+  user_id: null,
+  cms_id: null,
+  manual_password: null,
+});
+
+async function createParticipation() {
+  emit("submit", data.value);
+  emit("close");
 }
 </script>

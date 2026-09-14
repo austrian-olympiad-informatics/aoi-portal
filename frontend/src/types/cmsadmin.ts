@@ -150,18 +150,15 @@ export interface AdminSubmissionResultWithCompilation {
   compilation_sandbox: string;
   executables: AdminExecutable[];
 }
-export interface AdminSubmissionResultCompilationFailedDetailed
-  extends AdminSubmissionResultWithCompilation {
+export interface AdminSubmissionResultCompilationFailedDetailed extends AdminSubmissionResultWithCompilation {
   status: "compilation_failed";
   meme_digest: string | null;
 }
-export interface AdminSubmissionResultEvaluatingDetailed
-  extends AdminSubmissionResultWithCompilation {
+export interface AdminSubmissionResultEvaluatingDetailed extends AdminSubmissionResultWithCompilation {
   status: "evaluating";
   meme_digest: string | null;
 }
-export interface AdminSubmissionResultWithEvaluation
-  extends AdminSubmissionResultWithCompilation {
+export interface AdminSubmissionResultWithEvaluation extends AdminSubmissionResultWithCompilation {
   evaluation_tries: number;
   evaluations: {
     id: number;
@@ -181,13 +178,11 @@ export interface AdminSubmissionResultWithEvaluation
     evaluation_sandbox: string;
   }[];
 }
-export interface AdminSubmissionResultScoringDetailed
-  extends AdminSubmissionResultWithCompilation {
+export interface AdminSubmissionResultScoringDetailed extends AdminSubmissionResultWithCompilation {
   status: "scoring";
   meme_digest: string | null;
 }
-export interface AdminSubmissionResultScoredDetailed
-  extends AdminSubmissionResultWithCompilation {
+export interface AdminSubmissionResultScoredDetailed extends AdminSubmissionResultWithCompilation {
   status: "scored";
   meme_digest: string | null;
   score: number;
@@ -381,16 +376,13 @@ export interface AdminUserEvalResultWithCompilation {
   compilation_sandbox: string;
   executables: AdminExecutable[];
 }
-export interface AdminUserEvalResultCompilationFailedDetailed
-  extends AdminUserEvalResultWithCompilation {
+export interface AdminUserEvalResultCompilationFailedDetailed extends AdminUserEvalResultWithCompilation {
   status: "compilation_failed";
 }
-export interface AdminUserEvalResultEvaluatingDetailed
-  extends AdminUserEvalResultWithCompilation {
+export interface AdminUserEvalResultEvaluatingDetailed extends AdminUserEvalResultWithCompilation {
   status: "evaluating";
 }
-export interface AdminUserEvalResultEvaluatedDetailed
-  extends AdminUserEvalResultWithCompilation {
+export interface AdminUserEvalResultEvaluatedDetailed extends AdminUserEvalResultWithCompilation {
   status: "evaluated";
   evaluation_tries: number;
   execution_time: number;

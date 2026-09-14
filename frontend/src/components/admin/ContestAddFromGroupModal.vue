@@ -1,6 +1,6 @@
 <template>
   <form @submit.prevent="submit">
-    <div class="modal-card" style="width: auto">
+    <div class="modal-card" style="width: 480px">
       <header class="modal-card-head">
         <p class="modal-card-title">Add From Group</p>
         <button type="button" class="delete" @click="$emit('close')" />
@@ -32,30 +32,30 @@
   </form>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
 import admin from "@/services/admin";
 import { AdminGroups } from "@/types/admin";
-import { Component, Vue } from "vue-property-decorator";
 
-@Component
-export default class ContestAddFromGroupModal extends Vue {
-  groups: AdminGroups | null = null;
-  selected: number | null = null;
-  randomPasswords = false;
+const emit = defineEmits<{
+  submit: [{ selected: number | null; randomPasswords: boolean }];
+  close: [];
+}>();
 
-  async loadGroups() {
-    this.groups = await admin.getGroups();
-  }
+const groups = ref<AdminGroups | null>(null);
+const selected = ref<number | null>(null);
+const randomPasswords = ref(false);
 
-  async mounted() {
-    await this.loadGroups();
-  }
-  submit() {
-    this.$emit("submit", {
-      selected: this.selected,
-      randomPasswords: this.randomPasswords,
-    });
-    this.$emit("close");
-  }
+onMounted(async () => {
+  groups.value = await admin.getGroups();
+});
+
+function submit() {
+  emit("submit", {
+    selected: selected.value,
+    randomPasswords: randomPasswords.value,
+  });
+  emit("close");
 }
 </script>

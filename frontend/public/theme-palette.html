@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AOI Theme Palette</title>
+    <style>
+      :root {
+        color: #2e333d;
+        background: #f3f4f6;
+        font-family: Arimo, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      header {
+        padding: 3rem max(1.5rem, calc((100vw - 1200px) / 2));
+        background: #8a151a;
+        color: #ffffff;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 2.25rem;
+        font-weight: 700;
+      }
+
+      header p {
+        max-width: 44rem;
+        margin-top: 0.75rem;
+        color: #f9d7d9;
+        line-height: 1.5;
+      }
+
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
+
+      .intro {
+        margin-bottom: 2.5rem;
+        color: #404654;
+        line-height: 1.5;
+      }
+
+      .theme-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 2rem;
+      }
+
+      .theme {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: var(--page-background);
+        color: var(--text);
+      }
+
+      .theme-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+      }
+
+      .theme-header h2 {
+        color: var(--strong-text);
+        font-size: 1.5rem;
+      }
+
+      .theme-header p {
+        margin-top: 0.25rem;
+        color: var(--text);
+      }
+
+      .section {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .section:last-child {
+        border-bottom: 0;
+      }
+
+      h3 {
+        margin-bottom: 1rem;
+        color: var(--strong-text);
+        font-size: 1rem;
+      }
+
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+
+      .swatch {
+        min-width: 0;
+      }
+
+      .swatch-color {
+        height: 3.25rem;
+        border: 1px solid var(--swatch-border);
+        background: var(--color);
+      }
+
+      .swatch-label {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin-top: 0.4rem;
+        font-size: 0.8125rem;
+      }
+
+      .swatch-label strong {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--strong-text);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      code {
+        color: var(--text);
+        font-family: "Fira Code", monospace;
+        font-size: 0.75rem;
+      }
+
+      .usage {
+        margin-top: 1rem;
+        color: var(--text);
+        font-size: 0.875rem;
+        line-height: 1.45;
+      }
+
+      .preview {
+        display: grid;
+        grid-template-columns: 1fr 1.25fr;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+
+      .preview-panel {
+        padding: 1rem;
+        border: 1px solid var(--border);
+        background: var(--surface-raised);
+      }
+
+      .preview-panel strong {
+        color: var(--strong-text);
+      }
+
+      .preview-panel p {
+        margin-top: 0.375rem;
+        font-size: 0.875rem;
+        line-height: 1.4;
+      }
+
+      .input-preview {
+        height: 2.25rem;
+        margin-top: 0.75rem;
+        padding: 0.5rem 0.65rem;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+      }
+
+      .progress {
+        display: flex;
+        height: 1rem;
+        margin-top: 0.75rem;
+        overflow: hidden;
+        background: var(--progress-remainder);
+      }
+
+      .progress > span {
+        width: 50%;
+        background: #208d11;
+      }
+
+      .semantic-list {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .semantic-preview {
+        display: grid;
+        grid-template-columns: 0.65rem 1fr;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border: 1px solid var(--semantic-border);
+        background: var(--semantic-surface);
+        color: var(--semantic-text);
+      }
+
+      .semantic-preview > span {
+        background: var(--semantic-base);
+      }
+
+      .semantic-preview strong,
+      .semantic-preview p {
+        color: inherit;
+      }
+
+      .semantic-preview p {
+        margin-top: 0.2rem;
+        font-size: 0.8125rem;
+      }
+
+      .code-preview {
+        overflow: hidden;
+        border: 1px solid #17191e;
+        background: #17191e;
+        color: #ededed;
+      }
+
+      .code-preview header {
+        padding: 0.75rem 1rem;
+        background: #13181d;
+        color: #ededed;
+        font-family: "Fira Code", monospace;
+        font-size: 0.8125rem;
+      }
+
+      .code-preview pre {
+        margin: 0;
+        padding: 1rem;
+        font-family: "Fira Code", monospace;
+        font-size: 0.8125rem;
+        line-height: 1.6;
+      }
+
+      .theme-light {
+        --page-background: #f3f4f6;
+        --surface: #ffffff;
+        --surface-raised: #f9fafb;
+        --surface-sunken: #f3f4f6;
+        --text: #404654;
+        --strong-text: #2e333d;
+        --border: #d6d9e0;
+        --border-weak: #ebecf0;
+        --progress-remainder: #ebecf0;
+        --link: #2942ff;
+        --swatch-border: #d6d9e0;
+      }
+
+      .theme-dark {
+        --page-background: #1f2229;
+        --surface: #14161a;
+        --surface-raised: #181b20;
+        --surface-sunken: #1d1f26;
+        --text: #abb1bf;
+        --strong-text: #ebecf0;
+        --border: #353a46;
+        --border-weak: #2e333d;
+        --progress-remainder: #2e333d;
+        --link: #7585ff;
+        --swatch-border: #353a46;
+      }
+
+      .warning {
+        --semantic-base: #ead653;
+        --semantic-surface: #fbf6db;
+        --semantic-border: #ead653;
+        --semantic-text: #363007;
+      }
+
+      .success {
+        --semantic-base: #208d11;
+        --semantic-surface: #dafad6;
+        --semantic-border: #208d11;
+        --semantic-text: #0b3206;
+      }
+
+      .info {
+        --semantic-base: #66d1ff;
+        --semantic-surface: #ccf0ff;
+        --semantic-border: #66d1ff;
+        --semantic-text: #12354a;
+      }
+
+      .danger {
+        --semantic-base: #b82e2e;
+        --semantic-surface: #f5d6d6;
+        --semantic-border: #b82e2e;
+        --semantic-text: #4a1212;
+      }
+
+      .dark-semantic {
+        background: color-mix(in srgb, var(--semantic-base) 18%, #181b20);
+        color: #ebecf0;
+      }
+
+      .dark-semantic .semantic-preview {
+        background: color-mix(in srgb, var(--semantic-base) 14%, #181b20);
+        color: #ebecf0;
+      }
+
+      @media (max-width: 780px) {
+        .theme-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 420px) {
+        .swatches {
+          grid-template-columns: 1fr;
+        }
+
+        .preview {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>AOI Theme Palette</h1>
+      <p>
+        Proposed application tokens paired with Bulma's current light and dark
+        schemes. The right column is the intended dark-mode result.
+      </p>
+    </header>
+    <main>
+      <p class="intro">
+        Use the semantic token names in component styles. Their values should
+        alias Bulma variables so custom UI follows the same color scheme as
+        Buefy controls.
+      </p>
+      <div class="theme-grid">
+        <article class="theme theme-light">
+          <div class="theme-header">
+            <h2>Light Theme</h2>
+            <p>Bulma's default AOI application scheme</p>
+          </div>
+          <section class="section">
+            <h3>Neutral Tokens</h3>
+            <div class="swatches">
+              <div class="swatch" style="--color: #ffffff">
+                <div class="swatch-color"></div>
+                <div class="swatch-label"><strong>surface</strong><code>#ffffff</code></div>
+              </div>
+              <div class="swatch" style="--color: #f9fafb">
+                <div class="swatch-color"></div>
+                <div class="swatch-label"><strong>surface-raised</strong><code>#f9fafb</code></div>
+              </div>
+              <div class="swatch" style="--color: #f3f4f6">
+                <div class="swatch-color"></div>
+                <div class="swatch-label"><strong>surface-sunken</strong><code>#f3f4f6</code></div>
+              </div>
+              <div class="swatch" style="--color: #404654">
+                <div class="swatch-color"></div>
+                <div class="swatch-label"><strong>text</strong><code>#404654</code></div>
+              </div>
+              <div class="swatch" style="--color: #2e333d">
+                <div class="swatch-color"></div>
+                <div class="swatch-label"><strong>text-strong</strong><code>#2e333d</code></div>
+              </div>
+              <div class="swatch" style="--color: #d6d9e0">
+                <div class="swatch-color"></div>
+                <div class="swatch-label"><strong>border</strong><code>#d6d9e0</code></div>
+              </div>
+              <div class="swatch" style="--color: #ebecf0">
+                <div class="swatch-color"></div>
+                <div class="swatch-label"><strong>border-weak / remainder</strong><code>#ebecf0</code></div>
+              </div>
+              <div class="swatch" style="--color: #2942ff">
+                <div class="swatch-color"></div>
+                <div class="swatch-label"><strong>link</strong><code>#2942ff</code></div>
+              </div>
+            </div>
+            <div class="preview">
+              <div class="preview-panel">
+                <strong>Question form</strong>
+                <p>Raised custom surface with Buefy input controls.</p>
+                <div class="input-preview">Betreff</div>
+              </div>
+              <div class="preview-panel">
+                <strong>Score progress</strong>
+                <p>Green is earned; the quiet neutral is remaining.</p>
+                <div class="progress"><span></span></div>
+              </div>
+            </div>
+          </section>
+          <section class="section">
+            <h3>Semantic States</h3>
+            <div class="semantic-list">
+              <div class="semantic-preview warning"><span></span><div><strong>Warning</strong><p><code>#ead653</code> accent, <code>#fbf6db</code> surface</p></div></div>
+              <div class="semantic-preview success"><span></span><div><strong>Success</strong><p><code>#208d11</code> accent, <code>#dafad6</code> surface</p></div></div>
+              <div class="semantic-preview info"><span></span><div><strong>Information</strong><p><code>#66d1ff</code> accent, <code>#ccf0ff</code> surface</p></div></div>
+              <div class="semantic-preview danger"><span></span><div><strong>Danger</strong><p><code>#b82e2e</code> accent, <code>#f5d6d6</code> surface</p></div></div>
+            </div>
+          </section>
+        </article>
+
+        <article class="theme theme-dark">
+          <div class="theme-header">
+            <h2>Dark Theme</h2>
+            <p>Matching Bulma and Buefy's automatic dark scheme</p>
+          </div>
+          <section class="section">
+            <h3>Neutral Tokens</h3>
+            <div class="swatches">
+              <div class="swatch" style="--color: #14161a"><div class="swatch-color"></div><div class="swatch-label"><strong>surface</strong><code>#14161a</code></div></div>
+              <div class="swatch" style="--color: #181b20"><div class="swatch-color"></div><div class="swatch-label"><strong>surface-raised</strong><code>#181b20</code></div></div>
+              <div class="swatch" style="--color: #1d1f26"><div class="swatch-color"></div><div class="swatch-label"><strong>surface-sunken</strong><code>#1d1f26</code></div></div>
+              <div class="swatch" style="--color: #abb1bf"><div class="swatch-color"></div><div class="swatch-label"><strong>text</strong><code>#abb1bf</code></div></div>
+              <div class="swatch" style="--color: #ebecf0"><div class="swatch-color"></div><div class="swatch-label"><strong>text-strong</strong><code>#ebecf0</code></div></div>
+              <div class="swatch" style="--color: #353a46"><div class="swatch-color"></div><div class="swatch-label"><strong>border</strong><code>#353a46</code></div></div>
+              <div class="swatch" style="--color: #2e333d"><div class="swatch-color"></div><div class="swatch-label"><strong>border-weak / remainder</strong><code>#2e333d</code></div></div>
+              <div class="swatch" style="--color: #7585ff"><div class="swatch-color"></div><div class="swatch-label"><strong>link</strong><code>#7585ff</code></div></div>
+            </div>
+            <div class="preview">
+              <div class="preview-panel"><strong>Question form</strong><p>Raised dark surface preserves label contrast.</p><div class="input-preview">Betreff</div></div>
+              <div class="preview-panel"><strong>Score progress</strong><p>Remaining score stays quieter than earned score.</p><div class="progress"><span></span></div></div>
+            </div>
+          </section>
+          <section class="section dark-semantic">
+            <h3>Semantic States</h3>
+            <div class="semantic-list">
+              <div class="semantic-preview warning"><span></span><div><strong>Warning</strong><p>Muted <code>#ead653</code> tint over the raised dark surface</p></div></div>
+              <div class="semantic-preview success"><span></span><div><strong>Success</strong><p>Muted <code>#208d11</code> tint over the raised dark surface</p></div></div>
+              <div class="semantic-preview info"><span></span><div><strong>Information</strong><p>Muted <code>#66d1ff</code> tint over the raised dark surface</p></div></div>
+              <div class="semantic-preview danger"><span></span><div><strong>Danger</strong><p>Muted <code>#b82e2e</code> tint over the raised dark surface</p></div></div>
+            </div>
+          </section>
+        </article>
+      </div>
+
+      <section class="section" style="margin-top: 2rem; background: #f9fafb; border: 1px solid #d6d9e0">
+        <h2 style="font-size: 1.5rem">Fixed Code Editor Palette</h2>
+        <p class="usage">These colors are intentionally stable across application schemes.</p>
+        <div class="code-preview">
+          <header>solution.cpp</header>
+          <pre>int main()
+{
+    return 0;
+}</pre>
+        </div>
+        <div class="swatches" style="margin-top: 1rem">
+          <div class="swatch" style="--color: #17191e"><div class="swatch-color"></div><div class="swatch-label"><strong>code surface</strong><code>#17191e</code></div></div>
+          <div class="swatch" style="--color: #13181d"><div class="swatch-color"></div><div class="swatch-label"><strong>code toolbar</strong><code>#13181d</code></div></div>
+          <div class="swatch" style="--color: #ededed"><div class="swatch-color"></div><div class="swatch-label"><strong>code text / output</strong><code>#ededed</code></div></div>
+          <div class="swatch" style="--color: #606060"><div class="swatch-color"></div><div class="swatch-label"><strong>output heading</strong><code>#606060</code></div></div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

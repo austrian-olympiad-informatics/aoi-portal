@@ -19,22 +19,13 @@
   </section>
 </template>
 
-<script lang="ts">
-import { Component, VModel, Vue } from "vue-property-decorator";
-import { PropType } from "vue";
-
+<script setup lang="ts">
 export interface LoginInputData {
   email: string;
   password: string;
 }
 
-@Component
-export default class LoginForm extends Vue {
-  @VModel({
-    type: Object as PropType<LoginInputData>,
-  })
-  data!: LoginInputData;
-}
+const data = defineModel<LoginInputData>({ required: true });
 </script>
 
 <style scoped></style>

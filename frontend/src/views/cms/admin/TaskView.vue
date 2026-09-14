@@ -194,7 +194,9 @@
                     <CodeMirror
                       :editable="false"
                       :readonly="true"
-                      :value="testcaseDigests.get(props.row.input_digest) || ''"
+                      :model-value="
+                        testcaseDigests.get(props.row.input_digest) || ''
+                      "
                     />
                   </div>
                   <div class="testcase testcase-output">
@@ -207,7 +209,7 @@
                     <CodeMirror
                       :editable="false"
                       :readonly="true"
-                      :value="
+                      :model-value="
                         testcaseDigests.get(props.row.output_digest) || ''
                       "
                     />
@@ -222,7 +224,10 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
 import cmsadmin from "@/services/cmsadmin";
 import {
   AdminAttachment,
@@ -236,97 +241,77 @@ import {
   AdminUserEvalsPaginated,
 } from "@/types/cmsadmin";
 import { downloadBlob } from "@/util/download";
-import { formatDateShort } from "@/util/dt";
-import { Component, Vue } from "vue-property-decorator";
 import CodeMirror from "@/components/CodeMirror.vue";
 
-@Component({
-  components: {
-    CodeMirror,
-  },
-})
-export default class AdminTaskView extends Vue {
-  get taskId(): number {
-    return +this.$route.params.taskId;
-  }
-  task: AdminTaskDetailed | null = null;
-  submissions: AdminSubmissionsPaginated | null = null;
-  userEvals: AdminUserEvalsPaginated | null = null;
+const route = useRoute();
 
-  get dataset() {
-    return this.task === null ? null : this.task.active_dataset;
-  }
+const taskId = computed(() => +route.params.taskId);
+const task = ref<AdminTaskDetailed | null>(null);
+const submissions = ref<AdminSubmissionsPaginated | null>(null);
+const userEvals = ref<AdminUserEvalsPaginated | null>(null);
+const testcaseDigests = ref(new Map<string, string>());
+const testcaseKey = ref(0);
 
-  async loadTask() {
-    this.task = await cmsadmin.getTask(this.taskId);
-  }
-  async loadSubmissions() {
-    this.submissions = await cmsadmin.getSubmissions({
-      taskId: this.taskId,
-      perPage: 0,
-    });
-  }
-  async loadUserEvals() {
-    this.userEvals = await cmsadmin.getUserEvals({
-      taskId: this.taskId,
-      perPage: 0,
-    });
-  }
-  async mounted() {
-    await Promise.all([
-      this.loadTask(),
-      this.loadSubmissions(),
-      this.loadUserEvals(),
-    ]);
-  }
-  formatDate(date: string) {
-    return formatDateShort(new Date(), new Date(date));
-  }
+const dataset = computed(() =>
+  task.value === null ? null : task.value.active_dataset,
+);
 
-  async downloadStatement(stat: AdminStatement) {
-    const blob = await cmsadmin.getDigest(stat.digest);
-    downloadBlob(
-      blob,
-      `${this.task!.name} (${stat.language.toUpperCase()}).pdf`,
-    );
-  }
-  async downloadAttachment(att: AdminAttachment) {
-    const blob = await cmsadmin.getDigest(att.digest);
-    downloadBlob(blob, att.filename);
-  }
-  async downloadManager(man: AdminManager) {
-    const blob = await cmsadmin.getDigest(man.digest);
-    downloadBlob(blob, man.filename);
-  }
-  async downloadTestManager(man: AdminTestManager) {
-    const blob = await cmsadmin.getDigest(man.digest);
-    downloadBlob(blob, man.filename);
-  }
-  async downloadLanguageTemplate(lt: AdminLanguageTemplate) {
-    const blob = await cmsadmin.getDigest(lt.digest);
-    downloadBlob(blob, lt.filename);
-  }
+async function loadTask() {
+  task.value = await cmsadmin.getTask(taskId.value);
+}
+async function loadSubmissions() {
+  submissions.value = await cmsadmin.getSubmissions({
+    taskId: taskId.value,
+    perPage: 0,
+  });
+}
+async function loadUserEvals() {
+  userEvals.value = await cmsadmin.getUserEvals({
+    taskId: taskId.value,
+    perPage: 0,
+  });
+}
 
-  testcaseDigests: Map<string, string> = new Map();
-  testcaseKey = 0;
+onMounted(async () => {
+  await Promise.all([loadTask(), loadSubmissions(), loadUserEvals()]);
+});
 
-  async testcaseOpen(tc: AdminTestcase) {
-    await Promise.all(
-      [tc.input_digest, tc.output_digest].map(async (digest) => {
-        const blob = await cmsadmin.getDigest(digest);
-        this.testcaseDigests.set(digest, await blob.text());
-      }),
-    );
-    this.testcaseKey += 1;
-  }
-  downloadTestcaseInput(tc: AdminTestcase) {
-    const blob = new Blob([this.testcaseDigests.get(tc.input_digest)!]);
-    downloadBlob(blob, `${tc.codename}.txt`);
-  }
-  downloadTestcaseOutput(tc: AdminTestcase) {
-    const blob = new Blob([this.testcaseDigests.get(tc.output_digest)!]);
-    downloadBlob(blob, `${tc.codename}.txt`);
-  }
+async function downloadStatement(stat: AdminStatement) {
+  const blob = await cmsadmin.getDigest(stat.digest);
+  downloadBlob(
+    blob,
+    `${task.value!.name} (${stat.language.toUpperCase()}).pdf`,
+  );
+}
+async function downloadAttachment(att: AdminAttachment) {
+  const blob = await cmsadmin.getDigest(att.digest);
+  downloadBlob(blob, att.filename);
+}
+async function downloadManager(man: AdminManager) {
+  const blob = await cmsadmin.getDigest(man.digest);
+  downloadBlob(blob, man.filename);
+}
+async function downloadTestManager(man: AdminTestManager) {
+  const blob = await cmsadmin.getDigest(man.digest);
+  downloadBlob(blob, man.filename);
+}
+async function downloadLanguageTemplate(lt: AdminLanguageTemplate) {
+  const blob = await cmsadmin.getDigest(lt.digest);
+  downloadBlob(blob, lt.filename);
+}
+
+async function testcaseOpen(tc: AdminTestcase) {
+  await Promise.all(
+    [tc.input_digest, tc.output_digest].map(async (digest) => {
+      const blob = await cmsadmin.getDigest(digest);
+      testcaseDigests.value.set(digest, await blob.text());
+    }),
+  );
+  testcaseKey.value += 1;
+}
+function downloadTestcaseInput(tc: AdminTestcase) {
+  const blob = new Blob([testcaseDigests.value.get(tc.input_digest)!]);
+  downloadBlob(blob, `${tc.codename}.txt`);
 }
 </script>
 
@@ -357,7 +342,7 @@ export default class AdminTaskView extends Vue {
   position: relative;
 }
 .testcase-input {
-  border-right: 2px solid #17191e;
+  border-right: 2px solid var(--aoi-code-surface);
 }
 .download-button {
   position: absolute;

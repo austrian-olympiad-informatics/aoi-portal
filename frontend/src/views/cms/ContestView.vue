@@ -80,70 +80,54 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { Contest, ContestTaskScore, ContestTaskScores } from "@/types/cms";
 import cms from "@/services/cms";
-import { Component, Vue } from "vue-property-decorator";
 import CheckNotifications from "./CheckNotifications.vue";
 import ContestStartStop from "./ContestStartStop.vue";
 import NotificationsSection from "./NotificationsSection.vue";
 import PointsBar from "./PointsBar.vue";
 
-@Component({
-  components: {
-    CheckNotifications,
-    ContestStartStop,
-    NotificationsSection,
-    PointsBar,
-  },
-})
-export default class ContestView extends Vue {
-  get contestName(): string {
-    return this.$route.params.contestName;
-  }
-  contest: Contest | null = null;
-  scores: ContestTaskScores | null = null;
+const route = useRoute();
 
-  async loadContest() {
-    this.contest = await cms.getContest(this.contestName);
-  }
-  async loadScores() {
-    this.scores = await cms.getContestScores(this.contestName);
-  }
+const contestName = computed(() => route.params.contestName as string);
+const contest = ref<Contest | null>(null);
+const scores = ref<ContestTaskScores | null>(null);
 
-  get isActive(): boolean {
-    return this.contest === null ? false : this.contest.is_active;
-  }
+async function loadContest() {
+  contest.value = await cms.getContest(contestName.value);
+}
+async function loadScores() {
+  scores.value = await cms.getContestScores(contestName.value);
+}
 
-  async mounted() {
-    await Promise.all([this.loadContest(), this.loadScores()]);
-  }
+onMounted(async () => {
+  await Promise.all([loadContest(), loadScores()]);
+});
 
-  get tasksWithScores() {
-    if (this.contest === null || this.contest.is_active === false) return null;
-    const scoreByTask = new Map(this.scores?.tasks.map((s) => [s.task, s]));
-    return this.contest.tasks.map((t) => {
-      return {
-        task: t,
-        score: scoreByTask.get(t.name) || null,
-      };
-    });
-  }
+const tasksWithScores = computed(() => {
+  if (contest.value === null || contest.value.is_active === false) return null;
+  const scoreByTask = new Map(scores.value?.tasks.map((s) => [s.task, s]));
+  return contest.value.tasks.map((t) => ({
+    task: t,
+    score: scoreByTask.get(t.name) || null,
+  }));
+});
 
-  getSubtasks(row: ContestTaskScore) {
-    return row.subtask_max_scores?.map((x, i) => {
-      return {
-        max_score: x,
-        score: row.subtask_scores?.[i] || 0.0,
-      };
-    });
-  }
+function getSubtasks(row: ContestTaskScore) {
+  return row.subtask_max_scores?.map((x, i) => ({
+    max_score: x,
+    score: row.subtask_scores?.[i] || 0.0,
+  }));
 }
 </script>
 
 <style scoped>
 .question-reply {
-  border-top: 1px solid #3e8ed085;
+  border-top: 1px solid var(--aoi-info-divider);
   margin-top: 10px;
   padding-top: 10px;
 }
@@ -153,8 +137,8 @@ export default class ContestView extends Vue {
 .question-form {
   margin-bottom: 1.5rem;
   padding: 19px;
-  background-color: #f5f5f5;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: var(--aoi-surface-raised);
+  border: 1px solid var(--aoi-border);
   border-radius: 4px;
 }
 </style>

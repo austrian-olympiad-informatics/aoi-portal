@@ -11,10 +11,3 @@
     </section>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-
-@Component
-export default class CenterBoxLayout extends Vue {}
-</script>

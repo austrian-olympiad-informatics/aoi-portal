@@ -12,70 +12,69 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+<script setup lang="ts">
 import confetti from "canvas-confetti";
 
-@Component
-export default class SuccessModal extends Vue {
-  @Prop({
-    type: String,
-  })
-  headerText!: string;
-  @Prop({ type: String, default: null })
-  memeUrl!: string | null;
+const props = withDefaults(
+  defineProps<{
+    headerText: string;
+    memeUrl?: string | null;
+  }>(),
+  { memeUrl: null },
+);
 
-  onAnimationEnd() {
-    this.showConfetti();
-  }
-  memeUrlLoaded() {
-    if (this.memeUrl !== null) URL.revokeObjectURL(this.memeUrl);
-  }
-  showConfetti() {
-    const count = 200;
-    const defaults = {
-      origin: { y: 0.9 },
-    };
+function onAnimationEnd() {
+  showConfetti();
+}
 
-    const fire = (
-      particleRatio: number,
-      opts: {
-        spread: number;
-        startVelocity?: number;
-        decay?: number;
-        scalar?: number;
-      },
-    ) => {
-      confetti(
-        Object.assign({}, defaults, opts, {
-          particleCount: Math.floor(count * particleRatio),
-        }),
-      );
-    };
+function memeUrlLoaded() {
+  if (props.memeUrl != null) URL.revokeObjectURL(props.memeUrl);
+}
 
-    fire(0.25, {
-      spread: 26,
-      startVelocity: 55,
-    });
-    fire(0.2, {
-      spread: 60,
-    });
-    fire(0.35, {
-      spread: 100,
-      decay: 0.91,
-      scalar: 0.8,
-    });
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 25,
-      decay: 0.92,
-      scalar: 1.2,
-    });
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 45,
-    });
-  }
+function showConfetti() {
+  const count = 200;
+  const defaults = {
+    origin: { y: 0.9 },
+  };
+
+  const fire = (
+    particleRatio: number,
+    opts: {
+      spread: number;
+      startVelocity?: number;
+      decay?: number;
+      scalar?: number;
+    },
+  ) => {
+    confetti(
+      Object.assign({}, defaults, opts, {
+        particleCount: Math.floor(count * particleRatio),
+      }),
+    );
+  };
+
+  fire(0.25, {
+    spread: 26,
+    startVelocity: 55,
+  });
+  fire(0.2, {
+    spread: 60,
+  });
+  fire(0.35, {
+    spread: 100,
+    decay: 0.91,
+    scalar: 0.8,
+  });
+  fire(0.1, {
+    spread: 120,
+    startVelocity: 25,
+    decay: 0.92,
+    scalar: 1.2,
+  });
+  fire(0.1, {
+    spread: 120,
+    startVelocity: 45,
+  });
 }
 </script>
 
@@ -83,11 +82,11 @@ export default class SuccessModal extends Vue {
 .wrapper {
   display: flex;
   justify-content: center;
-  color: rgb(237, 237, 237) !important;
+  color: var(--aoi-code-text) !important;
   text-align: center;
 }
 h1 {
-  color: rgb(237, 237, 237);
+  color: var(--aoi-code-text);
 }
 .meme-img {
   max-width: 60vw;

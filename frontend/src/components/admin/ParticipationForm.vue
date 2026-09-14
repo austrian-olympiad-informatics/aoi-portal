@@ -5,13 +5,13 @@
         :data="filteredUsers"
         :disabled="!userEditable"
         :loading="users === null"
-        :value="userValue"
+        v-model="inputText"
         field="id"
         :custom-formatter="formatUser"
         required
         open-on-focus
         @typing="onTyping"
-        @select="(u) => (data.user_id = u.id)"
+        @select="(u) => (data.user_id = u?.id ?? null)"
       >
       </b-autocomplete>
     </b-field>
@@ -25,12 +25,12 @@
   </section>
 </template>
 
-<script lang="ts">
-import { Component, Prop, VModel, Vue } from "vue-property-decorator";
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
 import { AdminUser, AdminUsers } from "@/types/admin";
 import NumberInput from "../common/NumberInput.vue";
 import admin from "@/services/admin";
-import { PropType } from "vue";
 
 export interface ParticipationFormData {
   user_id: number | null;
@@ -38,58 +38,42 @@ export interface ParticipationFormData {
   manual_password: string | null;
 }
 
-@Component({
-  components: {
-    NumberInput,
-  },
-})
-export default class ParticipationForm extends Vue {
-  @VModel({
-    type: Object as PropType<ParticipationFormData>,
-  })
-  data!: ParticipationFormData;
+const data = defineModel<ParticipationFormData>({ required: true });
 
-  @Prop({
-    default: false,
-  })
-  userEditable!: boolean;
+withDefaults(defineProps<{ userEditable?: boolean }>(), {
+  userEditable: false,
+});
 
-  users: AdminUsers | null = null;
-  filterText: string = "";
+const users = ref<AdminUsers | null>(null);
+const filterText = ref("");
+const inputText = ref("");
 
-  onTyping(text: string) {
-    this.filterText = text;
+onMounted(async () => {
+  users.value = await admin.getUsers();
+  if (data.value.user_id !== null) {
+    const user = users.value.find((u) => u.id === data.value.user_id);
+    if (user) inputText.value = formatUser(user);
   }
+});
 
-  get filteredUsers(): AdminUser[] {
-    if (this.users === null) return [];
-    const search = this.filterText.toLowerCase();
-    if (search === "") return this.users;
-    return this.users.filter(
-      (u) =>
-        u.first_name.toLowerCase().includes(search) ||
-        u.last_name.toLowerCase().includes(search) ||
-        u.email.toLowerCase().includes(search),
-    );
-  }
+function onTyping(text: string) {
+  filterText.value = text;
+}
 
-  formatUser(user: AdminUser): string {
-    return `${user.first_name} ${user.last_name} (${user.email})`;
-  }
+const filteredUsers = computed<AdminUser[]>(() => {
+  if (users.value === null) return [];
+  const search = filterText.value.toLowerCase();
+  if (search === "") return users.value;
+  return users.value.filter(
+    (u) =>
+      u.first_name.toLowerCase().includes(search) ||
+      u.last_name.toLowerCase().includes(search) ||
+      u.email.toLowerCase().includes(search),
+  );
+});
 
-  get userValue(): string {
-    if (this.data.user_id === null || this.users === null) return "";
-    const uidMap = new Map(this.users.map((u) => [u.id, u]));
-    return this.formatUser(uidMap.get(this.data.user_id)!);
-  }
-
-  async loadUsers() {
-    this.users = await admin.getUsers();
-  }
-
-  async mounted() {
-    await this.loadUsers();
-  }
+function formatUser(user: AdminUser): string {
+  return `${user.first_name} ${user.last_name} (${user.email})`;
 }
 </script>
 

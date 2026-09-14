@@ -64,9 +64,10 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref } from "vue";
+import { useToast } from "buefy";
 import admin from "@/services/admin";
-import { Component, Vue } from "vue-property-decorator";
 import RichTextEditor from "@/components/RichTextEditor.vue";
 
 interface Address {
@@ -74,33 +75,28 @@ interface Address {
   name: string;
 }
 
-@Component({
-  components: {
-    RichTextEditor,
-  },
-})
-export default class NewsletterMailView extends Vue {
-  subject = "";
-  reply_to: Address[] = [];
-  content = "";
-  loading = false;
+const toast = useToast();
 
-  async submit() {
-    this.loading = true;
-    try {
-      await admin.newsletterEmail({
-        subject: this.subject,
-        content: this.content,
-        reply_to: this.reply_to,
-      });
-    } finally {
-      this.loading = false;
-    }
-    this.$buefy.toast.open({
-      message: "Newsletter has been sent!",
-      type: "is-success",
+const subject = ref("");
+const reply_to = ref<Address[]>([]);
+const content = ref("");
+const loading = ref(false);
+
+async function submit() {
+  loading.value = true;
+  try {
+    await admin.newsletterEmail({
+      subject: subject.value,
+      content: content.value,
+      reply_to: reply_to.value,
     });
+  } finally {
+    loading.value = false;
   }
+  toast.open({
+    message: "Newsletter has been sent!",
+    type: "is-success",
+  });
 }
 </script>
 
@@ -109,7 +105,7 @@ export default class NewsletterMailView extends Vue {
   min-height: 400px;
 }
 .preview {
-  background-color: white;
+  background-color: var(--aoi-mail-surface);
   font-size: 13pt;
 }
 .preview-inside {
@@ -127,28 +123,28 @@ export default class NewsletterMailView extends Vue {
     "Helvetica",
     "Arial",
     sans-serif;
-  color: #4a4a4a;
+  color: var(--aoi-mail-text);
   font-size: 1em;
   font-weight: 400;
   line-height: 1.5;
 }
 .preview-wrapper {
-  background: #dddddd;
+  background: var(--aoi-mail-quote-surface);
   padding: 15px;
 }
 
 .preview-bottom {
-  background: #8a151b;
-  color: #ffffff;
+  background: var(--bulma-primary);
+  color: var(--bulma-primary-invert);
   padding: 40px 20px;
   font-size: 10pt;
 }
 .preview-bottom a {
-  color: #93a9de;
+  color: var(--aoi-mail-footer-link);
   text-decoration: underline;
 }
 .preview .content {
-  background: #ffffff;
+  background: var(--aoi-mail-surface);
   padding: 40px;
   text-align: justify;
   line-height: 1.3;

@@ -102,10 +102,12 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onMounted } from "vue";
+import { useToast, useModal } from "buefy";
 import admin from "@/services/admin";
 import { AdminUser, AdminUsers } from "@/types/admin";
-import { Component, Vue } from "vue-property-decorator";
 import RichTextEditor from "@/components/RichTextEditor.vue";
 import UserAddFromContestModal from "@/components/admin/UserAddFromContestModal.vue";
 import UserAddFromGroupModal from "@/components/admin/UserAddFromGroupModal.vue";
@@ -115,130 +117,124 @@ interface Address {
   name: string;
 }
 
-@Component({
-  components: {
-    RichTextEditor,
+const toast = useToast();
+const modal = useModal();
+
+const subject = ref("");
+const reply_to = ref<Address[]>([]);
+const recipients = ref<number[]>([]);
+const content = ref("");
+const loading = ref(false);
+const users = ref<AdminUsers | null>(null);
+const taginput = ref(null);
+
+onMounted(async () => {
+  users.value = await admin.getUsers();
+});
+
+const filteredRecipients = computed<AdminUser[]>(() => {
+  const uids = new Set(recipients.value);
+  return users.value!.filter((u) => !uids.has(u.id));
+});
+
+const selectedRecipients = computed<AdminUser[]>({
+  get: () => {
+    const idToUser = new Map(users.value!.map((u) => [u.id, u]));
+    return recipients.value.map((i) => idToUser.get(i)!);
   },
-})
-export default class UserMailView extends Vue {
-  subject = "";
-  reply_to: Address[] = [];
-  recipients: number[] = [];
-  content = "";
-  loading = false;
+  set: (selected: AdminUser[]) => {
+    recipients.value = selected.map((u) => u.id);
+  },
+});
 
-  users: AdminUsers | null = null;
+const previewContent = computed<string>(() =>
+  content.value
+    .replaceAll("%VORNAME%", "Tom")
+    .replaceAll("%NACHNAME%", "Rainer"),
+);
 
-  async loadUsers() {
-    this.users = await admin.getUsers();
-  }
+async function doAddFromContest(contestUuid: string) {
+  const contest = await admin.getContest(contestUuid);
+  const uids = contest.participations
+    .map((p) => p.user.id)
+    .filter((uid) => !recipients.value.includes(uid));
+  recipients.value.push(...uids);
+}
 
-  async mounted() {
-    await this.loadUsers();
-  }
-  async doAddFromContest(contestUuid: string) {
-    const contest = await admin.getContest(contestUuid);
-    const uids = contest.participations
-      .map((p) => p.user.id)
-      .filter((uid) => !this.recipients.includes(uid));
-    this.recipients.push(...uids);
-  }
-  async doAddFromGroup(groupId: number) {
-    const group = await admin.getGroup(groupId);
-    const uids = group.users
-      .map((u) => u.id)
-      .filter((uid) => !this.recipients.includes(uid));
-    this.recipients.push(...uids);
-  }
+async function doAddFromGroup(groupId: number) {
+  const group = await admin.getGroup(groupId);
+  const uids = group.users
+    .map((u) => u.id)
+    .filter((uid) => !recipients.value.includes(uid));
+  recipients.value.push(...uids);
+}
 
-  addFromContest() {
-    this.$buefy.modal.open({
-      parent: this,
-      component: UserAddFromContestModal,
-      hasModalCard: true,
-      trapFocus: true,
-      events: {
-        submit: (val: string) => this.doAddFromContest(val),
-      },
+function addFromContest() {
+  modal.open({
+    component: UserAddFromContestModal,
+    hasModalCard: true,
+    trapFocus: true,
+    events: {
+      submit: (val: string) => doAddFromContest(val),
+    },
+  });
+}
+
+function addFromGroup() {
+  modal.open({
+    component: UserAddFromGroupModal,
+    hasModalCard: true,
+    trapFocus: true,
+    events: {
+      submit: (val: number) => doAddFromGroup(val),
+    },
+  });
+}
+
+function downloadCSV() {
+  const encodeRow = (row: string[]): string => {
+    return row
+      .map((s) => {
+        s = s.replace(/"/g, '""');
+        if (s.search(/("|,|\n)/g) >= 0) s = `"${s}"`;
+        return s;
+      })
+      .join(",");
+  };
+  const rows = [["First Name", "Last Name", "Primary Email"]];
+  rows.push(
+    ...selectedRecipients.value.map((u) => [
+      u.first_name,
+      u.last_name,
+      u.email,
+    ]),
+  );
+  const csvContent = rows.map((r) => encodeRow(r)).join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv" });
+  const anchor = document.createElement("a");
+  anchor.href = URL.createObjectURL(blob);
+  anchor.download = "mailing-list.csv";
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+}
+
+async function submit() {
+  loading.value = true;
+  try {
+    await admin.userEmail({
+      recipients: recipients.value,
+      subject: subject.value,
+      content: content.value,
+      reply_to: reply_to.value,
     });
+  } finally {
+    loading.value = false;
   }
-
-  addFromGroup() {
-    this.$buefy.modal.open({
-      parent: this,
-      component: UserAddFromGroupModal,
-      hasModalCard: true,
-      trapFocus: true,
-      events: {
-        submit: (val: number) => this.doAddFromGroup(val),
-      },
-    });
-  }
-
-  downloadCSV() {
-    // https://stackoverflow.com/a/20623188
-    const encodeRow = (row: string[]): string => {
-      return row
-        .map((s) => {
-          s = s.replace(/"/g, '""');
-          if (s.search(/("|,|\n)/g) >= 0) s = `"${s}"`;
-          return s;
-        })
-        .join(",");
-    };
-    const rows = [["First Name", "Last Name", "Primary Email"]];
-    rows.push(
-      ...this.selectedRecipients.map((u) => [
-        u.first_name,
-        u.last_name,
-        u.email,
-      ]),
-    );
-    const csvContent = rows.map((r) => encodeRow(r)).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const anchor = document.createElement("a");
-    anchor.href = URL.createObjectURL(blob);
-    anchor.download = "mailing-list.csv";
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-  }
-
-  async submit() {
-    this.loading = true;
-    try {
-      await admin.userEmail({
-        recipients: this.recipients,
-        subject: this.subject,
-        content: this.content,
-        reply_to: this.reply_to,
-      });
-    } finally {
-      this.loading = false;
-    }
-    this.$buefy.toast.open({
-      message: "Email has been sent!",
-      type: "is-success",
-    });
-  }
-
-  get filteredRecipients(): AdminUser[] {
-    const uids = new Set(this.recipients);
-    return this.users!.filter((u) => !uids.has(u.id));
-  }
-  get selectedRecipients(): AdminUser[] {
-    const idToUser = new Map(this.users!.map((u) => [u.id, u]));
-    return this.recipients.map((i) => idToUser.get(i)!);
-  }
-  set selectedRecipients(selected: AdminUser[]) {
-    this.recipients = selected.map((u) => u.id);
-  }
-
-  get previewContent(): string {
-    return this.content
-      .replaceAll("%VORNAME%", "Tom")
-      .replaceAll("%NACHNAME%", "Rainer");
-  }
+  toast.open({
+    message: "Email has been sent!",
+    type: "is-success",
+  });
 }
 </script>
 
@@ -247,7 +243,7 @@ export default class UserMailView extends Vue {
   min-height: 400px;
 }
 .preview {
-  background-color: white;
+  background-color: var(--aoi-mail-surface);
   font-size: 13pt;
 }
 .preview-inside {
@@ -265,28 +261,28 @@ export default class UserMailView extends Vue {
     "Helvetica",
     "Arial",
     sans-serif;
-  color: #4a4a4a;
+  color: var(--aoi-mail-text);
   font-size: 1em;
   font-weight: 400;
   line-height: 1.5;
 }
 .preview-wrapper {
-  background: #dddddd;
+  background: var(--aoi-mail-quote-surface);
   padding: 15px;
 }
 
 .preview-bottom {
-  background: #8a151b;
-  color: #ffffff;
+  background: var(--bulma-primary);
+  color: var(--bulma-primary-invert);
   padding: 40px 20px;
   font-size: 10pt;
 }
 .preview-bottom a {
-  color: #93a9de;
+  color: var(--aoi-mail-footer-link);
   text-decoration: underline;
 }
 .preview .content {
-  background: #ffffff;
+  background: var(--aoi-mail-surface);
   padding: 40px;
   text-align: justify;
   line-height: 1.3;

@@ -16,31 +16,30 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
 
-@Component
-export default class Dropzone extends Vue {
-  dropzoneActive = false;
+const emit = defineEmits<{ drop: [files: FileList] }>();
 
-  dropzoneDragenter(e: DragEvent) {
-    this.dropzoneActive = true;
-    if (e.dataTransfer !== null) e.dataTransfer.dropEffect = "copy";
-    e.preventDefault();
-  }
-  dropzoneDragover(e: DragEvent) {
-    this.dropzoneActive = true;
-    if (e.dataTransfer !== null) e.dataTransfer.dropEffect = "copy";
-    e.preventDefault();
-  }
-  dropzoneDragleave() {
-    this.dropzoneActive = false;
-  }
-  dropzoneDrop(e: DragEvent) {
-    this.dropzoneActive = false;
-    if (e.dataTransfer === null) return;
-    this.$emit("drop", e.dataTransfer.files);
-  }
+const dropzoneActive = ref(false);
+
+function dropzoneDragenter(e: DragEvent) {
+  dropzoneActive.value = true;
+  if (e.dataTransfer !== null) e.dataTransfer.dropEffect = "copy";
+  e.preventDefault();
+}
+function dropzoneDragover(e: DragEvent) {
+  dropzoneActive.value = true;
+  if (e.dataTransfer !== null) e.dataTransfer.dropEffect = "copy";
+  e.preventDefault();
+}
+function dropzoneDragleave() {
+  dropzoneActive.value = false;
+}
+function dropzoneDrop(e: DragEvent) {
+  dropzoneActive.value = false;
+  if (e.dataTransfer === null) return;
+  emit("drop", e.dataTransfer.files);
 }
 </script>
 
@@ -56,7 +55,7 @@ export default class Dropzone extends Vue {
   top: 0;
   left: 0;
   z-index: 100;
-  background: rgba(0, 123, 255, 0.329);
-  border: 11px dashed #8a151b;
+  background: var(--aoi-dropzone-overlay);
+  border: 11px dashed var(--bulma-primary);
 }
 </style>

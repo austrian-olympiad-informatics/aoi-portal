@@ -1,5 +1,12 @@
 import { AxiosError } from "axios";
-import { NotificationProgrammatic as Notification } from "buefy";
+import { NotificationProgrammatic } from "buefy";
+import type { App } from "vue";
+
+let notification: NotificationProgrammatic;
+
+export const initNotification = (app: App) => {
+  notification = new NotificationProgrammatic(app);
+};
 
 type ErrorCode =
   | "already_logged_in"
@@ -62,7 +69,7 @@ export const callHandler = (handler: string | (() => void) | undefined) => {
 };
 
 export const showErrorNotification = (message: string) => {
-  Notification.open({
+  notification.open({
     message: message,
     type: "is-danger",
     hasIcon: true,

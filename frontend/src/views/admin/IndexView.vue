@@ -49,13 +49,6 @@
   </section>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-
-@Component
-export default class IndexView extends Vue {}
-</script>
-
 <style scoped>
 section {
   padding: 2rem 1.5rem;

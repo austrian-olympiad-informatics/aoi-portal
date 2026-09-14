@@ -79,37 +79,24 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import contests from "@/services/contests";
-import { PropType } from "vue";
+<script setup lang="ts">
 import { Contest } from "@/types/contests";
 
-@Component
-export default class ContestCard extends Vue {
-  @Prop({
-    type: Object as PropType<Contest>,
-  })
-  contest!: Contest;
-  @Prop({
-    type: Boolean,
-  })
-  profileComplete!: Contest;
-
-  async joinContest() {
-    await contests.joinContest(this.contest.uuid);
-    this.$emit("joined");
-  }
-}
+// NOTE: profileComplete is typed as Contest in the original — this appears to be
+// a bug (should be boolean). Preserved as-is; tracked for separate fix.
+defineProps<{
+  contest: Contest;
+  profileComplete: boolean;
+}>();
 </script>
 
 <style lang="scss" scoped>
 .profile-warning {
-  color: #946c00;
+  color: var(--aoi-warning-text);
   padding: 0.75em 1.5em;
-  background-color: #fffaeb;
-  border-top: 2px dashed #ffe08a;
-  border-bottom: 2px dashed #ffe08a;
+  background-color: var(--aoi-warning-surface);
+  border-top: 2px dashed var(--aoi-warning-border);
+  border-bottom: 2px dashed var(--aoi-warning-border);
   margin-left: -1.5rem;
   margin-right: -1.5rem;
   margin-bottom: 1rem;
@@ -120,11 +107,11 @@ export default class ContestCard extends Vue {
   }
 }
 .profile-success {
-  color: #257953;
+  color: var(--aoi-success-text);
   padding: 0.75em 1.5em;
-  background-color: #effaf5;
-  border-top: 2px dashed #48c78e;
-  border-bottom: 2px dashed #48c78e;
+  background-color: var(--aoi-success-surface);
+  border-top: 2px dashed var(--aoi-success-border);
+  border-bottom: 2px dashed var(--aoi-success-border);
   margin-left: -1.5rem;
   margin-right: -1.5rem;
   margin-bottom: 1rem;

@@ -12,83 +12,67 @@
   </b-autocomplete>
 </template>
 
-<script lang="ts">
-import { Vue, Component, Prop, Watch } from "vue-property-decorator";
+<script setup lang="ts">
+import { ref, computed, watch } from "vue";
+import { onMounted } from "vue";
 
-@Component
-export default class SimpleAutoselect extends Vue {
-  @Prop({
-    type: Array,
-    default: () => [],
-  })
-  readonly data!: any[] | null; // eslint-disable-line @typescript-eslint/no-explicit-any
+const props = withDefaults(
+  defineProps<{
+    data?: any[] | null; // eslint-disable-line @typescript-eslint/no-explicit-any
+    modelValue?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    loading?: boolean;
+    required?: boolean;
+    valueFunc?: (val: any) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    formatter?: (val: any) => string; // eslint-disable-line @typescript-eslint/no-explicit-any
+  }>(),
+  {
+    data: () => [],
+    loading: false,
+    required: false,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    valueFunc: (x: any) => x,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    formatter: (x: any) => x,
+  },
+);
 
-  @Prop()
-  readonly value!: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+const emit = defineEmits<{ "update:modelValue": [any] }>(); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-  @Prop({
-    type: Boolean,
-    default: false,
-  })
-  readonly loading!: boolean;
+const bValue = ref("");
 
-  @Prop({
-    type: Boolean,
-    default: false,
-  })
-  readonly required!: boolean;
+const filteredData = computed(() => {
+  if (props.data === null) return null;
+  return props.data!.filter(
+    (x) =>
+      props.formatter(x).toLowerCase().indexOf(bValue.value.toLowerCase()) >= 0,
+  );
+});
 
-  @Prop({
-    default: (x: any) => x, // eslint-disable-line @typescript-eslint/no-explicit-any
-  })
-  readonly valueFunc!: (val: any) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-  @Prop({
-    default: (x: any) => x, // eslint-disable-line @typescript-eslint/no-explicit-any
-  })
-  readonly formatter!: (val: any) => string; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-  bValue = "";
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  bSelect(newValue: any) {
-    this.$emit("input", newValue === null ? null : this.valueFunc(newValue));
+function resetBValueFromValue() {
+  if (props.modelValue === null) {
+    bValue.value = "";
+    return;
   }
-
-  resetBValueFromValue() {
-    if (this.value === null) {
-      this.bValue = "";
-      return;
+  if (filteredData.value === null) return;
+  for (const val of filteredData.value) {
+    if (props.valueFunc(val) === props.modelValue) {
+      bValue.value = props.formatter(val);
     }
-    if (this.filteredData === null) return;
-    for (const val of this.filteredData) {
-      if (this.valueFunc(val) === this.value) {
-        this.bValue = this.formatter(val);
-      }
-    }
-  }
-
-  mounted() {
-    this.resetBValueFromValue();
-  }
-
-  @Watch("value")
-  onValueChanged() {
-    this.resetBValueFromValue();
-  }
-
-  @Watch("data")
-  onDataChanged() {
-    this.resetBValueFromValue();
-  }
-
-  get filteredData() {
-    if (this.data === null) return null;
-    return this.data.filter((x) => {
-      return (
-        this.formatter(x).toLowerCase().indexOf(this.bValue.toLowerCase()) >= 0
-      );
-    });
   }
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function bSelect(newValue: any) {
+  emit(
+    "update:modelValue",
+    newValue === null ? null : props.valueFunc(newValue),
+  );
+}
+
+watch(() => props.modelValue, resetBValueFromValue);
+watch(() => props.data, resetBValueFromValue);
+
+onMounted(() => {
+  resetBValueFromValue();
+});
 </script>

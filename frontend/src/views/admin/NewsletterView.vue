@@ -52,31 +52,24 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
 import { AdminNewsletterSubscribers } from "@/types/admin";
-import AdminCard from "@/components/admin/AdminCard.vue";
 import admin from "@/services/admin";
 
-@Component({
-  components: {
-    AdminCard,
-  },
-})
-export default class NewsletterView extends Vue {
-  subscribers: AdminNewsletterSubscribers | null = null;
+const subscribers = ref<AdminNewsletterSubscribers | null>(null);
 
-  async loadNewsletter() {
-    this.subscribers = await admin.getNewsletterSubscribers();
-  }
-
-  async deleteSub(email: string) {
-    await admin.deleteNewsletterSubscriber(email);
-    await this.loadNewsletter();
-  }
-
-  async mounted() {
-    await this.loadNewsletter();
-  }
+async function loadNewsletter() {
+  subscribers.value = await admin.getNewsletterSubscribers();
 }
+
+async function deleteSub(email: string) {
+  await admin.deleteNewsletterSubscriber(email);
+  await loadNewsletter();
+}
+
+onMounted(async () => {
+  await loadNewsletter();
+});
 </script>

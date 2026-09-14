@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div>
     <Navbar />
 
     <section>
@@ -15,7 +15,12 @@
     <b-button
       class="discord-button"
       type="is-link"
-      v-if="isAuthenticated && !isProxyAuth && !isDiscordButtonHidden && !isDiscordLinked"
+      v-if="
+        isAuthenticated &&
+        !isProxyAuth &&
+        !isDiscordButtonHidden &&
+        !isDiscordLinked
+      "
       tag="router-link"
       :to="{ name: 'DiscordOAuth' }"
     >
@@ -38,47 +43,48 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+<script setup lang="ts">
+import { computed, onMounted, watch } from "vue";
+import { useRoute } from "vue-router";
+import { useStore } from "@/store";
+import {
+  applyTheme,
+  getResolvedTheme,
+  getSystemTheme,
+  watchSystemTheme,
+} from "@/util/theme";
 import Navbar from "./components/Navbar.vue";
 
-@Component({
-  components: {
-    Navbar,
-  },
-})
-export default class AppComponent extends Vue {
-  get isAdmin(): boolean {
-    return this.$store.getters.isAdmin;
-  }
-  get isFooterHidden(): boolean {
-    return this.$route.matched.some((x) => x.meta.footerHidden);
-  }
-  get isCMS(): boolean {
-    return this.$route.matched.some((x) => x.meta.isCMS);
-  }
-  get isAdminButtonHidden(): boolean {
-    return this.$route.matched.some((x) => x.meta.isAdminButtonHidden);
-  }
-  get isDiscordButtonHidden(): boolean {
-    return this.$route.matched.some((x) => x.meta.isDiscordButtonHidden);
-  }
-  get isAuthenticated(): boolean {
-    return this.$store.getters.isAuthenticated;
-  }
-  get isProxyAuth(): boolean {
-    return this.$store.getters.isProxyAuth;
-  }
-  get isDiscordLinked(): boolean {
-    return !!this.$store.getters.discordUsername;
-  }
-  get getDiscordUsername(): string {
-    return this.$store.getters.discordUsername;
-  }
-  async mounted(): Promise<void> {
-    await this.$store.dispatch("checkStatus");
-  }
-}
+const store = useStore();
+const route = useRoute();
+
+const isAdmin = computed(() => store.isAdmin);
+const isAuthenticated = computed(() => store.isAuthenticated);
+const isProxyAuth = computed(() => store.isProxyAuth);
+const isDiscordLinked = computed(() => !!store.discordUsername);
+const isFooterHidden = computed(() =>
+  route.matched.some((x) => x.meta.footerHidden),
+);
+const isCMS = computed(() => route.matched.some((x) => x.meta.isCMS));
+const isAdminButtonHidden = computed(() =>
+  route.matched.some((x) => x.meta.isAdminButtonHidden),
+);
+const isDiscordButtonHidden = computed(() =>
+  route.matched.some((x) => x.meta.isDiscordButtonHidden),
+);
+
+watch(
+  () => store.themeMode,
+  (mode) => applyTheme(getResolvedTheme(mode)),
+);
+watchSystemTheme(() => {
+  if (store.themeMode === "system") applyTheme(getSystemTheme());
+});
+
+onMounted(async () => {
+  applyTheme(getResolvedTheme(store.themeMode));
+  await store.checkStatus();
+});
 </script>
 
 <style>
@@ -86,15 +92,21 @@ html,
 body {
   height: 100%;
 }
-</style>
-
-<style scoped>
 #app {
   display: flex;
   min-height: -webkit-fill-available;
   height: 100%;
   flex-direction: column;
 }
+#app > * {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-height: 0;
+}
+</style>
+
+<style scoped>
 section {
   flex: 1 0 auto;
 }

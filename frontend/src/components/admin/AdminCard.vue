@@ -14,15 +14,6 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
-@Component
-export default class AdminCard extends Vue {
-  @Prop({
-    type: Boolean,
-    default: false,
-  })
-  loading!: boolean;
-}
+<script setup lang="ts">
+withDefaults(defineProps<{ loading?: boolean }>(), { loading: false });
 </script>

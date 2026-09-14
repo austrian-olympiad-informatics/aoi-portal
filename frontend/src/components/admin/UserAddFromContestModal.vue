@@ -1,6 +1,6 @@
 <template>
   <form @submit.prevent="submit">
-    <div class="modal-card" style="width: auto">
+    <div class="modal-card" style="width: 480px">
       <header class="modal-card-head">
         <p class="modal-card-title">Add From Contest</p>
         <button type="button" class="delete" @click="$emit('close')" />
@@ -24,26 +24,26 @@
   </form>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref } from "vue";
+import { onMounted } from "vue";
 import admin from "@/services/admin";
 import { AdminContests } from "@/types/admin";
-import { Component, Vue } from "vue-property-decorator";
 
-@Component
-export default class UserAddFromContestModal extends Vue {
-  contests: AdminContests | null = null;
-  selected: string | null = null;
+const emit = defineEmits<{
+  submit: [string | null];
+  close: [];
+}>();
 
-  async loadContests() {
-    this.contests = await admin.getContests();
-  }
+const contests = ref<AdminContests | null>(null);
+const selected = ref<string | null>(null);
 
-  async mounted() {
-    await this.loadContests();
-  }
-  submit() {
-    this.$emit("submit", this.selected);
-    this.$emit("close");
-  }
+onMounted(async () => {
+  contests.value = await admin.getContests();
+});
+
+function submit() {
+  emit("submit", selected.value);
+  emit("close");
 }
 </script>
