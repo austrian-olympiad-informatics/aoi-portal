@@ -13,9 +13,21 @@
 // Override Bulma derived variables
 @use "bulma/sass/utilities/derived-variables" as dv with (
   $primary: #8a151b,
+  $link: #8a151b,
+  $info: #3e8ed0,
   $success: #208b11,
   $danger: #b82e2e,
-  $warning: #ead654
+  $warning: #ead654,
+  // Bulma 1.0 derives the invert/light/dark variants from a 10-step lightness
+  // ladder, which turns the info header text near-black; pin the 0.9.x values.
+  $custom-colors: (
+      "info": (
+        #3e8ed0,
+        #ffffff,
+        #eff5fb,
+        #296fa8,
+      ),
+    )
 );
 
 // Import full Bulma
