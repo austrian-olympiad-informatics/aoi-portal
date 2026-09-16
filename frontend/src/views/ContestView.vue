@@ -34,7 +34,7 @@
           has-icon
           v-if="contest.quali_round && profileComplete"
         >
-          Alle Daten für qualifizieren vorhanden.
+          Alle Daten für die Qualifikation vorhanden.
         </b-message>
 
         <h1 class="title is-3">{{ contest.name }}</h1>

@@ -13,7 +13,7 @@
             <b-icon icon="alert"></b-icon>
             <router-link :to="{ name: 'Profile' }"
               >Ausgefülltes Profil</router-link
-            >&nbsp; für Qualifizieren notwendig.
+            >&nbsp; für die Qualifikation notwendig.
           </span>
         </div>
         <div
@@ -22,7 +22,7 @@
         >
           <span class="icon-text">
             <b-icon icon="check-circle"></b-icon>
-            Alle Daten für qualifizieren vorhanden.
+            Alle Daten für die Qualifikation vorhanden.
           </span>
         </div>
         <div class="content" v-html="contest.teaser"></div>
@@ -82,8 +82,6 @@
 <script setup lang="ts">
 import { Contest } from "@/types/contests";
 
-// NOTE: profileComplete is typed as Contest in the original — this appears to be
-// a bug (should be boolean). Preserved as-is; tracked for separate fix.
 defineProps<{
   contest: Contest;
   profileComplete: boolean;
