@@ -69,6 +69,9 @@ class User(Base):
     google_oauths = relationship(
         "UserGoogleOAuth", back_populates="user", cascade="all, delete"
     )
+    discord_oauths = relationship(
+        "UserDiscordOAuth", back_populates="user", cascade="all, delete"
+    )
 
 
 class UserSession(Base):
@@ -144,7 +147,8 @@ class UserDiscordOAuth(Base):
 
     id = Column(Integer, primary_key=True)
     discord_id = Column(String, nullable=False)
-    user_id = Column(Integer, nullable=False)
+    user_id = Column(Integer, ForeignKey(User.id), nullable=False)
+    user = relationship(User, back_populates="discord_oauths")
     created_at = Column(DateTime, nullable=False)
     access_token = Column(String, nullable=False, unique=True, index=True)
     token_type = Column(String, nullable=False)

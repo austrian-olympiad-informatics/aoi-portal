@@ -12,6 +12,7 @@
     <b-field grouped group-multiline>
       <b-checkbox v-model="showEmail"> Email </b-checkbox>
       <b-checkbox v-model="showCMS"> CMS Username </b-checkbox>
+      <b-checkbox v-model="showDiscord"> Discord Username </b-checkbox>
       <b-checkbox v-model="showGroups"> Groups </b-checkbox>
       <b-checkbox v-model="showAdmin"> Admin </b-checkbox>
       <b-checkbox v-model="showCreatedAt"> Created At </b-checkbox>
@@ -91,6 +92,20 @@
         :visible="showCMS"
       >
         {{ props.row.cms_username === null ? "N/A" : props.row.cms_username }}
+      </b-table-column>
+      <b-table-column
+        field="discord_username"
+        label="Discord Username"
+        sortable
+        :searchable="searchable"
+        v-slot="props"
+        :visible="showDiscord"
+      >
+        {{
+          props.row.discord_username === null
+            ? "N/A"
+            : props.row.discord_username
+        }}
       </b-table-column>
       <b-table-column
         label="Groups"
@@ -221,6 +236,7 @@ const users = ref<AdminUsers | null>(null);
 const searchable = ref(false);
 const showEmail = ref(true);
 const showCMS = ref(true);
+const showDiscord = ref(false);
 const showGroups = ref(false);
 const showAdmin = ref(false);
 const showCreatedAt = ref(false);

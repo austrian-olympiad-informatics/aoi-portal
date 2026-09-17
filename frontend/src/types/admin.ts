@@ -16,6 +16,7 @@ export interface AdminUser {
   eligibility: string | null;
   cms_id: number | null;
   cms_username: string | null;
+  discord_username: string | null;
   groups: {
     id: number;
     name: string;

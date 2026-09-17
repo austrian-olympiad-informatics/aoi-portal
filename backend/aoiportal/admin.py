@@ -1,5 +1,6 @@
 import base64
 import datetime
+import json
 import uuid
 from typing import List, Optional
 
@@ -64,6 +65,20 @@ from aoiportal.web_utils import json_api
 admin_bp = Blueprint("admin", __name__)
 
 
+def _discord_username(user: User) -> Optional[str]:
+    if not user.discord_oauths:
+        return None
+    user_info = json.loads(user.discord_oauths[0].extra_data).get("user_info", {})
+    username = user_info.get("username")
+    if not username:
+        return None
+    discriminator = user_info.get("discriminator")
+    # Discord dropped discriminators; new accounts report "0".
+    if discriminator and discriminator != "0":
+        return f"{username}#{discriminator}"
+    return username
+
+
 def _conv_user(user: User) -> dict:
     return {
         "id": user.id,
@@ -86,6 +101,7 @@ def _conv_user(user: User) -> dict:
         ) if user.eligibility is not None else None,
         "cms_id": user.cms_id,
         "cms_username": user.cms_username,
+        "discord_username": _discord_username(user),
         "groups": [
             {
                 "id": g.id,
@@ -103,7 +119,7 @@ def get_users():
     q = (
         db.session.query(User)
         .order_by(User.created_at.asc())
-        .options(joinedload(User.groups))
+        .options(joinedload(User.groups), joinedload(User.discord_oauths))
     )
     return [_conv_user(u) for u in q]
 
