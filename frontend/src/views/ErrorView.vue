@@ -5,7 +5,7 @@
         <div class="welcome container has-text-centered">
           <img
             alt="Informatikolympiade Logo"
-            src="@/assets/logo-big.png"
+            src="@/assets/logo.svg"
             class="aoi-logo"
             loading="lazy"
           />
