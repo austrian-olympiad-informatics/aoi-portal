@@ -18,6 +18,29 @@
         </div>
       </div>
       <div class="level-right">
+        <div class="level-item">
+          <span class="mr-2">Sort:</span>
+          <div class="buttons has-addons">
+            <b-button
+              :type="sortOrder === 'id' ? 'is-primary' : undefined"
+              @click="sortOrder = 'id'"
+            >
+              ID
+            </b-button>
+            <b-button
+              :type="sortOrder === 'name' ? 'is-primary' : undefined"
+              @click="sortOrder = 'name'"
+            >
+              Name
+            </b-button>
+            <b-button
+              :type="sortOrder === 'priority' ? 'is-primary' : undefined"
+              @click="sortOrder = 'priority'"
+            >
+              Priority
+            </b-button>
+          </div>
+        </div>
         <p class="level-item">
           <b-switch v-model="hideDeleted">Hide Deleted Contests</b-switch>
         </p>
@@ -112,16 +135,30 @@ import admin from "@/services/admin";
 
 const toast = useToast();
 
+type SortOrder = "id" | "name" | "priority";
+
 const contests = ref<AdminContests | null>(null);
 const hideDeleted = ref(true);
+const sortOrder = ref<SortOrder>("id");
 
-const visibleContests = computed<AdminContests>(() =>
-  contests.value === null
-    ? []
-    : hideDeleted.value
-      ? contests.value.filter((c) => !c.deleted)
-      : contests.value,
-);
+const visibleContests = computed<AdminContests>(() => {
+  if (contests.value === null) return [];
+  const filtered = hideDeleted.value
+    ? contests.value.filter((c) => !c.deleted)
+    : contests.value;
+  return [...filtered].sort((a, b) => {
+    switch (sortOrder.value) {
+      case "id":
+        return a.id - b.id;
+      case "name":
+        return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+      case "priority":
+        return b.order_priority - a.order_priority;
+      default:
+        return 0;
+    }
+  });
+});
 
 async function loadContests() {
   contests.value = await admin.getContests();

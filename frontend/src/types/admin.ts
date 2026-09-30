@@ -110,6 +110,7 @@ export interface AdminUserCreateParams {
 }
 
 export interface AdminContest {
+  id: number;
   uuid: string;
   cms_id: number;
   cms_name: string;

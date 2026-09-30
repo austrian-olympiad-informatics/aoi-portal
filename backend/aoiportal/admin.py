@@ -387,6 +387,7 @@ def refresh_cms_contests():
 def list_contests():
     return [
         {
+            "id": c.id,
             "uuid": c.uuid,
             "cms_id": c.cms_id,
             "cms_name": c.cms_name,
