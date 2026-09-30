@@ -39,7 +39,8 @@ const contests = ref<AdminContests | null>(null);
 const selected = ref<string | null>(null);
 
 onMounted(async () => {
-  contests.value = await admin.getContests();
+  const allContests = await admin.getContests();
+  contests.value = allContests.filter((c) => !c.deleted);
 });
 
 function submit() {

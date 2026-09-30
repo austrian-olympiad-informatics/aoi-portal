@@ -13,11 +13,14 @@
       <div class="level-left">
         <div class="level-item">
           <p class="subtitle is-5">
-            <strong>{{ contests.length }}</strong> Contests
+            <strong>{{ visibleContests.length }}</strong> Contests
           </p>
         </div>
       </div>
       <div class="level-right">
+        <p class="level-item">
+          <b-switch v-model="hideDeleted">Hide Deleted Contests</b-switch>
+        </p>
         <p class="level-item">
           <b-button icon-left="refresh" @click="reloadContestsFromCMS">
             Reload Contests from CMS
@@ -27,9 +30,17 @@
     </nav>
 
     <div class="contests-container">
-      <div v-for="contest in contests" :key="contest.uuid">
+      <div v-for="contest in visibleContests" :key="contest.uuid">
         <div class="card">
           <div class="card-content is-clearfix">
+            <b-tag
+              v-if="contest.deleted"
+              class="deleted-badge"
+              type="is-light"
+              rounded
+            >
+              Deleted
+            </b-tag>
             <p class="title is-4 mb-3">
               {{ contest.name }}
             </p>
@@ -65,6 +76,7 @@
             <div class="content mb-1" v-html="contest.description"></div>
             <div class="buttons is-pulled-right">
               <b-button
+                v-if="!contest.deleted"
                 tag="router-link"
                 icon-left="medal"
                 :to="{
@@ -91,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { onMounted } from "vue";
 import { useToast } from "buefy";
 import { AdminContests } from "@/types/admin";
@@ -101,6 +113,15 @@ import admin from "@/services/admin";
 const toast = useToast();
 
 const contests = ref<AdminContests | null>(null);
+const hideDeleted = ref(true);
+
+const visibleContests = computed<AdminContests>(() =>
+  contests.value === null
+    ? []
+    : hideDeleted.value
+      ? contests.value.filter((c) => !c.deleted)
+      : contests.value,
+);
 
 async function loadContests() {
   contests.value = await admin.getContests();
@@ -128,5 +149,14 @@ onMounted(async () => {
 }
 .icon-text {
   gap: 0.25rem;
+}
+.card-content {
+  position: relative;
+}
+.deleted-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: hsl(0, 0%, 48%);
 }
 </style>

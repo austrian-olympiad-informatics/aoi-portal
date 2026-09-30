@@ -10,7 +10,7 @@
             </span>
           </div>
         </div>
-        <div class="level-right" v-if="contest !== null">
+        <div class="level-right" v-if="contest !== null && !contest.deleted">
           <div class="level-item">
             <b-button
               tag="router-link"
