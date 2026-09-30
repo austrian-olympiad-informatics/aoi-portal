@@ -5,6 +5,8 @@ import { createPinia, defineStore } from "pinia";
 
 export const pinia = createPinia();
 
+export type ContestSortOrder = "id" | "name" | "priority";
+
 interface LocalStorageState {
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -17,6 +19,8 @@ interface LocalStorageState {
   passwordResetVerifyUuid: string;
   discordUsername: string;
   themeMode?: ThemeMode;
+  contestSortOrder?: ContestSortOrder;
+  hideDeletedContests?: boolean;
 }
 
 export const useStore = defineStore("main", {
@@ -39,6 +43,8 @@ export const useStore = defineStore("main", {
     proxyContestName: "",
     proxyContestCmsName: "",
     themeMode: "system" as ThemeMode,
+    contestSortOrder: "id" as ContestSortOrder,
+    hideDeletedContests: true,
   }),
   getters: {
     getAuthToken: (state) => state.authToken,
@@ -111,6 +117,10 @@ export const useStore = defineStore("main", {
       this.passwordResetVerifyUuid = savedState.passwordResetVerifyUuid;
       this.discordUsername = savedState.discordUsername;
       if (savedState.themeMode) this.themeMode = savedState.themeMode;
+      if (savedState.contestSortOrder)
+        this.contestSortOrder = savedState.contestSortOrder;
+      if (savedState.hideDeletedContests !== undefined)
+        this.hideDeletedContests = savedState.hideDeletedContests;
     },
     async checkStatus() {
       const status = await auth.status();
@@ -139,6 +149,8 @@ export const useStore = defineStore("main", {
         passwordResetVerifyUuid: this.passwordResetVerifyUuid,
         discordUsername: this.discordUsername,
         themeMode: this.themeMode,
+        contestSortOrder: this.contestSortOrder,
+        hideDeletedContests: this.hideDeletedContests,
       };
       localStorage.setItem("aoiState", JSON.stringify(val));
     },
@@ -165,6 +177,8 @@ pinia.use(({ store }) => {
         passwordResetVerifyUuid: state.passwordResetVerifyUuid,
         discordUsername: state.discordUsername,
         themeMode: state.themeMode,
+        contestSortOrder: state.contestSortOrder,
+        hideDeletedContests: state.hideDeletedContests,
       };
       localStorage.setItem("aoiState", JSON.stringify(val));
     },

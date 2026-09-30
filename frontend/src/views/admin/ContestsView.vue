@@ -129,17 +129,19 @@
 import { computed, ref } from "vue";
 import { onMounted } from "vue";
 import { useToast } from "buefy";
+import { storeToRefs } from "pinia";
 import { AdminContests } from "@/types/admin";
 import AdminCard from "@/components/admin/AdminCard.vue";
 import admin from "@/services/admin";
+import { useStore } from "@/store";
 
 const toast = useToast();
+const store = useStore();
 
-type SortOrder = "id" | "name" | "priority";
+const { hideDeletedContests: hideDeleted, contestSortOrder: sortOrder } =
+  storeToRefs(store);
 
 const contests = ref<AdminContests | null>(null);
-const hideDeleted = ref(true);
-const sortOrder = ref<SortOrder>("id");
 
 const visibleContests = computed<AdminContests>(() => {
   if (contests.value === null) return [];
