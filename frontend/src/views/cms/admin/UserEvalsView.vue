@@ -24,7 +24,7 @@
                 v-model="filterByContestId"
                 :value-func="(c) => c.id"
                 :formatter="(c) => c.description"
-                @input="reloadUserEvals"
+                @update:model-value="reloadUserEvals"
               />
             </b-field>
             <b-field label="Filter by Task">
@@ -39,7 +39,7 @@
                       t.contest ? t.contest.description : 'No Contest'
                     })`
                 "
-                @input="reloadUserEvals"
+                @update:model-value="reloadUserEvals"
               />
             </b-field>
             <b-field label="Filter by User">
@@ -51,7 +51,7 @@
                 :formatter="
                   (u) => `${u.first_name} ${u.last_name} (${u.username})`
                 "
-                @input="reloadUserEvals"
+                @update:model-value="reloadUserEvals"
               />
             </b-field>
           </form>

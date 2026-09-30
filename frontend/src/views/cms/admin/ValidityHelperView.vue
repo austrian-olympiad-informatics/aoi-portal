@@ -93,8 +93,8 @@
           <br />
           <b-field>
             <b-switch
-              :value="props.row.hidden"
-              @input="(v) => changeHidden(props.row.id, v)"
+              :model-value="props.row.hidden"
+              @update:model-value="(v) => changeHidden(props.row.id, v)"
               >Hidden</b-switch
             >
           </b-field>

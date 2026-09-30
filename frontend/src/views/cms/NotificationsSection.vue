@@ -5,7 +5,7 @@
       <b-switch
         class="mb-3"
         v-if="showNotificationSwitch"
-        @input="askNotificationPermission"
+        @update:model-value="askNotificationPermission"
         >Benachrichtigung bei neuen Ankündigungen</b-switch
       >
       <div v-if="!announcements.length">

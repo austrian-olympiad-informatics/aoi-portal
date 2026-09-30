@@ -10,7 +10,7 @@
         <Dropzone @drop="onMainDrop">
           <CodeMirror
             v-model="code"
-            @input="codeChanged"
+            @update:model-value="codeChanged"
             :lang="codemirrorLang"
           />
         </Dropzone>
@@ -19,7 +19,10 @@
         <div class="code-test-input">
           <div class="test-head">Test Input</div>
           <Dropzone @drop="onInputDrop">
-            <CodeMirror v-model="testInput" @input="testInputChanged" />
+            <CodeMirror
+              v-model="testInput"
+              @update:model-value="testInputChanged"
+            />
           </Dropzone>
         </div>
         <div class="code-test-output">

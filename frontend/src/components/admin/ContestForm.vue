@@ -78,7 +78,7 @@
         :model-value="
           data.auto_add_to_group_id === null ? '' : data.auto_add_to_group_id
         "
-        @input="onAutoaddInput"
+        @update:model-value="onAutoaddInput"
       >
         <option value="">No Group</option>
         <template v-if="groups !== null">
@@ -126,9 +126,8 @@ onMounted(async () => {
   groups.value = await admin.getGroups();
 });
 
-function onAutoaddInput(event: InputEvent) {
-  const val = (event.target as HTMLSelectElement).value;
-  data.value.auto_add_to_group_id = val ? +val : null;
+function onAutoaddInput(val: number | string) {
+  data.value.auto_add_to_group_id = val === "" ? null : Number(val);
 }
 </script>
 
